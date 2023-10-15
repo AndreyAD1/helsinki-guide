@@ -14,7 +14,7 @@ import (
 
 func translate(ctx context.Context, text, targetLanguage string) (string, error) {
 	url := "https://google-translate1.p.rapidapi.com/language/translate/v2"
-	body := strings.NewReader()
+	body := strings.NewReader(text)
 	request, err := http.NewRequestWithContext(ctx, "POST", url, body)
 	if err != nil {
 		err = fmt.Errorf(
