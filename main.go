@@ -1,8 +1,13 @@
 package main
 
-import "github.com/AndreyAD1/helsinki-guide/translator"
+import (
+	"context"
+
+	"github.com/AndreyAD1/helsinki-guide/translator"
+)
 
 
 func main() {
-	translator.Run()
+	ctx := context.Background()
+	translator.Run(ctx)
 }
