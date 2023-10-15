@@ -1,2 +1,3 @@
 # helsinki-guide
-A Telegram bot that provides information about notable Helsinki buildings
+This repo will contain a code of Telegram bot providing information about notable Helsinki buildings.
+The work is in progress.
