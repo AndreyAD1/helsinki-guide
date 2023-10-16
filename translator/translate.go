@@ -11,11 +11,13 @@ import (
 
 	"github.com/xuri/excelize/v2"
 )
+var url = "https://google-translate1.p.rapidapi.com/language/translate/v2"
 
-func translate(ctx context.Context, text, targetLanguage string) (string, error) {
-	url := "https://google-translate1.p.rapidapi.com/language/translate/v2"
-	body := strings.NewReader(text)
-	request, err := http.NewRequestWithContext(ctx, "POST", url, body)
+
+func translate(ctx context.Context, apiKey, text, targetLanguage string) (string, error) {
+	body := fmt.Sprintf("source=fi&target=en&q=%v", text)
+	body_reader := strings.NewReader(body)
+	request, err := http.NewRequestWithContext(ctx, "POST", url, body_reader)
 	if err != nil {
 		err = fmt.Errorf(
 			"can not create a request to '%v' with a body %s: %w", 
@@ -25,6 +27,10 @@ func translate(ctx context.Context, text, targetLanguage string) (string, error)
 		)
 		return "", err
 	}
+	request.Header.Add("content-type", "application/x-www-form-urlencoded")
+	request.Header.Add("Accept-Encoding", "application/gzip")
+	request.Header.Add("X-RapidAPI-Key", apiKey)
+	request.Header.Add("X-RapidAPI-Host", "google-translate1.p.rapidapi.com")
 	response, err := http.DefaultClient.Do(request)
 	if err != nil {
 		err = fmt.Errorf(
@@ -48,7 +54,7 @@ func translate(ctx context.Context, text, targetLanguage string) (string, error)
 	}
 	if response.StatusCode != http.StatusOK {
 		err = fmt.Errorf(
-			"Receive error status code '%v' for a request to '%v' with a body %s: %v",
+			"receive error status code '%v' for a request to '%v' with a body %s: %v",
 			response.StatusCode,
 			url,
 			body,
@@ -60,7 +66,7 @@ func translate(ctx context.Context, text, targetLanguage string) (string, error)
 }
 
 
-func readFile(ctx context.Context, filename string) {
+func readFile(ctx context.Context, filename, apiKey string) {
 	file, err := excelize.OpenFile(filename)
 	if err != nil {
 		log.Fatalf("can not open a file %s: %v", filename, err)
@@ -71,7 +77,7 @@ func readFile(ctx context.Context, filename string) {
 			log.Printf("can not close the file %s: %v", filename, err)
 		}
 	}()
-	for _, cell := range []string{"C2", "T2", "U2"} {
+	for _, cell := range []string{"U2"} {
 		finnishText, err := file.GetCellValue("Lauttasaari", cell)
 		if err != nil {
 			log.Printf("can not read the cell T2: %v", err)
@@ -80,7 +86,7 @@ func readFile(ctx context.Context, filename string) {
 		fmt.Println(finnishText)
 		newCtx, cancel := context.WithTimeout(ctx, time.Second * 10)
 		defer cancel()
-		englishText, err := translate(newCtx, finnishText, "en")
+		englishText, err := translate(newCtx, apiKey, finnishText, "en")
 		if err != nil {
 			log.Printf("can not translate %v: %v", finnishText, err)
 			continue
@@ -90,6 +96,6 @@ func readFile(ctx context.Context, filename string) {
 }
 
 
-func Run(ctx context.Context) {
-	readFile(ctx, "input_dataset.xlsx")
+func Run(ctx context.Context, apiKey string) {
+	readFile(ctx, "input_dataset.xlsx", apiKey)
 }

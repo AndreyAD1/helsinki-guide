@@ -1,13 +1,16 @@
 package main
 
 import (
-	"context"
+	"fmt"
+	"os"
 
-	"github.com/AndreyAD1/helsinki-guide/translator"
+	"github.com/AndreyAD1/helsinki-guide/cmd"
 )
 
 
 func main() {
-	ctx := context.Background()
-	translator.Run(ctx)
+	err := cmd.Execute()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+	}
 }
