@@ -19,7 +19,13 @@ var TranslateCmd = &cobra.Command{
 }
 
 func init() {
-	TranslateCmd.Flags().StringVarP(&apiKey, "api-key", "k", "", "A key for a translation API (required)")
+	TranslateCmd.Flags().StringVarP(
+		&apiKey, 
+		"api-key", 
+		"k",
+		"",
+		"A key for a translation API (required)",
+	)
 	TranslateCmd.MarkFlagRequired("api-key")
 }
 
