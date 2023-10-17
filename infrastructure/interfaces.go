@@ -3,6 +3,6 @@ package infrastructure
 import "context"
 
 
-type translationClient interface {
-	GetTranslation(context.Context, string, string, string) (string, error)
+type TranslationClient interface {
+	GetTranslation(ctx context.Context, source, target, text string) (string, error)
 }

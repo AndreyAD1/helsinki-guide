@@ -5,7 +5,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/AndreyAD1/helsinki-guide/translator"
+	"github.com/AndreyAD1/helsinki-guide/infrastructure"
+	ts "github.com/AndreyAD1/helsinki-guide/translator"
 )
 
 
@@ -30,5 +31,6 @@ func init() {
 }
 
 func run() {
-	translator.Run(context.Background(), apiKey)
+	translator := ts.NewTranslator(infrastructure.NewGoogleClient(apiKey))
+	translator.Run(context.Background())
 }

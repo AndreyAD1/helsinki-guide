@@ -16,7 +16,7 @@ type GoogleTranslateClient struct {
 
 var url = "https://google-translate1.p.rapidapi.com/language/translate/v2"
 
-func NewClient(apiKey string) GoogleTranslateClient {
+func NewGoogleClient(apiKey string) GoogleTranslateClient {
 	return GoogleTranslateClient{url, apiKey}
 }
 
