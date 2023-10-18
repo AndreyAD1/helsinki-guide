@@ -19,21 +19,29 @@ func NewTranslator(client infrastructure.TranslationClient) Translator {
 	return Translator{client}
 }
 
-func (t Translator) Run(ctx context.Context) {
-	t.readFile(ctx, "input_dataset.xlsx")
-}
-
-func (t Translator) readFile(ctx context.Context, filename string) {
-	file, err := excelize.OpenFile(filename)
+func (t Translator) Run(ctx context.Context) error {
+	filename := "input_dataset.xlsx"
+	source, err := excelize.OpenFile(filename)
 	if err != nil {
-		log.Fatalf("can not open a file %s: %v", filename, err)
-		return
+		return err
 	}
 	defer func() {
-		if err := file.Close(); err != nil {
+		if err := source.Close(); err != nil {
 			log.Printf("can not close the file %s: %v", filename, err)
 		}
 	}()
+	translated, closeFunc, err := t.getTranslatedFile(ctx, source)
+	if err != nil {
+		return err
+	}
+	defer closeFunc()
+	if err := translated.SaveAs("translated.xlsx"); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t Translator) getTranslatedFile(ctx context.Context, file *excelize.File) (*excelize.File, func(), error) {
 	for _, cell := range []string{"U2"} {
 		finnishText, err := file.GetCellValue("Lauttasaari", cell)
 		if err != nil {
@@ -50,4 +58,10 @@ func (t Translator) readFile(ctx context.Context, filename string) {
 		}
 		fmt.Println(englishText)
 	}
+	closeFunc := func() {
+		if err := file.Close(); err != nil {
+			log.Printf("can not close the file %s: %v", file.Path, err)
+		}
+	}
+	return file, closeFunc, nil
 }

@@ -2,6 +2,8 @@ package translate
 
 import (
 	"context"
+	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 
@@ -32,5 +34,8 @@ func init() {
 
 func run() {
 	translator := ts.NewTranslator(infrastructure.NewGoogleClient(apiKey))
-	translator.Run(context.Background())
+	if err := translator.Run(context.Background()); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 }
