@@ -2,6 +2,7 @@ package infrastructure
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -15,6 +16,16 @@ type GoogleTranslateClient struct {
 }
 
 var url = "https://google-translate1.p.rapidapi.com/language/translate/v2"
+
+type translatedText struct {
+	TranslatedText string `json:"translatedText"`
+}
+type translations struct {
+	Translations []translatedText `json:"translations"`
+}
+type TranslationResponseBody struct {
+	Data translations `json:"data"`
+}
 
 func NewGoogleClient(apiKey string) GoogleTranslateClient {
 	return GoogleTranslateClient{url, apiKey}
@@ -66,12 +77,22 @@ func (client GoogleTranslateClient) GetTranslation(
 	}
 	if response.StatusCode != http.StatusOK {
 		err = fmt.Errorf(
-			"receive error status code '%v': %v: %v",
+			"receive an error status code '%v': %v: %v",
 			response.StatusCode,
 			errContext,
 			string(responseBody),
 		)
 		return "", err
 	}
-	return string(responseBody), nil
+	var parsedResponse TranslationResponseBody
+	if err = json.Unmarshal(responseBody, &parsedResponse); err != nil {
+		err = fmt.Errorf(
+			"receive an unexpected response body: '%v': %w",
+			string(responseBody),
+			err,
+		)
+		return "", err
+	}
+	translatedText := parsedResponse.Data.Translations[0].TranslatedText
+	return translatedText, nil
 }
