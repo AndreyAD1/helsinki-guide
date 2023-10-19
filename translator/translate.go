@@ -9,6 +9,7 @@ import (
 	"github.com/AndreyAD1/helsinki-guide/infrastructure"
 	"github.com/xuri/excelize/v2"
 )
+
 var url = "https://google-translate1.p.rapidapi.com/language/translate/v2"
 
 type Translator struct {
@@ -72,9 +73,9 @@ func (t Translator) getTranslatedFile(ctx context.Context, file *excelize.File) 
 		log.Printf("update a first row: %q\n", translatedValues)
 		if err = file.SetSheetRow(sheetName, "A1", &translatedValues); err != nil {
 			return fmt.Errorf(
-				"can not set a new first row '%v' for a sheet %v: %w", 
-				translatedValues, 
-				sheetName, 
+				"can not set a new first row '%v' for a sheet %v: %w",
+				translatedValues,
+				sheetName,
 				err,
 			)
 		}
@@ -83,7 +84,7 @@ func (t Translator) getTranslatedFile(ctx context.Context, file *excelize.File) 
 }
 
 func (t Translator) getTranslation(ctx context.Context, text string) (string, error) {
-	newCtx, cancel := context.WithTimeout(ctx, time.Second * 10)
+	newCtx, cancel := context.WithTimeout(ctx, time.Second*10)
 	defer cancel()
 	englishText, err := t.client.GetTranslation(newCtx, "fi", "en", text)
 	if err != nil {

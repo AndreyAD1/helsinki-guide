@@ -11,13 +11,12 @@ import (
 	ts "github.com/AndreyAD1/helsinki-guide/translator"
 )
 
-
 var (
-	apiKey string
+	apiKey       string
 	TranslateCmd = &cobra.Command{
 		Use:   "translate <source> <target>",
 		Short: "Translate a building dataset",
-		Args: cobra.ExactArgs(2),
+		Args:  cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
 			run(args)
 		},
@@ -26,8 +25,8 @@ var (
 
 func init() {
 	TranslateCmd.Flags().StringVarP(
-		&apiKey, 
-		"api-key", 
+		&apiKey,
+		"api-key",
 		"k",
 		"",
 		"A key for a translation API (required)",

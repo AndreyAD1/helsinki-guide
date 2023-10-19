@@ -9,10 +9,9 @@ import (
 	"strings"
 )
 
-
 type GoogleTranslateClient struct {
 	endpoint string
-	apiKey string
+	apiKey   string
 }
 
 var url = "https://google-translate1.p.rapidapi.com/language/translate/v2"
@@ -40,14 +39,14 @@ func (client GoogleTranslateClient) GetTranslation(
 	body := fmt.Sprintf("source=%v&target=%v&q=%v", source, target, text)
 	bodyReader := strings.NewReader(body)
 	errContext := fmt.Sprintf(
-		"a request to '%v' with a body %s", 
-		client.endpoint, 
+		"a request to '%v' with a body %s",
+		client.endpoint,
 		body,
 	)
 	request, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodPost,
-		client.endpoint, 
+		client.endpoint,
 		bodyReader,
 	)
 	if err != nil {
@@ -58,19 +57,19 @@ func (client GoogleTranslateClient) GetTranslation(
 	request.Header.Add("Accept-Encoding", "application/gzip")
 	request.Header.Add("X-RapidAPI-Key", client.apiKey)
 	request.Header.Add("X-RapidAPI-Host", "google-translate1.p.rapidapi.com")
-	
+
 	response, err := http.DefaultClient.Do(request)
 	if err != nil {
 		err = fmt.Errorf("can not send a request: %v: %w", errContext, err)
 		return "", err
 	}
 	defer response.Body.Close()
-	
+
 	responseBody, err := io.ReadAll(response.Body)
 	if err != nil {
 		err = fmt.Errorf(
-			"can not read a response body: %v: %w", 
-			errContext, 
+			"can not read a response body: %v: %w",
+			errContext,
 			err,
 		)
 		return "", err
