@@ -19,23 +19,22 @@ func NewTranslator(client infrastructure.TranslationClient) Translator {
 	return Translator{client}
 }
 
-func (t Translator) Run(ctx context.Context) error {
-	filename := "input_dataset.xlsx"
-	source, err := excelize.OpenFile(filename)
+func (t Translator) Run(ctx context.Context, sourceFilename, targetFilename string) error {
+	source, err := excelize.OpenFile(sourceFilename)
 	if err != nil {
 		return err
 	}
 	defer func() {
 		if err := source.Close(); err != nil {
-			log.Printf("can not close the file %s: %v", filename, err)
+			log.Printf("can not close the file %s: %v", sourceFilename, err)
 		}
 	}()
 	translated, err := t.getTranslatedFile(ctx, source)
 	if err != nil {
 		return err
 	}
-	if err := translated.SaveAs("translated.xlsx"); err != nil {
-		return err
+	if err := translated.SaveAs(targetFilename); err != nil {
+		return fmt.Errorf("can not save a file '%v': %w", targetFilename, err)
 	}
 	return nil
 }

@@ -2,7 +2,7 @@ package translate
 
 import (
 	"context"
-	"fmt"
+	"log"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -12,14 +12,17 @@ import (
 )
 
 
-var apiKey string
-var TranslateCmd = &cobra.Command{
-  Use:   "translate",
-  Short: "Translate a building dataset",
-  Run: func(cmd *cobra.Command, args []string) {
-    run()
-  },
-}
+var (
+	apiKey string
+	TranslateCmd = &cobra.Command{
+		Use:   "translate <source> <target>",
+		Short: "Translate a building dataset",
+		Args: cobra.ExactArgs(2),
+		Run: func(cmd *cobra.Command, args []string) {
+			run(args)
+		},
+	}
+)
 
 func init() {
 	TranslateCmd.Flags().StringVarP(
@@ -32,10 +35,11 @@ func init() {
 	TranslateCmd.MarkFlagRequired("api-key")
 }
 
-func run() {
+func run(args []string) {
 	translator := ts.NewTranslator(infrastructure.NewGoogleClient(apiKey))
-	if err := translator.Run(context.Background()); err != nil {
-		fmt.Println(err)
+	source, target := args[0], args[1]
+	if err := translator.Run(context.Background(), source, target); err != nil {
+		log.Fatal(err)
 		os.Exit(1)
 	}
 }
