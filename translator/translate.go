@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/AndreyAD1/helsinki-guide/infrastructure"
@@ -80,40 +81,55 @@ func (t Translator) getTranslatedFile(ctx context.Context, file *excelize.File) 
 			)
 		}
 
-		for i := 1; rows.Next(); i++ {
+		for i := 2; rows.Next(); i++ {
 			row, err := rows.Columns()
 			if err != nil {
 				return fmt.Errorf("can not read a row %v of a sheet '%v': %w", i, sheetName, err)
 			}
-			translatedValues := []string{}
-			for _, cellValue := range row[2:] {
-				if cellValue == "" {
-					translatedValues = append(translatedValues, "")
-					continue
-				}
-				translation, err := t.getTranslation(ctx, cellValue)
-				if err != nil {
-					log.Printf("a translation error: %v", err)
-					continue
-				}
-				log.Printf("receive a translation %v", translation)
-				translatedValues = append(translatedValues, translation)
-			}
-			log.Printf("update a row %v: %q\n", i, translatedValues)
-			firstTranslatedCell := fmt.Sprintf("C%v", i)
-			if err = file.SetSheetRow(
-				sheetName, 
-				firstTranslatedCell, 
-				&translatedValues,
-			); err != nil {
-				return fmt.Errorf(
-					"can not set a row '%v' for a sheet %v: %w",
-					i,
-					sheetName,
-					err,
-				)
-			}
+			t.translateRow(ctx, i, row, sheetName, file)
 		}
+	}
+	return nil
+}
+
+func (t Translator) translateRow(
+	ctx context.Context, 
+	rowNumber int, 
+	rowValues []string, 
+	sheetName string, 
+	file *excelize.File,
+) error {
+	translatedValues := []interface{}{}
+	for _, cellValue := range rowValues[2:] {
+		if num, err := strconv.ParseFloat(cellValue, 32); err == nil {
+			translatedValues = append(translatedValues, num)
+			continue
+		}
+		if val, err := strconv.ParseBool(cellValue); err == nil {
+			translatedValues = append(translatedValues, val)
+			continue
+		}
+		translation, err := t.getTranslation(ctx, cellValue)
+		if err != nil {
+			log.Printf("a translation error: %v", err)
+			continue
+		}
+		log.Printf("receive a translation %v", translation)
+		translatedValues = append(translatedValues, translation)
+	}
+	log.Printf("update a row %v: %q\n", rowNumber, translatedValues)
+	firstTranslatedCell := fmt.Sprintf("C%v", rowNumber)
+	if err := file.SetSheetRow(
+		sheetName, 
+		firstTranslatedCell, 
+		&translatedValues,
+	); err != nil {
+		return fmt.Errorf(
+			"can not set a row '%v' for a sheet %v: %w",
+			rowNumber,
+			sheetName,
+			err,
+		)
 	}
 	return nil
 }
