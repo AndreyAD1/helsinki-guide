@@ -21,7 +21,8 @@ func NewTranslator(client infrastructure.TranslationClient) Translator {
 	return Translator{client}
 }
 
-func (t Translator) Run(ctx context.Context, sourceFilename, targetFilename string) error {
+func (t Translator) Run(
+	ctx context.Context, sourceFilename, targetFilename string) error {
 	source, err := excelize.OpenFile(sourceFilename)
 	if err != nil {
 		return err
@@ -41,11 +42,13 @@ func (t Translator) Run(ctx context.Context, sourceFilename, targetFilename stri
 	return nil
 }
 
-func (t Translator) getTranslatedFile(ctx context.Context, file *excelize.File) error {
+func (t Translator) getTranslatedFile(
+	ctx context.Context, file *excelize.File) error {
 	for _, sheetName := range file.GetSheetList() {
 		rows, err := file.Rows(sheetName)
 		if err != nil {
-			return fmt.Errorf("can not get rows for a sheet '%v': %w", sheetName, err)
+			return fmt.Errorf(
+				"can not get rows for a sheet '%v': %w", sheetName, err)
 		}
 		defer func() {
 			if err := rows.Close(); err != nil {
@@ -55,38 +58,26 @@ func (t Translator) getTranslatedFile(ctx context.Context, file *excelize.File) 
 		rows.Next()
 		firstRow, err := rows.Columns()
 		if err != nil {
-			return fmt.Errorf("can not read a first row of a sheet '%v': %w", sheetName, err)
-		}
-		translatedValues := []string{}
-		for _, cellValue := range firstRow {
-			if cellValue == "" {
-				translatedValues = append(translatedValues, "")
-				continue
-			}
-			translation, err := t.getTranslation(ctx, cellValue)
-			if err != nil {
-				log.Printf("a translation error: %v", err)
-				continue
-			}
-			log.Printf("receive a translations %v", translation)
-			translatedValues = append(translatedValues, translation)
-		}
-		log.Printf("update a first row: %q\n", translatedValues)
-		if err = file.SetSheetRow(sheetName, "A1", &translatedValues); err != nil {
 			return fmt.Errorf(
-				"can not set a new first row '%v' for a sheet %v: %w",
-				translatedValues,
-				sheetName,
-				err,
-			)
+				"can not read a first row of a sheet '%v': %w", sheetName, err)
+		}
+		if err := t.translateRow(ctx, 1, firstRow, sheetName, file); err != nil {
+			return fmt.Errorf("can't translate a first row: %v", err)
 		}
 
 		for i := 2; rows.Next(); i++ {
 			row, err := rows.Columns()
 			if err != nil {
-				return fmt.Errorf("can not read a row %v of a sheet '%v': %w", i, sheetName, err)
+				return fmt.Errorf(
+					"can not read a row %v of a sheet '%v': %w", 
+					i, 
+					sheetName, 
+					err,
+				)
 			}
-			t.translateRow(ctx, i, row, sheetName, file)
+			if err := t.translateRow(ctx, i, row, sheetName, file); err != nil {
+				return fmt.Errorf("can't translate a row %v: %v", row, err)
+			}
 		}
 	}
 	return nil
@@ -107,6 +98,10 @@ func (t Translator) translateRow(
 		}
 		if val, err := strconv.ParseBool(cellValue); err == nil {
 			translatedValues = append(translatedValues, val)
+			continue
+		}
+		if cellValue == "" {
+			translatedValues = append(translatedValues, cellValue)
 			continue
 		}
 		translation, err := t.getTranslation(ctx, cellValue)
