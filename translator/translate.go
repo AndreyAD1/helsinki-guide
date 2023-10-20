@@ -13,6 +13,11 @@ import (
 
 var url = "https://google-translate1.p.rapidapi.com/language/translate/v2"
 
+type columnCoordinates struct {
+	index int
+	name string
+}
+
 type Translator struct {
 	client infrastructure.TranslationClient
 }
@@ -61,7 +66,8 @@ func (t Translator) getTranslatedFile(
 			return fmt.Errorf(
 				"can not read a first row of a sheet '%v': %w", sheetName, err)
 		}
-		if err := t.translateRow(ctx, 1, firstRow, sheetName, file); err != nil {
+		column := columnCoordinates{2, "C"}
+		if err := t.translateRow(ctx, 1, column, firstRow, sheetName, file); err != nil {
 			return fmt.Errorf("can't translate a first row: %v", err)
 		}
 
@@ -75,7 +81,9 @@ func (t Translator) getTranslatedFile(
 					err,
 				)
 			}
-			if err := t.translateRow(ctx, i, row, sheetName, file); err != nil {
+			column := columnCoordinates{17, "R"}
+			if err := t.translateRow(
+				ctx, i, column, row, sheetName, file); err != nil {
 				return fmt.Errorf("can't translate a row %v: %v", row, err)
 			}
 		}
@@ -85,13 +93,21 @@ func (t Translator) getTranslatedFile(
 
 func (t Translator) translateRow(
 	ctx context.Context, 
-	rowNumber int, 
+	rowNumber int,
+	startColumn columnCoordinates,
 	rowValues []string, 
 	sheetName string, 
 	file *excelize.File,
 ) error {
+	if len(rowValues) < startColumn.index {
+		return fmt.Errorf(
+			"wrong column index %v, expect less than %v",
+			len(rowValues),
+			startColumn.index,
+		)
+	}
 	translatedValues := []interface{}{}
-	for _, cellValue := range rowValues[2:] {
+	for _, cellValue := range rowValues[startColumn.index:] {
 		if num, err := strconv.ParseFloat(cellValue, 32); err == nil {
 			translatedValues = append(translatedValues, num)
 			continue
@@ -113,7 +129,7 @@ func (t Translator) translateRow(
 		translatedValues = append(translatedValues, translation)
 	}
 	log.Printf("update a row %v: %q\n", rowNumber, translatedValues)
-	firstTranslatedCell := fmt.Sprintf("C%v", rowNumber)
+	firstTranslatedCell := fmt.Sprintf("%v%v", startColumn.name, rowNumber)
 	if err := file.SetSheetRow(
 		sheetName, 
 		firstTranslatedCell, 
