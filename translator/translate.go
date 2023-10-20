@@ -79,6 +79,41 @@ func (t Translator) getTranslatedFile(ctx context.Context, file *excelize.File) 
 				err,
 			)
 		}
+
+		for i := 1; rows.Next(); i++ {
+			row, err := rows.Columns()
+			if err != nil {
+				return fmt.Errorf("can not read a row %v of a sheet '%v': %w", i, sheetName, err)
+			}
+			translatedValues := []string{}
+			for _, cellValue := range row[2:] {
+				if cellValue == "" {
+					translatedValues = append(translatedValues, "")
+					continue
+				}
+				translation, err := t.getTranslation(ctx, cellValue)
+				if err != nil {
+					log.Printf("a translation error: %v", err)
+					continue
+				}
+				log.Printf("receive a translation %v", translation)
+				translatedValues = append(translatedValues, translation)
+			}
+			log.Printf("update a row %v: %q\n", i, translatedValues)
+			firstTranslatedCell := fmt.Sprintf("C%v", i)
+			if err = file.SetSheetRow(
+				sheetName, 
+				firstTranslatedCell, 
+				&translatedValues,
+			); err != nil {
+				return fmt.Errorf(
+					"can not set a row '%v' for a sheet %v: %w",
+					i,
+					sheetName,
+					err,
+				)
+			}
+		}
 	}
 	return nil
 }
