@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 )
 
 type GoogleTranslateClient struct {
@@ -96,6 +97,7 @@ func (c GoogleTranslateClient) GetResponseWithRetry(request *http.Request) ([]by
 		}
 		if response.StatusCode >= 500 {
 			log.Printf("receive 500 for a request %v: %s", request, responseBody)
+			time.Sleep(time.Second * 2)
 			continue
 		}
 
