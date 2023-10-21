@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -30,7 +31,7 @@ func NewGoogleClient(apiKey string) GoogleTranslateClient {
 	return GoogleTranslateClient{url, apiKey}
 }
 
-func (client GoogleTranslateClient) GetTranslation(
+func (c GoogleTranslateClient) GetTranslation(
 	ctx context.Context,
 	source,
 	target,
@@ -40,13 +41,13 @@ func (client GoogleTranslateClient) GetTranslation(
 	bodyReader := strings.NewReader(body)
 	errContext := fmt.Sprintf(
 		"a request to '%v' with a body %s",
-		client.endpoint,
+		c.endpoint,
 		body,
 	)
 	request, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodPost,
-		client.endpoint,
+		c.endpoint,
 		bodyReader,
 	)
 	if err != nil {
@@ -55,32 +56,11 @@ func (client GoogleTranslateClient) GetTranslation(
 	}
 	request.Header.Add("content-type", "application/x-www-form-urlencoded")
 	request.Header.Add("Accept-Encoding", "application/gzip")
-	request.Header.Add("X-RapidAPI-Key", client.apiKey)
+	request.Header.Add("X-RapidAPI-Key", c.apiKey)
 	request.Header.Add("X-RapidAPI-Host", "google-translate1.p.rapidapi.com")
 
-	response, err := http.DefaultClient.Do(request)
+	responseBody, err := c.GetResponseWithRetry(request)
 	if err != nil {
-		err = fmt.Errorf("can not send a request: %v: %w", errContext, err)
-		return "", err
-	}
-	defer response.Body.Close()
-
-	responseBody, err := io.ReadAll(response.Body)
-	if err != nil {
-		err = fmt.Errorf(
-			"can not read a response body: %v: %w",
-			errContext,
-			err,
-		)
-		return "", err
-	}
-	if response.StatusCode != http.StatusOK {
-		err = fmt.Errorf(
-			"receive an error status code '%v': %v: %v",
-			response.StatusCode,
-			errContext,
-			string(responseBody),
-		)
 		return "", err
 	}
 	var parsedResponse TranslationResponseBody
@@ -94,4 +74,41 @@ func (client GoogleTranslateClient) GetTranslation(
 	}
 	translatedText := parsedResponse.Data.Translations[0].TranslatedText
 	return translatedText, nil
+}
+
+func (c GoogleTranslateClient) GetResponseWithRetry(request *http.Request) ([]byte, error) {
+	for {
+		response, err := http.DefaultClient.Do(request)
+		if err != nil {
+			err = fmt.Errorf("can not send a request: %v: %w", request, err)
+			return nil, err
+		}
+		defer response.Body.Close()
+
+		responseBody, err := io.ReadAll(response.Body)
+		if err != nil {
+			err = fmt.Errorf(
+				"can not read a response body for a request: %v: %w",
+				request,
+				err,
+			)
+			return nil, err
+		}
+		if response.StatusCode >= 500 {
+			log.Printf("receive 500 for a request %v: %s", request, responseBody)
+			continue
+		}
+
+		if response.StatusCode != http.StatusOK {
+			err = fmt.Errorf(
+				"receive an error status code '%v': %v: %v",
+				response.StatusCode,
+				request,
+				string(responseBody),
+			)
+			return nil, err
+		}
+		return responseBody, nil
+	}
+
 }
