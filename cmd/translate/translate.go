@@ -13,6 +13,7 @@ import (
 
 var (
 	apiKey       string
+	sheetName    string
 	TranslateCmd = &cobra.Command{
 		Use:   "translate <source> <target>",
 		Short: "Translate a building dataset",
@@ -31,13 +32,21 @@ func init() {
 		"",
 		"A key for a translation API (required)",
 	)
+	TranslateCmd.Flags().StringVarP(
+		&sheetName,
+		"sheet",
+		"s",
+		"",
+		"A name of Excel sheet to translate (required)",
+	)
 	TranslateCmd.MarkFlagRequired("api-key")
+	TranslateCmd.MarkFlagRequired("sheet")
 }
 
 func run(args []string) {
 	translator := ts.NewTranslator(infrastructure.NewGoogleClient(apiKey))
 	source, target := args[0], args[1]
-	if err := translator.Run(context.Background(), source, target); err != nil {
+	if err := translator.Run(context.Background(), source, sheetName, target); err != nil {
 		log.Fatal(err)
 		os.Exit(1)
 	}

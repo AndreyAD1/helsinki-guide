@@ -15,7 +15,7 @@ var url = "https://google-translate1.p.rapidapi.com/language/translate/v2"
 
 type columnCoordinates struct {
 	index int
-	name string
+	name  string
 }
 
 type Translator struct {
@@ -27,7 +27,7 @@ func NewTranslator(client infrastructure.TranslationClient) Translator {
 }
 
 func (t Translator) Run(
-	ctx context.Context, sourceFilename, targetFilename string) error {
+	ctx context.Context, sourceFilename, sheetName, targetFilename string) error {
 	source, err := excelize.OpenFile(sourceFilename)
 	if err != nil {
 		return err
@@ -37,7 +37,7 @@ func (t Translator) Run(
 			log.Printf("can not close the file %s: %v", sourceFilename, err)
 		}
 	}()
-	err = t.getTranslatedFile(ctx, source)
+	err = t.getTranslatedFile(ctx, source, sheetName)
 	if err != nil {
 		return err
 	}
@@ -48,62 +48,64 @@ func (t Translator) Run(
 }
 
 func (t Translator) getTranslatedFile(
-	ctx context.Context, file *excelize.File) error {
-	for _, sheetName := range file.GetSheetList() {
-		rows, err := file.Rows(sheetName)
-		if err != nil {
-			return fmt.Errorf(
-				"can not get rows for a sheet '%v': %w", sheetName, err)
+	ctx context.Context, file *excelize.File, sheetName string) error {
+	rows, err := file.Rows(sheetName)
+	if err != nil {
+		return fmt.Errorf(
+			"can not get rows for a sheet '%v': %w", sheetName, err)
+	}
+	defer func() {
+		if err := rows.Close(); err != nil {
+			log.Printf("can not close a sheet '%v'", sheetName)
 		}
-		defer func() {
-			if err := rows.Close(); err != nil {
-				log.Printf("can not close a sheet '%v'", sheetName)
-			}
-		}()
-		rows.Next()
-		firstRow, err := rows.Columns()
-		if err != nil {
-			return fmt.Errorf(
-				"can not read a first row of a sheet '%v': %w", sheetName, err)
-		}
-		column := columnCoordinates{2, "C"}
-		if err := t.translateRow(ctx, 1, column, firstRow, sheetName, file); err != nil {
-			return fmt.Errorf("can't translate a first row: %v", err)
-		}
+	}()
+	rows.Next()
+	firstRow, err := rows.Columns()
+	if err != nil {
+		return fmt.Errorf(
+			"can not read a first row of a sheet '%v': %w", sheetName, err)
+	}
+	column := columnCoordinates{0, "A"}
+	if err := t.translateRow(ctx, 1, column, firstRow, sheetName, file); err != nil {
+		return fmt.Errorf("can't translate a first row: %v", err)
+	}
 
-		for i := 2; rows.Next(); i++ {
-			row, err := rows.Columns()
-			if err != nil {
-				return fmt.Errorf(
-					"can not read a row %v of a sheet '%v': %w", 
-					i, 
-					sheetName, 
-					err,
-				)
-			}
-			column := columnCoordinates{17, "R"}
-			if err := t.translateRow(
-				ctx, i, column, row, sheetName, file); err != nil {
-				return fmt.Errorf("can't translate a row %v: %v", row, err)
-			}
+	for i := 2; rows.Next(); i++ {
+		row, err := rows.Columns()
+		if err != nil {
+			return fmt.Errorf(
+				"can not read a row %v of a sheet '%v': %w",
+				i,
+				sheetName,
+				err,
+			)
+		}
+		if len(row) < 18 {
+			log.Printf("a final or unexpected row %v: %v", i, row)
+			break
+		}
+		column := columnCoordinates{17, "R"}
+		if err := t.translateRow(
+			ctx, i, column, row, sheetName, file); err != nil {
+			return fmt.Errorf("can't translate a row %v: %v", row, err)
 		}
 	}
 	return nil
 }
 
 func (t Translator) translateRow(
-	ctx context.Context, 
+	ctx context.Context,
 	rowNumber int,
 	startColumn columnCoordinates,
-	rowValues []string, 
-	sheetName string, 
+	rowValues []string,
+	sheetName string,
 	file *excelize.File,
 ) error {
 	if len(rowValues) < startColumn.index {
 		return fmt.Errorf(
 			"wrong column index %v, expect less than %v",
-			len(rowValues),
 			startColumn.index,
+			len(rowValues),
 		)
 	}
 	translatedValues := []interface{}{}
@@ -131,8 +133,8 @@ func (t Translator) translateRow(
 	log.Printf("update a row %v: %q\n", rowNumber, translatedValues)
 	firstTranslatedCell := fmt.Sprintf("%v%v", startColumn.name, rowNumber)
 	if err := file.SetSheetRow(
-		sheetName, 
-		firstTranslatedCell, 
+		sheetName,
+		firstTranslatedCell,
 		&translatedValues,
 	); err != nil {
 		return fmt.Errorf(
