@@ -8,8 +8,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/AndreyAD1/helsinki-guide/infrastructure"
 	"github.com/xuri/excelize/v2"
+
+	"github.com/AndreyAD1/helsinki-guide/infrastructure"
 )
 
 type columnCoordinates struct {
@@ -18,9 +19,9 @@ type columnCoordinates struct {
 }
 
 var (
-	url = "https://google-translate1.p.rapidapi.com/language/translate/v2"
+	url                    = "https://google-translate1.p.rapidapi.com/language/translate/v2"
 	firstColumnToTranslate = columnCoordinates{16, "Q"}
-	concurrentRequestLimit = 10 
+	concurrentRequestLimit = 10
 )
 
 type Translator struct {
@@ -91,7 +92,7 @@ func (t Translator) getTranslatedFile(
 			log.Printf("a final or unexpected row %v: %v", i, row)
 			break
 		}
-		
+
 		limit <- struct{}{}
 		waitGroup.Add(1)
 		go func(rowNumber int) {
@@ -144,9 +145,8 @@ func (t Translator) translateRow(
 		}
 		translation, err := t.getTranslation(ctx, cellValue)
 		if err != nil {
-			errMsg := fmt.Sprintf("TRANSLATION ERROR: %v", err)
-			log.Printf(errMsg)
-			translatedValues = append(translatedValues, errMsg)
+			log.Printf("TRANSLATION ERROR: %v", err)
+			translatedValues = append(translatedValues, "TRANSLATION ERROR")
 			continue
 		}
 		log.Printf("receive a translation %v", translation)
