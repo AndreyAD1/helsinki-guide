@@ -43,7 +43,7 @@ func (t Translator) Run(
 			log.Printf("can not close the file %s: %v", sourceFilename, err)
 		}
 	}()
-	err = t.getTranslatedFile(ctx, source, sheetName)
+	err = t.translateExcelSheet(ctx, source, sheetName)
 	if err != nil {
 		return err
 	}
@@ -53,7 +53,7 @@ func (t Translator) Run(
 	return nil
 }
 
-func (t Translator) getTranslatedFile(
+func (t Translator) translateExcelSheet(
 	ctx context.Context, file *excelize.File, sheetName string) error {
 	rows, err := file.Rows(sheetName)
 	if err != nil {
