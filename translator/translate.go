@@ -17,6 +17,7 @@ type columnCoordinates struct {
 	index int
 	name  string
 }
+
 var firstColumnToTranslate = columnCoordinates{17, "R"}
 
 type Translator struct {
@@ -81,16 +82,16 @@ func (t Translator) getTranslatedFile(
 				err,
 			)
 		}
-		if len(row) < firstColumnToTranslate.index + 1 {
+		if len(row) < firstColumnToTranslate.index+1 {
 			log.Printf("a final or unexpected row %v: %v", i, row)
 			break
 		}
 		if err := t.translateRow(
-			ctx, 
-			i, 
-			firstColumnToTranslate, 
-			row, 
-			sheetName, 
+			ctx,
+			i,
+			firstColumnToTranslate,
+			row,
+			sheetName,
 			file,
 		); err != nil {
 			log.Printf("can't translate a row %v: %v", row, err)
@@ -130,7 +131,9 @@ func (t Translator) translateRow(
 		}
 		translation, err := t.getTranslation(ctx, cellValue)
 		if err != nil {
-			log.Printf("a translation error: %v", err)
+			errMsg := fmt.Sprintf("TRANSLATION ERROR: %v", err)
+			log.Printf(errMsg)
+			translatedValues = append(translatedValues, errMsg)
 			continue
 		}
 		log.Printf("receive a translation %v", translation)
