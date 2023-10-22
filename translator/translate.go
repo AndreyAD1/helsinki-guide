@@ -5,20 +5,23 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/AndreyAD1/helsinki-guide/infrastructure"
 	"github.com/xuri/excelize/v2"
 )
 
-var url = "https://google-translate1.p.rapidapi.com/language/translate/v2"
-
 type columnCoordinates struct {
 	index int
 	name  string
 }
 
-var firstColumnToTranslate = columnCoordinates{17, "R"}
+var (
+	url = "https://google-translate1.p.rapidapi.com/language/translate/v2"
+	firstColumnToTranslate = columnCoordinates{16, "Q"}
+	concurrentRequestLimit = 10 
+)
 
 type Translator struct {
 	client infrastructure.TranslationClient
@@ -54,7 +57,7 @@ func (t Translator) getTranslatedFile(
 	rows, err := file.Rows(sheetName)
 	if err != nil {
 		return fmt.Errorf(
-			"can not get rows for a sheet '%v': %w", sheetName, err)
+			"can not get rows of a sheet '%v': %w", sheetName, err)
 	}
 	defer func() {
 		if err := rows.Close(); err != nil {
@@ -72,6 +75,8 @@ func (t Translator) getTranslatedFile(
 		return fmt.Errorf("can't translate a first row: %v", err)
 	}
 
+	limit := make(chan struct{}, concurrentRequestLimit)
+	var waitGroup sync.WaitGroup
 	for i := 2; rows.Next(); i++ {
 		row, err := rows.Columns()
 		if err != nil {
@@ -86,17 +91,25 @@ func (t Translator) getTranslatedFile(
 			log.Printf("a final or unexpected row %v: %v", i, row)
 			break
 		}
-		if err := t.translateRow(
-			ctx,
-			i,
-			firstColumnToTranslate,
-			row,
-			sheetName,
-			file,
-		); err != nil {
-			log.Printf("can't translate a row %v: %v", row, err)
-		}
+		
+		limit <- struct{}{}
+		waitGroup.Add(1)
+		go func(rowNumber int) {
+			defer waitGroup.Done()
+			if err := t.translateRow(
+				ctx,
+				rowNumber,
+				firstColumnToTranslate,
+				row,
+				sheetName,
+				file,
+			); err != nil {
+				log.Printf("can't translate a row %v: %v", row, err)
+			}
+			<-limit
+		}(i)
 	}
+	waitGroup.Wait()
 	return nil
 }
 
@@ -146,6 +159,12 @@ func (t Translator) translateRow(
 		firstTranslatedCell,
 		&translatedValues,
 	); err != nil {
+		log.Printf(
+			"can not set a row '%v' for a sheet %v: %s",
+			rowNumber,
+			sheetName,
+			err,
+		)
 		return fmt.Errorf(
 			"can not set a row '%v' for a sheet %v: %w",
 			rowNumber,
