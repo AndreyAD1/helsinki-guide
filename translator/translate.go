@@ -81,12 +81,13 @@ func (t Translator) translateExcelSheet(
 	for i := 2; rows.Next(); i++ {
 		row, err := rows.Columns()
 		if err != nil {
-			return fmt.Errorf(
-				"can not read a row %v of a sheet '%v': %w",
+			log.Printf(
+				"can not read a row %v of a sheet '%v': %s",
 				i,
 				sheetName,
 				err,
 			)
+			continue
 		}
 		if len(row) < firstColumnToTranslate.index+1 {
 			log.Printf("a final or unexpected row %v: %v", i, row)
