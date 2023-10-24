@@ -10,7 +10,12 @@ import (
 var debug *bool
 var rootCmd = &cobra.Command{
 	Use:   "helsinki-guide",
-	Short: "A telegram bot providing information about notable Helsinki buildings.",
+	Short: "The 'HelsinkiGuide' telegram bot provides information about notable Helsinki buildings.",
+	Long: `This bot is designed to provide information about notable buildings in Helsinki.
+Data source: History of buildings in Helsinki. The maintainer of the dataset is 
+Helsingin kulttuurin ja vapaa-ajan toimiala / Kaupunginmuseo and 
+the original author is Tmi Hilla Tarjanne.
+https://hri.fi/data/en_GB/dataset/helsinkilaisten-rakennusten-historiatietoja`,
 }
 
 func Execute() error {
