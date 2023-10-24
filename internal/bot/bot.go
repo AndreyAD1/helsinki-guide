@@ -10,13 +10,11 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-var (
-	bot       *tgbotapi.BotAPI
-)
+var bot *tgbotapi.BotAPI
 
-func RunBot() {
+func RunBot(botToken string) {
 	var err error
-	bot, err = tgbotapi.NewBotAPI("<YOUR_BOT_TOKEN_HERE>")
+	bot, err = tgbotapi.NewBotAPI(botToken)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -41,13 +39,10 @@ func RunBot() {
 }
 
 func receiveUpdates(ctx context.Context, updates tgbotapi.UpdatesChannel) {
-	// `for {` means the loop is infinite until we manually stop it
 	for {
 		select {
-		// stop looping if ctx is cancelled
 		case <-ctx.Done():
 			return
-		// receive update from channel and then handle it
 		case update := <-updates:
 			handleUpdate(update)
 		}
@@ -56,12 +51,10 @@ func receiveUpdates(ctx context.Context, updates tgbotapi.UpdatesChannel) {
 
 func handleUpdate(update tgbotapi.Update) {
 	switch {
-	// Handle messages
 	case update.Message != nil:
 		handleMessage(update.Message)
 		break
 
-	// Handle button clicks
 	case update.CallbackQuery != nil:
 		log.Println("a callback is not supported")
 		break

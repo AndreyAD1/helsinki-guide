@@ -3,6 +3,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
+	"github.com/AndreyAD1/helsinki-guide/cmd/bot"
 	"github.com/AndreyAD1/helsinki-guide/cmd/translate"
 )
 
@@ -18,5 +19,6 @@ func Execute() error {
 
 func init() {
 	rootCmd.AddCommand(translate.TranslateCmd)
+	rootCmd.AddCommand(bot.BotCmd)
 	debug = rootCmd.Flags().BoolP("debug", "d", false, "Run in a debug mode")
 }
