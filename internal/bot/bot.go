@@ -5,12 +5,14 @@ import (
 	"context"
 	"log"
 	"os"
-	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-var bot *tgbotapi.BotAPI
+var (
+	bot *tgbotapi.BotAPI
+	startMessage = "Hello! I'm a bot that helps you to understand Helsinki better."
+)
 
 func RunBot(botToken string) {
 	var err error
@@ -68,8 +70,18 @@ func handleMessage(message *tgbotapi.Message) {
 	if user == nil {
 		return
 	}
-
-	msg := tgbotapi.NewMessage(message.Chat.ID, strings.ToUpper(text))
+	var answer string
+	switch message.Command() {
+	case "start":
+		answer = startMessage
+	case "help":
+		answer = "no help yet"
+	case "settings":
+		answer = "no settings yet"
+	default:
+		answer = "This is not a command I can understand"
+	}
+	msg := tgbotapi.NewMessage(message.Chat.ID, answer)
 	if _, err := bot.Send(msg); err != nil {
 		log.Printf("An error occured: %s", err.Error())
 	}

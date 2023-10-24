@@ -18,7 +18,7 @@ var (
 		Use:   "translate <source> <target>",
 		Short: "Translate a building dataset",
 		Long: `This command translates a dataset from Finnish into English.
-The dataset is located in an xlsx file that can be dowloaded from https://hri.fi/data/en_GB/dataset/helsinkilaisten-rakennusten-historiatietoja`,
+The dataset is located in an xlsx file that can be downloaded from https://hri.fi/data/en_GB/dataset/helsinkilaisten-rakennusten-historiatietoja`,
 		Args:  cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
 			run(args)
