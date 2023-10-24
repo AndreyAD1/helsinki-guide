@@ -7,8 +7,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/AndreyAD1/helsinki-guide/infrastructure"
-	ts "github.com/AndreyAD1/helsinki-guide/translator"
+	"github.com/AndreyAD1/helsinki-guide/internal/infrastructure"
+	ts "github.com/AndreyAD1/helsinki-guide/internal/translator"
 )
 
 var (
