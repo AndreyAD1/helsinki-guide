@@ -55,11 +55,8 @@ func handleUpdate(update tgbotapi.Update) {
 	switch {
 	case update.Message != nil:
 		handleMessage(update.Message)
-		break
-
 	case update.CallbackQuery != nil:
-		log.Println("a callback is not supported")
-		break
+		handleButton(update.CallbackQuery)
 	}
 }
 
@@ -86,4 +83,8 @@ func handleMessage(message *tgbotapi.Message) {
 		log.Printf("An error occured: %s", err.Error())
 	}
 	log.Printf("%s wrote %s", user.FirstName, text)
+}
+
+func handleButton(query *tgbotapi.CallbackQuery) {
+	log.Println("a callback is not supported")
 }
