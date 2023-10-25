@@ -1,19 +1,33 @@
 package handlers
 
 import (
+	"fmt"
 	"log"
+	"slices"
+	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-var HandlersPerCommand = map[string]Handler {
-	"start": {start, "Start the bot"},
-	"help": {help, "Get help"},
-	"settings": {settings, "Configure settings"},
-}
+var HandlersPerCommand = make(map[string]Handler)
+var commandsForHelp string
 type Handler struct {
 	Function func(*tgbotapi.BotAPI, *tgbotapi.Message)
 	Description string
+}
+
+func init() {
+	HandlersPerCommand = map[string]Handler {
+		"start": {start, "Start the bot"},
+		"help": {help, "Get help"},
+		"settings": {settings, "Configure settings"},
+	}
+	availableCommands := []string{}
+	for command := range HandlersPerCommand {
+		availableCommands = append(availableCommands, "/" + command)
+	}
+	slices.Sort(availableCommands)
+	commandsForHelp = strings.Join(availableCommands, ", ")
 }
 
 func start(bot *tgbotapi.BotAPI, message *tgbotapi.Message) {
@@ -25,7 +39,7 @@ func start(bot *tgbotapi.BotAPI, message *tgbotapi.Message) {
 }
 
 func help(bot *tgbotapi.BotAPI, message *tgbotapi.Message) {
-	helpMsg := "No help yet."
+	helpMsg := fmt.Sprintf("Available commands: %s", commandsForHelp)
 	msg := tgbotapi.NewMessage(message.Chat.ID, helpMsg)
 	if _, err := bot.Send(msg); err != nil {
 		log.Printf("An error occured: %s", err.Error())
