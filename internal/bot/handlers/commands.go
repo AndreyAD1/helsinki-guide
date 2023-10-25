@@ -11,20 +11,21 @@ import (
 
 var HandlersPerCommand = make(map[string]Handler)
 var commandsForHelp string
+
 type Handler struct {
-	Function func(*tgbotapi.BotAPI, *tgbotapi.Message)
+	Function    func(*tgbotapi.BotAPI, *tgbotapi.Message)
 	Description string
 }
 
 func init() {
-	HandlersPerCommand = map[string]Handler {
-		"start": {start, "Start the bot"},
-		"help": {help, "Get help"},
+	HandlersPerCommand = map[string]Handler{
+		"start":    {start, "Start the bot"},
+		"help":     {help, "Get help"},
 		"settings": {settings, "Configure settings"},
 	}
 	availableCommands := []string{}
 	for command := range HandlersPerCommand {
-		availableCommands = append(availableCommands, "/" + command)
+		availableCommands = append(availableCommands, "/"+command)
 	}
 	slices.Sort(availableCommands)
 	commandsForHelp = strings.Join(availableCommands, ", ")
@@ -52,4 +53,8 @@ func settings(bot *tgbotapi.BotAPI, message *tgbotapi.Message) {
 	if _, err := bot.Send(msg); err != nil {
 		log.Printf("An error occured: %s", err.Error())
 	}
+}
+
+func getAllAdresses(bot *tgbotapi.BotAPI, message *tgbotapi.Message) {
+
 }

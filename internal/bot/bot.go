@@ -11,21 +11,31 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-var (
-	bot *tgbotapi.BotAPI
-	startMessage = "Hello! I'm a bot that helps you to understand Helsinki better."
-)
+type Server struct {
+	bot      *tgbotapi.BotAPI
+	handlers HandlerContainer
+}
 
-func RunBot(botToken string) {
-	var err error
-	bot, err = tgbotapi.NewBotAPI(botToken)
+func NewServer(botToken string) (*Server, error) {
+	bot, err := tgbotapi.NewBotAPI(botToken)
 	if err != nil {
-		log.Panic(err)
+		return nil, err
 	}
-	// Set this to true to log all interactions with telegram servers
 	bot.Debug = false
-	
-	if err := setBotCommands(); err != nil {
+	db, err := NewStorage()
+	if err != nil {
+		return nil, err
+	}
+	buildingService, err := NewService(db)
+	if err != nil {
+		return nil, err
+	}
+	handlerContainer := NewHandler(buildingService)
+	return &Server{bot, handlerContainer}, nil
+}
+
+func (s *Server) RunBot() {
+	if err := s.setBotCommands(); err != nil {
 		log.Fatalf("can not set commands: %v", err)
 	}
 
@@ -35,26 +45,26 @@ func RunBot(botToken string) {
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
-	updates := bot.GetUpdatesChan(u)
+	updates := s.bot.GetUpdatesChan(u)
 
-	go receiveUpdates(ctx, updates)
+	go s.receiveUpdates(ctx, updates)
 
 	log.Println("Start listening for updates. Press enter to stop")
 
 	bufio.NewReader(os.Stdin).ReadBytes('\n')
 }
 
-func setBotCommands() error {
+func (s *Server) setBotCommands() error {
 	commands := []tgbotapi.BotCommand{}
 	for commandName, handler := range handlers.HandlersPerCommand {
 		command := tgbotapi.BotCommand{
-			Command: commandName, 
+			Command:     commandName,
 			Description: handler.Description,
 		}
 		commands = append(commands, command)
 	}
 	setCommandsConfig := tgbotapi.NewSetMyCommands(commands...)
-	result, err := bot.Request(setCommandsConfig)
+	result, err := s.bot.Request(setCommandsConfig)
 	if err != nil {
 		return fmt.Errorf("can not make a request to set commands: %w", err)
 	}
@@ -65,44 +75,44 @@ func setBotCommands() error {
 	return nil
 }
 
-func receiveUpdates(ctx context.Context, updates tgbotapi.UpdatesChannel) {
+func (s *Server) receiveUpdates(ctx context.Context, updates tgbotapi.UpdatesChannel) {
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case update := <-updates:
-			handleUpdate(update)
+			s.handleUpdate(update)
 		}
 	}
 }
 
-func handleUpdate(update tgbotapi.Update) {
+func (s *Server) handleUpdate(update tgbotapi.Update) {
 	switch {
 	case update.Message != nil:
-		handleMessage(update.Message)
+		s.handleMessage(update.Message)
 	case update.CallbackQuery != nil:
-		handleButton(update.CallbackQuery)
+		s.handleButton(update.CallbackQuery)
 	}
 }
 
-func handleMessage(message *tgbotapi.Message) {
+func (s *Server) handleMessage(message *tgbotapi.Message) {
 	user := message.From
 
 	if user == nil {
 		return
 	}
-	handler, ok := handlers.HandlersPerCommand[message.Command()]
+	handler, ok := s.handlers.Gethandler(message.Command())
 	if !ok {
 		answer := fmt.Sprintf("I don't understand this message: %s", message.Text)
 		msg := tgbotapi.NewMessage(message.Chat.ID, answer)
-		if _, err := bot.Send(msg); err != nil {
+		if _, err := s.bot.Send(msg); err != nil {
 			log.Printf("An error occured: %s", err.Error())
 		}
 		return
 	}
-	handler.Function(bot, message)
+	handler.Function(s.bot, message)
 }
 
-func handleButton(query *tgbotapi.CallbackQuery) {
+func (s *Server) handleButton(query *tgbotapi.CallbackQuery) {
 	log.Println("a callback is not supported")
 }
