@@ -3,9 +3,11 @@ package bot
 import (
 	"bufio"
 	"context"
+	"fmt"
 	"log"
 	"os"
 
+	"github.com/AndreyAD1/helsinki-guide/internal/bot/handlers"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
@@ -62,27 +64,20 @@ func handleUpdate(update tgbotapi.Update) {
 
 func handleMessage(message *tgbotapi.Message) {
 	user := message.From
-	text := message.Text
 
 	if user == nil {
 		return
 	}
-	var answer string
-	switch message.Command() {
-	case "start":
-		answer = startMessage
-	case "help":
-		answer = "no help yet"
-	case "settings":
-		answer = "no settings yet"
-	default:
-		answer = "This is not a command I can understand"
+	handler, ok := handlers.HandlersPerCommand[message.Command()]
+	if !ok {
+		answer := fmt.Sprintf("I can't understand this message: %s", message.Text)
+		msg := tgbotapi.NewMessage(message.Chat.ID, answer)
+		if _, err := bot.Send(msg); err != nil {
+			log.Printf("An error occured: %s", err.Error())
+		}
+		return
 	}
-	msg := tgbotapi.NewMessage(message.Chat.ID, answer)
-	if _, err := bot.Send(msg); err != nil {
-		log.Printf("An error occured: %s", err.Error())
-	}
-	log.Printf("%s wrote %s", user.FirstName, text)
+	handler(bot, message)
 }
 
 func handleButton(query *tgbotapi.CallbackQuery) {
