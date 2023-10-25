@@ -6,10 +6,14 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-var HandlersPerCommand = map[string]func(*tgbotapi.BotAPI, *tgbotapi.Message) {
-	"start": start,
-	"help": help,
-	"settings": settings,
+var HandlersPerCommand = map[string]Handler {
+	"start": {start, "Start the bot"},
+	"help": {help, "Get help"},
+	"settings": {settings, "Configure settings"},
+}
+type Handler struct {
+	Function func(*tgbotapi.BotAPI, *tgbotapi.Message)
+	Description string
 }
 
 func start(bot *tgbotapi.BotAPI, message *tgbotapi.Message) {
