@@ -10,7 +10,7 @@ import (
 
 	"github.com/xuri/excelize/v2"
 
-	"github.com/AndreyAD1/helsinki-guide/internal/infrastructure"
+	"github.com/AndreyAD1/helsinki-guide/internal/infrastructure/clients"
 )
 
 type columnCoordinates struct {
@@ -25,10 +25,10 @@ var (
 )
 
 type Translator struct {
-	client infrastructure.TranslationClient
+	client clients.TranslationClient
 }
 
-func NewTranslator(client infrastructure.TranslationClient) Translator {
+func NewTranslator(client clients.TranslationClient) Translator {
 	return Translator{client}
 }
 

@@ -8,12 +8,14 @@ import (
 	"os"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/handlers"
+	"github.com/AndreyAD1/helsinki-guide/internal/bot/services"
+	"github.com/AndreyAD1/helsinki-guide/internal/infrastructure/storage"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 type Server struct {
 	bot      *tgbotapi.BotAPI
-	handlers HandlerContainer
+	handlers handlers.HandlerContainer
 }
 
 func NewServer(botToken string) (*Server, error) {
@@ -22,15 +24,12 @@ func NewServer(botToken string) (*Server, error) {
 		return nil, err
 	}
 	bot.Debug = false
-	db, err := NewStorage()
+	db, err := storage.NewStorage()
 	if err != nil {
 		return nil, err
 	}
-	buildingService, err := NewService(db)
-	if err != nil {
-		return nil, err
-	}
-	handlerContainer := NewHandler(buildingService)
+	buildingService := services.NewService(db)
+	handlerContainer := handlers.NewHandler(buildingService)
 	return &Server{bot, handlerContainer}, nil
 }
 
@@ -56,7 +55,7 @@ func (s *Server) RunBot() {
 
 func (s *Server) setBotCommands() error {
 	commands := []tgbotapi.BotCommand{}
-	for commandName, handler := range handlers.HandlersPerCommand {
+	for commandName, handler := range s.handlers.HandlersPerCommand {
 		command := tgbotapi.BotCommand{
 			Command:     commandName,
 			Description: handler.Description,
@@ -101,7 +100,7 @@ func (s *Server) handleMessage(message *tgbotapi.Message) {
 	if user == nil {
 		return
 	}
-	handler, ok := s.handlers.Gethandler(message.Command())
+	handler, ok := s.handlers.GetHandler(message.Command())
 	if !ok {
 		answer := fmt.Sprintf("I don't understand this message: %s", message.Text)
 		msg := tgbotapi.NewMessage(message.Chat.ID, answer)
@@ -110,7 +109,7 @@ func (s *Server) handleMessage(message *tgbotapi.Message) {
 		}
 		return
 	}
-	handler.Function(s.bot, message)
+	handler.Function(s.handlers, s.bot, message)
 }
 
 func (s *Server) handleButton(query *tgbotapi.CallbackQuery) {
