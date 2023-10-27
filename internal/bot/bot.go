@@ -22,7 +22,7 @@ type Server struct {
 func NewServer(config configuration.StartupConfig) (*Server, error) {
 	bot, err := tgbotapi.NewBotAPI(config.BotAPIToken)
 	if err != nil {
-		return nil, fmt.Errorf("can not connect to a Telegram API: %w", err)
+		return nil, fmt.Errorf("can not connect to the Telegram API: %w", err)
 	}
 	bot.Debug = false
 	db, err := storage.NewStorage(config.DatabaseURL)
@@ -30,7 +30,7 @@ func NewServer(config configuration.StartupConfig) (*Server, error) {
 		return nil, err
 	}
 	buildingService := services.NewService(db)
-	handlerContainer := handlers.NewHandler(buildingService)
+	handlerContainer := handlers.NewHandler(bot, buildingService)
 	return &Server{bot, handlerContainer}, nil
 }
 
@@ -81,21 +81,21 @@ func (s *Server) receiveUpdates(ctx context.Context, updates tgbotapi.UpdatesCha
 		case <-ctx.Done():
 			return
 		case update := <-updates:
-			s.handleUpdate(update)
+			s.handleUpdate(ctx, update)
 		}
 	}
 }
 
-func (s *Server) handleUpdate(update tgbotapi.Update) {
+func (s *Server) handleUpdate(ctx context.Context, update tgbotapi.Update) {
 	switch {
 	case update.Message != nil:
-		s.handleMessage(update.Message)
+		s.handleMessage(ctx, update.Message)
 	case update.CallbackQuery != nil:
 		s.handleButton(update.CallbackQuery)
 	}
 }
 
-func (s *Server) handleMessage(message *tgbotapi.Message) {
+func (s *Server) handleMessage(ctx context.Context, message *tgbotapi.Message) {
 	user := message.From
 
 	if user == nil {
@@ -104,13 +104,13 @@ func (s *Server) handleMessage(message *tgbotapi.Message) {
 	handler, ok := s.handlers.GetHandler(message.Command())
 	if !ok {
 		answer := fmt.Sprintf("I don't understand this message: %s", message.Text)
-		msg := tgbotapi.NewMessage(message.Chat.ID, answer)
-		if _, err := s.bot.Send(msg); err != nil {
+		responseMsg := tgbotapi.NewMessage(message.Chat.ID, answer)
+		if _, err := s.bot.Send(responseMsg); err != nil {
 			log.Printf("An error occured: %s", err.Error())
 		}
 		return
 	}
-	handler.Function(s.handlers, s.bot, message)
+	handler.Function(s.handlers, ctx, message)
 }
 
 func (s *Server) handleButton(query *tgbotapi.CallbackQuery) {

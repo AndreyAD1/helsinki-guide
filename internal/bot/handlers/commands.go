@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	c "context"
 	"fmt"
 	"log"
 	"slices"
@@ -11,21 +12,23 @@ import (
 )
 
 type Handler struct {
-	Function    func(HandlerContainer, *tgbotapi.BotAPI, *tgbotapi.Message)
+	Function    func(HandlerContainer, c.Context, *tgbotapi.Message)
 	Description string
 }
 
 type HandlerContainer struct {
 	addressService     services.AddressService
+	bot                *tgbotapi.BotAPI
 	HandlersPerCommand map[string]Handler
 	commandsForHelp    string
 }
 
-func NewHandler(service services.AddressService) HandlerContainer {
+func NewHandler(bot *tgbotapi.BotAPI, service services.AddressService) HandlerContainer {
 	handlersPerCommand := map[string]Handler{
-		"start":    {HandlerContainer.start, "Start the bot"},
-		"help":     {HandlerContainer.help, "Get help"},
-		"settings": {HandlerContainer.settings, "Configure settings"},
+		"start":     {HandlerContainer.start, "Start the bot"},
+		"help":      {HandlerContainer.help, "Get help"},
+		"settings":  {HandlerContainer.settings, "Configure settings"},
+		"addresses": {HandlerContainer.getAllAdresses, "Get all available addresses"},
 	}
 	availableCommands := []string{}
 	for command := range handlersPerCommand {
@@ -33,7 +36,7 @@ func NewHandler(service services.AddressService) HandlerContainer {
 	}
 	slices.Sort(availableCommands)
 	commandsForHelp := strings.Join(availableCommands, ", ")
-	return HandlerContainer{service, handlersPerCommand, commandsForHelp}
+	return HandlerContainer{service, bot, handlersPerCommand, commandsForHelp}
 }
 
 func (h HandlerContainer) GetHandler(command string) (Handler, bool) {
@@ -41,28 +44,34 @@ func (h HandlerContainer) GetHandler(command string) (Handler, bool) {
 	return handler, ok
 }
 
-func (h HandlerContainer) start(bot *tgbotapi.BotAPI, message *tgbotapi.Message) {
+func (h HandlerContainer) SendMessage(chatId int64, msgText string) {
+	msg := tgbotapi.NewMessage(chatId, msgText)
+	if _, err := h.bot.Send(msg); err != nil {
+		log.Printf("An error occured: %s", err.Error())
+	}
+}
+
+func (h HandlerContainer) start(ctx c.Context, message *tgbotapi.Message) {
 	startMsg := "Hello! I'm a bot that helps you to understand Helsinki better."
-	msg := tgbotapi.NewMessage(message.Chat.ID, startMsg)
-	if _, err := bot.Send(msg); err != nil {
-		log.Printf("An error occured: %s", err.Error())
-	}
+	h.SendMessage(message.Chat.ID, startMsg)
 }
 
-func (h HandlerContainer) help(bot *tgbotapi.BotAPI, message *tgbotapi.Message) {
+func (h HandlerContainer) help(ctx c.Context, message *tgbotapi.Message) {
 	helpMsg := fmt.Sprintf("Available commands: %s", h.commandsForHelp)
-	msg := tgbotapi.NewMessage(message.Chat.ID, helpMsg)
-	if _, err := bot.Send(msg); err != nil {
-		log.Printf("An error occured: %s", err.Error())
-	}
+	h.SendMessage(message.Chat.ID, helpMsg)
 }
 
-func (h HandlerContainer) settings(bot *tgbotapi.BotAPI, message *tgbotapi.Message) {
-	settingMsg := "No settings yet."
-	msg := tgbotapi.NewMessage(message.Chat.ID, settingMsg)
-	if _, err := bot.Send(msg); err != nil {
-		log.Printf("An error occured: %s", err.Error())
-	}
+func (h HandlerContainer) settings(ctx c.Context, message *tgbotapi.Message) {
+	settingsMsg := "No settings yet."
+	h.SendMessage(message.Chat.ID, settingsMsg)
 }
 
-func (h HandlerContainer) getAllAdresses(bot *tgbotapi.BotAPI, message *tgbotapi.Message) {}
+func (h HandlerContainer) getAllAdresses(ctx c.Context, message *tgbotapi.Message) {
+	addresses, err := h.addressService.GetAllAdresses(ctx)
+	response := fmt.Sprintf("All available addresses: %q", addresses)
+	if err != nil {
+		log.Printf("can not get addresses: %s", err.Error())
+		response = "Internal error"
+	}
+	h.SendMessage(message.Chat.ID, response)
+}
