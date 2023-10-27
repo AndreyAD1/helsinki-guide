@@ -10,8 +10,9 @@ import (
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/configuration"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/handlers"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/services"
-	"github.com/AndreyAD1/helsinki-guide/internal/infrastructure/storage"
+	"github.com/AndreyAD1/helsinki-guide/internal/infrastructure/repositories"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Server struct {
@@ -25,11 +26,15 @@ func NewServer(config configuration.StartupConfig) (*Server, error) {
 		return nil, fmt.Errorf("can not connect to the Telegram API: %w", err)
 	}
 	bot.Debug = false
-	db, err := storage.NewStorage(config.DatabaseURL)
+
+	dbpool, err := pgxpool.New(context.Background(), config.DatabaseURL)
 	if err != nil {
-		return nil, err
+		fmt.Fprintf(os.Stderr, "unable to create connection pool: DB URL '%s': %v\n", config.DatabaseURL, err)
+		os.Exit(1)
 	}
-	buildingService := services.NewService(db)
+	defer dbpool.Close()
+	addressRepo := repositories.NewAddressRepo(dbpool)
+	buildingService := services.NewService(addressRepo)
 	handlerContainer := handlers.NewHandler(bot, buildingService)
 	return &Server{bot, handlerContainer}, nil
 }
