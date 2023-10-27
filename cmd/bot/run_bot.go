@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot"
-	"github.com/AndreyAD1/helsinki-guide/internal/configuration"
+	"github.com/AndreyAD1/helsinki-guide/internal/bot/configuration"
 	"github.com/caarlos0/env/v9"
 	"github.com/spf13/cobra"
 )

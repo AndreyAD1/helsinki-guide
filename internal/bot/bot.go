@@ -7,9 +7,9 @@ import (
 	"log"
 	"os"
 
+	"github.com/AndreyAD1/helsinki-guide/internal/bot/configuration"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/handlers"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/services"
-	"github.com/AndreyAD1/helsinki-guide/internal/configuration"
 	"github.com/AndreyAD1/helsinki-guide/internal/infrastructure/storage"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
