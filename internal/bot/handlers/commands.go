@@ -16,9 +16,9 @@ type Handler struct {
 }
 
 type HandlerContainer struct {
-	addressService services.AddressService
+	addressService     services.AddressService
 	HandlersPerCommand map[string]Handler
-	commandsForHelp string
+	commandsForHelp    string
 }
 
 func NewHandler(service services.AddressService) HandlerContainer {
@@ -40,7 +40,6 @@ func (h HandlerContainer) GetHandler(command string) (Handler, bool) {
 	handler, ok := h.HandlersPerCommand[command]
 	return handler, ok
 }
-
 
 func (h HandlerContainer) start(bot *tgbotapi.BotAPI, message *tgbotapi.Message) {
 	startMsg := "Hello! I'm a bot that helps you to understand Helsinki better."

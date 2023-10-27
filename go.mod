@@ -3,6 +3,7 @@ module github.com/AndreyAD1/helsinki-guide
 go 1.21
 
 require (
+	github.com/caarlos0/env/v9 v9.0.0
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
 	github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.8.4

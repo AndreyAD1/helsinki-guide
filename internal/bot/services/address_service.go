@@ -2,7 +2,6 @@ package services
 
 import "github.com/AndreyAD1/helsinki-guide/internal/infrastructure/storage"
 
-
 type AddressService struct {
 	storage storage.Repository
 }

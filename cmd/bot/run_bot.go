@@ -4,6 +4,8 @@ import (
 	"log"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot"
+	"github.com/AndreyAD1/helsinki-guide/internal/configuration"
+	"github.com/caarlos0/env/v9"
 	"github.com/spf13/cobra"
 )
 
@@ -26,11 +28,18 @@ func init() {
 		"",
 		"a token of Telegram bot",
 	)
-	BotCmd.MarkFlagRequired("token")
 }
 
 func run() {
-	server, err := bot.NewServer(botToken)
+	config := configuration.StartupConfig{}
+	err := env.Parse(&config)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if botToken != "" {
+		config.BotAPIToken = botToken
+	}
+	server, err := bot.NewServer(config)
 	if err != nil {
 		log.Fatalf("can not run a server: %v", err)
 	}

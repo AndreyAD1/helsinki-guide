@@ -9,6 +9,7 @@ import (
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/handlers"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/services"
+	"github.com/AndreyAD1/helsinki-guide/internal/configuration"
 	"github.com/AndreyAD1/helsinki-guide/internal/infrastructure/storage"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -18,13 +19,13 @@ type Server struct {
 	handlers handlers.HandlerContainer
 }
 
-func NewServer(botToken string) (*Server, error) {
-	bot, err := tgbotapi.NewBotAPI(botToken)
+func NewServer(config configuration.StartupConfig) (*Server, error) {
+	bot, err := tgbotapi.NewBotAPI(config.BotAPIToken)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("can not connect to a Telegram API: %w", err)
 	}
 	bot.Debug = false
-	db, err := storage.NewStorage()
+	db, err := storage.NewStorage(config.DatabaseURL)
 	if err != nil {
 		return nil, err
 	}
