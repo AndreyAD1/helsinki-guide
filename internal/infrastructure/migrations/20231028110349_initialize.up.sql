@@ -19,7 +19,7 @@ CREATE TABLE "buildings" (
   "name_fi" varchar,
   "name_en" varchar,
   "name_ru" varchar,
-  "address_id" integer,
+  "address_id" integer UNIQUE,
   "construction_start_year" integer,
   "completion_year" integer,
   "complex_fi" varchar,
