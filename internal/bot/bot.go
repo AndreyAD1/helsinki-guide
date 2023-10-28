@@ -18,6 +18,7 @@ import (
 type Server struct {
 	bot      *tgbotapi.BotAPI
 	handlers handlers.HandlerContainer
+	shutdownFuncs []func()
 }
 
 func NewServer(config configuration.StartupConfig) (*Server, error) {
@@ -32,11 +33,16 @@ func NewServer(config configuration.StartupConfig) (*Server, error) {
 		fmt.Fprintf(os.Stderr, "unable to create connection pool: DB URL '%s': %v\n", config.DatabaseURL, err)
 		os.Exit(1)
 	}
-	defer dbpool.Close()
 	addressRepo := repositories.NewAddressRepo(dbpool)
 	buildingService := services.NewService(addressRepo)
 	handlerContainer := handlers.NewHandler(bot, buildingService)
-	return &Server{bot, handlerContainer}, nil
+	return &Server{bot, handlerContainer, []func(){dbpool.Close}}, nil
+}
+
+func (s *Server) Shutdown() {
+	for _, f := range s.shutdownFuncs {
+		f()
+	}
 }
 
 func (s *Server) RunBot() {

@@ -13,7 +13,7 @@ type AddressService struct {
 func (as AddressService) GetAllAdresses(ctx context.Context) ([]string, error) {
 	addresses, err := as.storage.GetAdresses(ctx, 500, 0)
 	if err != nil {
-		return []string{}, err
+		return nil, err
 	}
 	addressNames := make([]string, len(addresses))
 	for i, address := range addresses {

@@ -43,5 +43,6 @@ func run() {
 	if err != nil {
 		log.Fatalf("can not run a server: %v", err)
 	}
+	defer server.Shutdown()
 	server.RunBot()
 }
