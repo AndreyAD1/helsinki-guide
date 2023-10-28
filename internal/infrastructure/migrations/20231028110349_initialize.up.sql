@@ -19,7 +19,7 @@ CREATE TABLE "buildings" (
   "name_fi" varchar,
   "name_en" varchar,
   "name_ru" varchar,
-  "address_id" integer UNIQUE,
+  "address_id" integer,
   "construction_start_year" integer,
   "completion_year" integer,
   "complex_fi" varchar,
@@ -128,8 +128,8 @@ CREATE TABLE "current_uses" (
   "use_type_id" integer
 );
 
-ALTER TABLE "addresses" ADD CONSTRAINT address_building 
-FOREIGN KEY ("id") REFERENCES "buildings" ("address_id");
+ALTER TABLE "buildings" ADD CONSTRAINT address_building 
+FOREIGN KEY ("address_id") REFERENCES "addresses" ("id");
 
 ALTER TABLE "addresses" ADD CONSTRAINT address_neighbourhood 
 FOREIGN KEY ("neighbourhood_id") REFERENCES "neighbourhoods" ("id");

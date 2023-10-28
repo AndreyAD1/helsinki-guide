@@ -44,11 +44,11 @@ func (as *AddressStorage) GetAdresses(ctx context.Context, limit, offset int) ([
 	for rows.Next() {
 		var address Address
 		if err := rows.Scan(
-			&address.ID, 
-			&address.StreetAddress, 
-			&address.NeighbourhoodID, 
-			&address.CreatedAt, 
-			&address.UpdatedAt, 
+			&address.ID,
+			&address.StreetAddress,
+			&address.NeighbourhoodID,
+			&address.CreatedAt,
+			&address.UpdatedAt,
 			&address.DeletedAt,
 		); err != nil {
 			return nil, err

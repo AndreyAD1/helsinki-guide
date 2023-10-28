@@ -16,8 +16,8 @@ import (
 )
 
 type Server struct {
-	bot      *tgbotapi.BotAPI
-	handlers handlers.HandlerContainer
+	bot           *tgbotapi.BotAPI
+	handlers      handlers.HandlerContainer
 	shutdownFuncs []func()
 }
 
