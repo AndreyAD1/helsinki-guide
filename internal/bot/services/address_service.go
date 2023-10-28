@@ -11,7 +11,15 @@ type AddressService struct {
 }
 
 func (as AddressService) GetAllAdresses(ctx context.Context) ([]string, error) {
-	return as.storage.GetAllAdresses(ctx)
+	addresses, err := as.storage.GetAdresses(ctx, 500, 0)
+	if err != nil {
+		return []string{}, err
+	}
+	addressNames := make([]string, len(addresses))
+	for i, address := range addresses {
+		addressNames[i] = address.StreetAddress
+	}
+	return addressNames, nil
 }
 
 func NewService(storage repositories.AddressRepository) AddressService {
