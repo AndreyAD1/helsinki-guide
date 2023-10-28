@@ -18,7 +18,7 @@ type Address struct {
 }
 
 type AddressRepository interface {
-	GetAdresses(ctx context.Context, limit, offset int) ([]Address, error)
+	GetAddresses(ctx context.Context, limit, offset int) ([]Address, error)
 	GetAlikeAddresses(context.Context, string) ([]Address, error)
 }
 
@@ -30,7 +30,7 @@ func NewAddressRepo(dbPool *pgxpool.Pool) *AddressStorage {
 	return &AddressStorage{dbPool}
 }
 
-func (as *AddressStorage) GetAdresses(ctx context.Context, limit, offset int) ([]Address, error) {
+func (as *AddressStorage) GetAddresses(ctx context.Context, limit, offset int) ([]Address, error) {
 	query := fmt.Sprintf(
 		"SELECT * FROM addresses ORDER BY street_address LIMIT %v OFFSET %v",
 		limit,

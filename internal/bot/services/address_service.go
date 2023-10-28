@@ -11,7 +11,7 @@ type AddressService struct {
 }
 
 func (as AddressService) GetAllAdresses(ctx context.Context) ([]string, error) {
-	addresses, err := as.storage.GetAdresses(ctx, 500, 0)
+	addresses, err := as.storage.GetAddresses(ctx, 500, 0)
 	if err != nil {
 		return nil, err
 	}
