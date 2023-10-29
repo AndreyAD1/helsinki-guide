@@ -30,8 +30,11 @@ func NewServer(config configuration.StartupConfig) (*Server, error) {
 
 	dbpool, err := pgxpool.New(context.Background(), config.DatabaseURL)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "unable to create connection pool: DB URL '%s': %v\n", config.DatabaseURL, err)
-		os.Exit(1)
+		return nil, fmt.Errorf(
+			"unable to create a connection pool: DB URL '%s': %w", 
+			config.DatabaseURL, 
+			err,
+		)
 	}
 	addressRepo := repositories.NewAddressRepo(dbpool)
 	buildingService := services.NewService(addressRepo)
