@@ -5,15 +5,25 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/golang-migrate/migrate/v4"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
+	"github.com/stretchr/testify/require"
+
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
-var dbpool *pgxpool.Pool
+var (
+	dbpool      *pgxpool.Pool
+	databaseUrl string
+)
 
 func TestMain(m *testing.M) {
 	if os.Getenv("INTEGRATION") == "" {
@@ -49,8 +59,8 @@ func TestMain(m *testing.M) {
 	}
 
 	hostAndPort := resource.GetHostPort("5432/tcp")
-	databaseUrl := fmt.Sprintf(
-		"postgres://user_name:secret@%s/dbname?sslmode=disable", 
+	databaseUrl = fmt.Sprintf(
+		"postgres://user_name:secret@%s/dbname?sslmode=disable",
 		hostAndPort,
 	)
 
@@ -64,8 +74,8 @@ func TestMain(m *testing.M) {
 		dbpool, err = pgxpool.New(context.Background(), databaseUrl)
 		if err != nil {
 			log.Printf(
-				"unable to create a connection pool: DB URL '%v': %v", 
-				databaseUrl, 
+				"unable to create a connection pool: DB URL '%v': %v",
+				databaseUrl,
 				err,
 			)
 			os.Exit(1)
@@ -86,5 +96,25 @@ func TestMain(m *testing.M) {
 }
 
 func TestMigrations(t *testing.T) {
-	// all tests
+	migrationPath := filepath.Join(
+		"..",
+		"internal",
+		"infrastructure",
+		"migrations",
+	)
+	log.Printf("connect to %s", databaseUrl)
+	// time.Sleep(30 * time.Minute)
+	migrationPath = "file:../internal/infrastructure/migrations"
+	m, err := migrate.New(migrationPath, databaseUrl)
+	require.NoErrorf(
+		t,
+		err,
+		"can not start migrations '%s' for '%s': %v",
+		migrationPath,
+		databaseUrl,
+		err,
+	)
+	require.NoError(t, m.Up())
+	require.NoError(t, m.Down())
+	require.NoError(t, m.Up())
 }

@@ -31,8 +31,8 @@ func NewServer(config configuration.StartupConfig) (*Server, error) {
 	dbpool, err := pgxpool.New(context.Background(), config.DatabaseURL)
 	if err != nil {
 		return nil, fmt.Errorf(
-			"unable to create a connection pool: DB URL '%s': %w", 
-			config.DatabaseURL, 
+			"unable to create a connection pool: DB URL '%s': %w",
+			config.DatabaseURL,
 			err,
 		)
 	}

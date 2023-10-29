@@ -26,7 +26,7 @@ ALTER TABLE "building_authors" DROP CONSTRAINT building_author;
 
 ALTER TABLE "addresses" DROP CONSTRAINT address_neighbourhood;
 
-ALTER TABLE "addresses" DROP CONSTRAINT address_building;
+ALTER TABLE "buildings" DROP CONSTRAINT address_building;
 
 DROP TABLE current_uses, initial_uses, use_types, building_contractors,
 building_builders, building_designers, building_authors, actors,
