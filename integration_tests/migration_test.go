@@ -102,10 +102,7 @@ func TestMigrations(t *testing.T) {
 		"infrastructure",
 		"migrations",
 	)
-	log.Printf("connect to %s", databaseUrl)
-	// time.Sleep(30 * time.Minute)
-	migrationPath = "file:../internal/infrastructure/migrations"
-	m, err := migrate.New(migrationPath, databaseUrl)
+	m, err := migrate.New("file:" + migrationPath, databaseUrl)
 	require.NoErrorf(
 		t,
 		err,
