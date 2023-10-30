@@ -1,7 +1,7 @@
 BEGIN;
 
 CREATE TABLE "users" (
-  "id" integer PRIMARY KEY,
+  "id" SERIAL PRIMARY KEY,
   "created_at" timestamp NOT NULL,
   "updated_at" timestamp,
   "deleted_at" timestamp,
@@ -11,7 +11,7 @@ CREATE TABLE "users" (
 );
 
 CREATE TABLE "buildings" (
-  "id" integer PRIMARY KEY,
+  "id" SERIAL PRIMARY KEY,
   "code" varchar,
   "name_fi" varchar,
   "name_en" varchar,
@@ -60,7 +60,7 @@ CREATE TABLE "buildings" (
 );
 
 CREATE TABLE "addresses" (
-  "id" integer PRIMARY KEY,
+  "id" SERIAL PRIMARY KEY,
   "street_address" varchar NOT NULL,
   "neighbourhood_id" integer,
   "created_at" timestamp NOT NULL,
@@ -69,7 +69,7 @@ CREATE TABLE "addresses" (
 );
 
 CREATE TABLE "neighbourhoods" (
-  "id" integer PRIMARY KEY,
+  "id" SERIAL PRIMARY KEY,
   "name" varchar,
   "municipality" varchar,
   "created_at" timestamp NOT NULL,
@@ -78,7 +78,7 @@ CREATE TABLE "neighbourhoods" (
 );
 
 CREATE TABLE "actors" (
-  "id" integer PRIMARY KEY,
+  "id" SERIAL PRIMARY KEY,
   "name" varchar NOT NULL,
   "title_fi" varchar,
   "title_en" varchar,
@@ -109,7 +109,7 @@ CREATE TABLE "building_contractors" (
 );
 
 CREATE TABLE "use_types" (
-  "id" integer PRIMARY KEY,
+  "id" SERIAL PRIMARY KEY,
   "name_fi" varchar UNIQUE,
   "name_en" varchar UNIQUE,
   "name_ru" varchar UNIQUE,
