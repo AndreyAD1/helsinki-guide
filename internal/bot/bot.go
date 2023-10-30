@@ -36,8 +36,8 @@ func NewServer(config configuration.StartupConfig) (*Server, error) {
 			err,
 		)
 	}
-	addressRepo := repositories.NewAddressRepo(dbpool)
-	buildingService := services.NewService(addressRepo)
+	buildingRepo := repositories.NewBuildingRepo(dbpool)
+	buildingService := services.NewBuildingService(buildingRepo)
 	handlerContainer := handlers.NewHandler(bot, buildingService)
 	return &Server{bot, handlerContainer, []func(){dbpool.Close}}, nil
 }

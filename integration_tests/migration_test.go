@@ -102,7 +102,7 @@ func TestMigrations(t *testing.T) {
 		"infrastructure",
 		"migrations",
 	)
-	m, err := migrate.New("file:" + migrationPath, databaseUrl)
+	m, err := migrate.New("file:"+migrationPath, databaseUrl)
 	require.NoErrorf(
 		t,
 		err,

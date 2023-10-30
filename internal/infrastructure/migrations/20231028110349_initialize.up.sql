@@ -12,9 +12,6 @@ CREATE TABLE "users" (
 
 CREATE TABLE "buildings" (
   "id" integer PRIMARY KEY,
-  "created_at" timestamp NOT NULL,
-  "updated_at" timestamp,
-  "deleted_at" timestamp,
   "code" varchar,
   "name_fi" varchar,
   "name_en" varchar,
@@ -56,7 +53,10 @@ CREATE TABLE "buildings" (
   "special_features_en" varchar,
   "special_features_ru" varchar,
   "latitude_ETRSGK25" real,
-  "longitude_ETRSGK25" real
+  "longitude_ETRSGK25" real,
+  "created_at" timestamp NOT NULL,
+  "updated_at" timestamp,
+  "deleted_at" timestamp
 );
 
 CREATE TABLE "addresses" (

@@ -17,13 +17,13 @@ type Handler struct {
 }
 
 type HandlerContainer struct {
-	addressService     services.AddressService
+	buildingService    services.BuildingService
 	bot                *tgbotapi.BotAPI
 	HandlersPerCommand map[string]Handler
 	commandsForHelp    string
 }
 
-func NewHandler(bot *tgbotapi.BotAPI, service services.AddressService) HandlerContainer {
+func NewHandler(bot *tgbotapi.BotAPI, service services.BuildingService) HandlerContainer {
 	handlersPerCommand := map[string]Handler{
 		"start":     {HandlerContainer.start, "Start the bot"},
 		"help":      {HandlerContainer.help, "Get help"},
@@ -67,11 +67,18 @@ func (h HandlerContainer) settings(ctx c.Context, message *tgbotapi.Message) {
 }
 
 func (h HandlerContainer) getAllAdresses(ctx c.Context, message *tgbotapi.Message) {
-	addresses, err := h.addressService.GetAllAdresses(ctx)
-	response := fmt.Sprintf("All available addresses: %q", addresses)
+	buildings, err := h.buildingService.GetBuildingPreviews(ctx)
 	if err != nil {
 		log.Printf("can not get addresses: %s", err.Error())
-		response = "Internal error"
+		h.SendMessage(message.Chat.ID, "Internal error")
+		return
 	}
+	response := "Available building addresses and names:\n"
+	items := make([]string, len(buildings))
+	itemTemplate := "%s - %s\n"
+	for i, building := range buildings {
+		items[i] = fmt.Sprintf(itemTemplate, building.Address, building.Name)
+	}
+	response = response + strings.Join(items, "\n") + "\nEnd"
 	h.SendMessage(message.Chat.ID, response)
 }
