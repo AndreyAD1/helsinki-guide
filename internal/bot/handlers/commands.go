@@ -75,9 +75,9 @@ func (h HandlerContainer) getAllAdresses(ctx c.Context, message *tgbotapi.Messag
 	}
 	response := "Available building addresses and names:\n"
 	items := make([]string, len(buildings))
-	itemTemplate := "%s - %s\n"
+	itemTemplate := "%v. %s - %s"
 	for i, building := range buildings {
-		items[i] = fmt.Sprintf(itemTemplate, building.Address, building.Name)
+		items[i] = fmt.Sprintf(itemTemplate, i + 1, building.Address, building.Name)
 	}
 	response = response + strings.Join(items, "\n") + "\nEnd"
 	h.SendMessage(message.Chat.ID, response)

@@ -23,7 +23,7 @@ func (bs BuildingService) GetBuildingPreviews(ctx context.Context) ([]BuildingPr
 
 	previews := make([]BuildingPreview, len(buildings))
 	for i, building := range buildings {
-		previews[i] = BuildingPreview{building.StreetAddress, building.NameEn}
+		previews[i] = BuildingPreview{building.StreetAddress, building.NameFi}
 	}
 	return previews, nil
 }

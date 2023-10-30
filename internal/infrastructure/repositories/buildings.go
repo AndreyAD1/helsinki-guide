@@ -61,8 +61,6 @@ type BuildingWithAddress struct {
 	ID            int64
 	Code          string
 	NameFi        string
-	NameEn        string
-	NameRu        string
 	StreetAddress string
 }
 
@@ -81,8 +79,8 @@ func NewBuildingRepo(dbPool *pgxpool.Pool) *BuildingStorage {
 
 func (bs *BuildingStorage) GetBuildingsWithAddress(
 	ctx context.Context, limit, offset int) ([]BuildingWithAddress, error) {
-	queryTemplate := `SELECT buildings.ID, buildings.code, name_fi, name_en, 
-	name_ru, street_address FROM buildings JOIN addresses ON 
+	queryTemplate := `SELECT buildings.ID, buildings.code, name_fi,
+	street_address FROM buildings JOIN addresses ON 
 	buildings.address_id = addresses.id
 	ORDER BY street_address LIMIT %v OFFSET %v;`
 
@@ -102,8 +100,6 @@ func (bs *BuildingStorage) GetBuildingsWithAddress(
 			&building.ID,
 			&building.Code,
 			&building.NameFi,
-			&building.NameEn,
-			&building.NameRu,
 			&building.StreetAddress,
 		); err != nil {
 			return nil, err
