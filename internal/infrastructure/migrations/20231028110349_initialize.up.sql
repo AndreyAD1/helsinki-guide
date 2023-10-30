@@ -61,7 +61,7 @@ CREATE TABLE "buildings" (
 
 CREATE TABLE "addresses" (
   "id" SERIAL PRIMARY KEY,
-  "street_address" varchar NOT NULL,
+  "street_address" varchar UNIQUE NOT NULL,
   "neighbourhood_id" integer,
   "created_at" timestamp NOT NULL,
   "updated_at" timestamp,

@@ -29,6 +29,7 @@ func NewHandler(bot *tgbotapi.BotAPI, service services.BuildingService) HandlerC
 		"help":      {HandlerContainer.help, "Get help"},
 		"settings":  {HandlerContainer.settings, "Configure settings"},
 		"addresses": {HandlerContainer.getAllAdresses, "Get all available addresses"},
+		"building": {HandlerContainer.getBuilding, "Get building by address"},
 	}
 	availableCommands := []string{}
 	for command := range handlersPerCommand {
@@ -80,5 +81,24 @@ func (h HandlerContainer) getAllAdresses(ctx c.Context, message *tgbotapi.Messag
 		items[i] = fmt.Sprintf(itemTemplate, i + 1, building.Address, building.Name)
 	}
 	response = response + strings.Join(items, "\n") + "\nEnd"
+	h.SendMessage(message.Chat.ID, response)
+}
+
+func (h HandlerContainer) getBuilding(ctx c.Context, message *tgbotapi.Message) {
+	address := message.CommandArguments()
+	if address == "" {
+		h.SendMessage(message.Chat.ID, "please, add an address to this command")
+	}
+	buildings, err := h.buildingService.GetBuildingsByAddress(ctx, address)
+	if err != nil {
+		log.Printf("can not get building by address '%s': %s", address, err.Error())
+		h.SendMessage(message.Chat.ID, "Internal error")
+		return
+	}
+	items := make([]string, len(buildings))
+	for i, building := range buildings {
+		items[i] = converter.ToMessage(building)
+	}
+	response := strings.Join(items, "\n")
 	h.SendMessage(message.Chat.ID, response)
 }

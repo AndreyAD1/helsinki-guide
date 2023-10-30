@@ -15,6 +15,10 @@ type BuildingPreview struct {
 	Name    string
 }
 
+func NewBuildingService(storage repositories.BuildingRepository) BuildingService {
+	return BuildingService{storage}
+}
+
 func (bs BuildingService) GetBuildingPreviews(ctx context.Context) ([]BuildingPreview, error) {
 	buildings, err := bs.storage.GetBuildingsWithAddress(ctx, 500, 0)
 	if err != nil {
@@ -28,6 +32,19 @@ func (bs BuildingService) GetBuildingPreviews(ctx context.Context) ([]BuildingPr
 	return previews, nil
 }
 
-func NewBuildingService(storage repositories.BuildingRepository) BuildingService {
-	return BuildingService{storage}
+func (bs BuildingService) GetBuildingsByAddress(
+	ctx context.Context, 
+	address string,
+) ([]BuildingDTO, error) {
+	buildings, err := bs.storage.GetBuildingsByAddress(ctx, address)
+	if err != nil {
+		return nil, err
+	}
+
+	buildingsDto := make([]BuildingDTO, len(buildings))
+	for i, building := range buildings {
+		buildingsDto[i] = NewBuildingDTO(building, "en")
+	}
+	return buildingsDto, nil
 }
+
