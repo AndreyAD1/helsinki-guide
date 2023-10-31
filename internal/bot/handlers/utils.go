@@ -60,7 +60,8 @@ func SerializeIntoMessage(object any, language string) (string, error) {
 		default:
 			return "", fmt.Errorf("unexpected type of the field %s", field.Name)
 		}
-		result = append(result, fmt.Sprintf("%s: %s", featureName, featureValue))
+		cleanName := strings.ReplaceAll(featureName, "_", " ")
+		result = append(result, fmt.Sprintf("%s: %s", cleanName, featureValue))
 	}
 
 	return strings.Join(result, "\n"), nil

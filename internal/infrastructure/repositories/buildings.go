@@ -116,7 +116,7 @@ func (bs *BuildingStorage) GetBuildingsByAddress(
 	ctx context.Context,
 	address string,
 ) ([]Building, error) {
-	queryTemplate := `SELECT buildings.ID, buildings.code, name_fi, 
+	queryTemplate := `SELECT buildings.ID, buildings.code, name_fi, name_en,
 	completion_year, history_fi, history_en, history_ru 
 	FROM buildings 
 	WHERE id = (SELECT id FROM addresses WHERE street_address = '%s');`
@@ -133,6 +133,7 @@ func (bs *BuildingStorage) GetBuildingsByAddress(
 			&building.ID,
 			&building.Code,
 			&building.NameFi,
+			&building.NameEn,
 			&building.CompletionYear,
 			&building.HistoryFi,
 			&building.HistoryEn,
