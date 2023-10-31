@@ -78,8 +78,8 @@ func NewBuildingRepo(dbPool *pgxpool.Pool) *BuildingStorage {
 }
 
 func (bs *BuildingStorage) GetBuildingsWithAddress(
-	ctx context.Context, 
-	limit, 
+	ctx context.Context,
+	limit,
 	offset int,
 ) ([]BuildingWithAddress, error) {
 	queryTemplate := `SELECT buildings.ID, buildings.code, name_fi,
@@ -113,7 +113,7 @@ func (bs *BuildingStorage) GetBuildingsWithAddress(
 }
 
 func (bs *BuildingStorage) GetBuildingsByAddress(
-	ctx context.Context, 
+	ctx context.Context,
 	address string,
 ) ([]Building, error) {
 	queryTemplate := `SELECT buildings.ID, buildings.code, name_fi, 
@@ -142,5 +142,5 @@ func (bs *BuildingStorage) GetBuildingsByAddress(
 		}
 		buildings = append(buildings, building)
 	}
-	return nil, ErrNotImplemented
+	return buildings, nil
 }
