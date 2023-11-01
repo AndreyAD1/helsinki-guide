@@ -7,7 +7,7 @@ import (
 )
 
 
-var nameTagPerLanguages = map[string]string {
+var tagPerLanguage = map[string]string {
 	"fi": "nameFi",
 	"en": "nameEn",
 	"ru": "nameRu",
@@ -18,7 +18,7 @@ var noDataPerLanguages = map[string]string {
 	"ru": "нет данных",
 }
 
-func SerializeIntoMessage(object any, language string) (string, error) {
+func SerializeIntoMessage(object any, outputLanguage string) (string, error) {
 	objectValue := reflect.ValueOf(object)
 	if objectValue.Kind() != reflect.Struct {
 		return "", fmt.Errorf("not a structure: %v", object)
@@ -31,10 +31,10 @@ func SerializeIntoMessage(object any, language string) (string, error) {
 		if !ok {
 			return "", fmt.Errorf("no language tag in a field '%s'", field.Name)
 		}
-		if valueLanguage != language && valueLanguage != "all" {
+		if valueLanguage != outputLanguage && valueLanguage != "all" {
 			continue
 		}
-		featureName, ok := field.Tag.Lookup(nameTagPerLanguages[language])
+		featureName, ok := field.Tag.Lookup(tagPerLanguage[outputLanguage])
 		if !ok {
 			return "", fmt.Errorf("no name tag in a field '%s'", field.Name)
 		}
@@ -47,7 +47,7 @@ func SerializeIntoMessage(object any, language string) (string, error) {
 			featureValue = fmt.Sprint(fieldValue.Int())
 		case reflect.Pointer:
 			if fieldValue.IsNil() {
-				featureValue = noDataPerLanguages[language]
+				featureValue = noDataPerLanguages[outputLanguage]
 			} else {
 				pointerValue := fieldValue.Elem()
 				switch pointerValue.Kind() {
