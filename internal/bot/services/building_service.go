@@ -43,8 +43,11 @@ func NewBuildingDTO(b repositories.Building, address string) BuildingDTO {
 	}
 }
 
-func (bs BuildingService) GetBuildingPreviews(ctx context.Context) ([]BuildingPreview, error) {
-	buildings, err := bs.storage.GetBuildingsWithAddress(ctx, 500, 0)
+func (bs BuildingService) GetBuildingPreviews(
+	ctx context.Context, 
+	addressPrefix string,
+) ([]BuildingPreview, error) {
+	buildings, err := bs.storage.GetBuildingsWithAddress(ctx, addressPrefix, 500, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +67,6 @@ func (bs BuildingService) GetBuildingsByAddress(
 	if err != nil {
 		return nil, err
 	}
-
 	buildingsDto := make([]BuildingDTO, len(buildings))
 	for i, building := range buildings {
 		buildingsDto[i] = NewBuildingDTO(building, address)

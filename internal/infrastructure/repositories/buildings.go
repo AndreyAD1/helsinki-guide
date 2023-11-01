@@ -65,7 +65,11 @@ type BuildingWithAddress struct {
 }
 
 type BuildingRepository interface {
-	GetBuildingsWithAddress(ctx context.Context, limit, offset int) ([]BuildingWithAddress, error)
+	GetBuildingsWithAddress(
+		ctx context.Context, 
+		addressPrefix string, 
+		limit, 
+		offset int) ([]BuildingWithAddress, error)
 	GetBuildingsByAddress(context.Context, string) ([]Building, error)
 }
 
@@ -79,22 +83,24 @@ func NewBuildingRepo(dbPool *pgxpool.Pool) *BuildingStorage {
 
 func (bs *BuildingStorage) GetBuildingsWithAddress(
 	ctx context.Context,
+	addressPrefix string,
 	limit,
 	offset int,
 ) ([]BuildingWithAddress, error) {
 	queryTemplate := `SELECT buildings.ID, buildings.code, name_fi,
 	street_address FROM buildings JOIN addresses ON 
-	buildings.address_id = addresses.id
+	buildings.address_id = addresses.id WHERE street_address ILIKE '%v%%'
 	ORDER BY street_address LIMIT %v OFFSET %v;`
 
 	query := fmt.Sprintf(
 		queryTemplate,
+		addressPrefix,
 		limit,
 		offset,
 	)
 	rows, err := bs.dbPool.Query(ctx, query)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("a query returns an error: '%v': %w", query, err)
 	}
 	var buildings []BuildingWithAddress
 	for rows.Next() {
@@ -119,7 +125,7 @@ func (bs *BuildingStorage) GetBuildingsByAddress(
 	queryTemplate := `SELECT buildings.ID, buildings.code, name_fi, name_en,
 	completion_year, history_fi, history_en, history_ru 
 	FROM buildings 
-	WHERE id = (SELECT id FROM addresses WHERE street_address = '%s');`
+	WHERE address_id = (SELECT id FROM addresses WHERE street_address = '%s');`
 
 	query := fmt.Sprintf(queryTemplate, address)
 	rows, err := bs.dbPool.Query(ctx, query)

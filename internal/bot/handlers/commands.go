@@ -68,7 +68,8 @@ func (h HandlerContainer) settings(ctx c.Context, message *tgbotapi.Message) {
 }
 
 func (h HandlerContainer) getAllAdresses(ctx c.Context, message *tgbotapi.Message) {
-	buildings, err := h.buildingService.GetBuildingPreviews(ctx)
+	address := message.CommandArguments()
+	buildings, err := h.buildingService.GetBuildingPreviews(ctx, address)
 	if err != nil {
 		log.Printf("can not get addresses: %s", err.Error())
 		h.SendMessage(message.Chat.ID, "Internal error")
@@ -110,6 +111,6 @@ func (h HandlerContainer) getBuilding(ctx c.Context, message *tgbotapi.Message) 
 		}
 		items[i] = serializedItem
 	}
-	response := strings.Join(items, "\n")
+	response := strings.Join(items, "\n\n")
 	h.SendMessage(message.Chat.ID, response)
 }
