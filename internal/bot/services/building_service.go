@@ -47,12 +47,13 @@ func NewBuildingDTO(b repositories.Building, address string) BuildingDTO {
 func (bs BuildingService) GetBuildingPreviews(
 	ctx context.Context, 
 	addressPrefix string,
+	limit int,
 ) ([]BuildingPreview, error) {
 	addressPrefix = strings.TrimLeft(addressPrefix, " ")
 	buildings, err := bs.storage.GetAllBuildingsAndAddresses(
 		ctx, 
 		addressPrefix, 
-		500, 
+		limit, 
 		0,
 	)
 	if err != nil {

@@ -3,6 +3,7 @@ package bot
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -131,5 +132,15 @@ func (s *Server) handleMessage(ctx context.Context, message *tgbotapi.Message) {
 }
 
 func (s *Server) handleButton(query *tgbotapi.CallbackQuery) {
-	log.Println("a callback is not supported")
+	var queryData handlers.CallBackQuery 
+	if err := json.Unmarshal([]byte(query.Data), &queryData); err != nil {
+		log.Printf("unexpected callback data %v: %v", query, err)
+	}
+	if queryData.Name == "stop" {
+		chatID, messageID := query.Message.Chat.ID, query.Message.MessageID
+		msg := tgbotapi.NewDeleteMessage(chatID, messageID)
+		if _, err := s.bot.Send(msg); err != nil {
+			log.Printf("deletion error for the menu %v from the chat %v: %v", messageID, chatID, err)
+		}
+	}
 }

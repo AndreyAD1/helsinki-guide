@@ -2,6 +2,7 @@ package handlers
 
 import (
 	c "context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"slices"
@@ -67,9 +68,16 @@ func (h HandlerContainer) settings(ctx c.Context, message *tgbotapi.Message) {
 	h.SendMessage(message.Chat.ID, settingsMsg)
 }
 
+type CallBackQuery struct {
+	Name string `json:"name"`
+	Limit int `json:"limit,omitempty"`
+	Offset int `json:"offset,omitempty"`
+}
+
 func (h HandlerContainer) getAllAdresses(ctx c.Context, message *tgbotapi.Message) {
 	address := message.CommandArguments()
-	buildings, err := h.buildingService.GetBuildingPreviews(ctx, address)
+	limit := 10
+	buildings, err := h.buildingService.GetBuildingPreviews(ctx, address, limit)
 	if err != nil {
 		log.Printf("can not get addresses: %s", err.Error())
 		h.SendMessage(message.Chat.ID, "Internal error")
@@ -82,7 +90,31 @@ func (h HandlerContainer) getAllAdresses(ctx c.Context, message *tgbotapi.Messag
 		items[i] = fmt.Sprintf(itemTemplate, i+1, building.Address, building.Name)
 	}
 	response = response + strings.Join(items, "\n") + "\nEnd"
-	h.SendMessage(message.Chat.ID, response)
+	msg := tgbotapi.NewMessage(message.Chat.ID, response)
+	msg.ParseMode = tgbotapi.ModeHTML
+
+	buttonQueries := []CallBackQuery{{"next", 10, 10}, {"stop", 0, 0}}
+	buttons := []tgbotapi.InlineKeyboardButton{}
+	for _, buttonQuery := range buttonQueries {
+		buttonParams, err := json.Marshal(buttonQuery)
+		if err != nil {
+			log.Printf("can not create a button %v: %v", buttonQuery, err)
+			return
+		}
+		button := tgbotapi.NewInlineKeyboardButtonData(
+			buttonQuery.Name, 
+			string(buttonParams),
+		)
+		buttons = append(buttons, button)
+	}
+		
+	moreAddressesMenuMarkup := tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(buttons...),
+	)
+	msg.ReplyMarkup = moreAddressesMenuMarkup
+	if _, err := h.bot.Send(msg); err != nil {
+		log.Printf("An error occured: %s", err.Error())
+	}
 }
 
 func (h HandlerContainer) getBuilding(ctx c.Context, message *tgbotapi.Message) {
