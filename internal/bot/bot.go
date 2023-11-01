@@ -117,7 +117,10 @@ func (s *Server) handleMessage(ctx context.Context, message *tgbotapi.Message) {
 	}
 	handler, ok := s.handlers.GetHandler(message.Command())
 	if !ok {
-		answer := fmt.Sprintf("I don't understand this message: %s", message.Text)
+		answer := fmt.Sprintf(
+			"I'm sorry, but I don't understand this message: %s", 
+			message.Text,
+		)
 		responseMsg := tgbotapi.NewMessage(message.Chat.ID, answer)
 		if _, err := s.bot.Send(responseMsg); err != nil {
 			log.Printf("An error occured: %s", err.Error())

@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"strings"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/infrastructure/repositories"
 )
@@ -47,7 +48,13 @@ func (bs BuildingService) GetBuildingPreviews(
 	ctx context.Context, 
 	addressPrefix string,
 ) ([]BuildingPreview, error) {
-	buildings, err := bs.storage.GetBuildingsWithAddress(ctx, addressPrefix, 500, 0)
+	addressPrefix = strings.TrimLeft(addressPrefix, " ")
+	buildings, err := bs.storage.GetAllBuildingsAndAddresses(
+		ctx, 
+		addressPrefix, 
+		500, 
+		0,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -63,6 +70,7 @@ func (bs BuildingService) GetBuildingsByAddress(
 	ctx context.Context,
 	address string,
 ) ([]BuildingDTO, error) {
+	address = strings.TrimSpace(address)
 	buildings, err := bs.storage.GetBuildingsByAddress(ctx, address)
 	if err != nil {
 		return nil, err

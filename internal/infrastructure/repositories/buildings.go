@@ -65,7 +65,7 @@ type BuildingWithAddress struct {
 }
 
 type BuildingRepository interface {
-	GetBuildingsWithAddress(
+	GetAllBuildingsAndAddresses(
 		ctx context.Context, 
 		addressPrefix string, 
 		limit, 
@@ -81,7 +81,7 @@ func NewBuildingRepo(dbPool *pgxpool.Pool) *BuildingStorage {
 	return &BuildingStorage{dbPool}
 }
 
-func (bs *BuildingStorage) GetBuildingsWithAddress(
+func (bs *BuildingStorage) GetAllBuildingsAndAddresses(
 	ctx context.Context,
 	addressPrefix string,
 	limit,
