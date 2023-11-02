@@ -12,18 +12,6 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-type Handler struct {
-	Function    func(HandlerContainer, c.Context, *tgbotapi.Message)
-	Description string
-}
-
-type HandlerContainer struct {
-	buildingService    services.BuildingService
-	bot                *tgbotapi.BotAPI
-	HandlersPerCommand map[string]Handler
-	commandsForHelp    string
-}
-
 func NewHandler(bot *tgbotapi.BotAPI, service services.BuildingService) HandlerContainer {
 	handlersPerCommand := map[string]Handler{
 		"start":     {HandlerContainer.start, "Start the bot"},
@@ -68,12 +56,6 @@ func (h HandlerContainer) settings(ctx c.Context, message *tgbotapi.Message) {
 	h.SendMessage(message.Chat.ID, settingsMsg)
 }
 
-type CallBackQuery struct {
-	Name string `json:"name"`
-	Limit int `json:"limit,omitempty"`
-	Offset int `json:"offset,omitempty"`
-}
-
 func (h HandlerContainer) getAllAdresses(ctx c.Context, message *tgbotapi.Message) {
 	address := message.CommandArguments()
 	limit := 10
@@ -102,12 +84,12 @@ func (h HandlerContainer) getAllAdresses(ctx c.Context, message *tgbotapi.Messag
 			return
 		}
 		button := tgbotapi.NewInlineKeyboardButtonData(
-			buttonQuery.Name, 
+			buttonQuery.Name,
 			string(buttonParams),
 		)
 		buttons = append(buttons, button)
 	}
-		
+
 	moreAddressesMenuMarkup := tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(buttons...),
 	)

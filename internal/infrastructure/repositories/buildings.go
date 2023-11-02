@@ -66,9 +66,9 @@ type BuildingWithAddress struct {
 
 type BuildingRepository interface {
 	GetAllBuildingsAndAddresses(
-		ctx context.Context, 
-		addressPrefix string, 
-		limit, 
+		ctx context.Context,
+		addressPrefix string,
+		limit,
 		offset int) ([]BuildingWithAddress, error)
 	GetBuildingsByAddress(context.Context, string) ([]Building, error)
 }

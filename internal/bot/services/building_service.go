@@ -21,39 +21,39 @@ type BuildingPreview struct {
 }
 
 type BuildingDTO struct {
-	NameFi *string `valueLanguage:"fi" nameFi:"Nimi" nameEn:"Name" nameRu:"Имя"`
-	NameEn *string `valueLanguage:"en" nameFi:"Nimi" nameEn:"Name" nameRu:"Имя"`
-	NameRu *string `valueLanguage:"ru" nameFi:"Nimi" nameEn:"Name" nameRu:"Имя"`
-	Address string `valueLanguage:"all" nameFi:"Katuosoite" nameEn:"Address" nameRu:"Адрес"`
-	CompletionYear *int `valueLanguage:"all" nameFi:"Kayttottovuosi" nameEn:"Completion_year" nameRu:"Год_постройки"`
-	HistoryFi *string `valueLanguage:"fi" nameFi:"Rakennushistoria" nameEn:"Building_history" nameRu:"История_здания"`
-	HistoryEn *string `valueLanguage:"en" nameFi:"Rakennushistoria" nameEn:"Building_history" nameRu:"История_здания"`
-	HistoryRu *string `valueLanguage:"ru" nameFi:"Rakennushistoria" nameEn:"Building_history" nameRu:"История_здания"`
+	NameFi         *string `valueLanguage:"fi" nameFi:"Nimi" nameEn:"Name" nameRu:"Имя"`
+	NameEn         *string `valueLanguage:"en" nameFi:"Nimi" nameEn:"Name" nameRu:"Имя"`
+	NameRu         *string `valueLanguage:"ru" nameFi:"Nimi" nameEn:"Name" nameRu:"Имя"`
+	Address        string  `valueLanguage:"all" nameFi:"Katuosoite" nameEn:"Address" nameRu:"Адрес"`
+	CompletionYear *int    `valueLanguage:"all" nameFi:"Kayttottovuosi" nameEn:"Completion_year" nameRu:"Год_постройки"`
+	HistoryFi      *string `valueLanguage:"fi" nameFi:"Rakennushistoria" nameEn:"Building_history" nameRu:"История_здания"`
+	HistoryEn      *string `valueLanguage:"en" nameFi:"Rakennushistoria" nameEn:"Building_history" nameRu:"История_здания"`
+	HistoryRu      *string `valueLanguage:"ru" nameFi:"Rakennushistoria" nameEn:"Building_history" nameRu:"История_здания"`
 }
 
 func NewBuildingDTO(b repositories.Building, address string) BuildingDTO {
 	return BuildingDTO{
-		b.NameFi, 
-		b.NameEn, 
-		b.NameRu, 
-		address, 
-		b.CompletionYear, 
-		b.HistoryFi, 
-		b.HistoryEn, 
+		b.NameFi,
+		b.NameEn,
+		b.NameRu,
+		address,
+		b.CompletionYear,
+		b.HistoryFi,
+		b.HistoryEn,
 		b.HistoryRu,
 	}
 }
 
 func (bs BuildingService) GetBuildingPreviews(
-	ctx context.Context, 
+	ctx context.Context,
 	addressPrefix string,
 	limit int,
 ) ([]BuildingPreview, error) {
 	addressPrefix = strings.TrimLeft(addressPrefix, " ")
 	buildings, err := bs.storage.GetAllBuildingsAndAddresses(
-		ctx, 
-		addressPrefix, 
-		limit, 
+		ctx,
+		addressPrefix,
+		limit,
 		0,
 	)
 	if err != nil {

@@ -6,13 +6,12 @@ import (
 	"strings"
 )
 
-
-var tagPerLanguage = map[string]string {
+var tagPerLanguage = map[string]string{
 	"fi": "nameFi",
 	"en": "nameEn",
 	"ru": "nameRu",
 }
-var noDataPerLanguages = map[string]string {
+var noDataPerLanguages = map[string]string{
 	"fi": "no data",
 	"en": "no data",
 	"ru": "нет данных",

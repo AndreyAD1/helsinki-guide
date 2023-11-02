@@ -119,7 +119,7 @@ func (s *Server) handleMessage(ctx context.Context, message *tgbotapi.Message) {
 	handler, ok := s.handlers.GetHandler(message.Command())
 	if !ok {
 		answer := fmt.Sprintf(
-			"I'm sorry, but I don't understand this message: %s", 
+			"Unfortunately, I don't understand this message: %s",
 			message.Text,
 		)
 		responseMsg := tgbotapi.NewMessage(message.Chat.ID, answer)
@@ -132,15 +132,15 @@ func (s *Server) handleMessage(ctx context.Context, message *tgbotapi.Message) {
 }
 
 func (s *Server) handleButton(query *tgbotapi.CallbackQuery) {
-	var queryData handlers.CallBackQuery 
+	var queryData handlers.CallBackQuery
 	if err := json.Unmarshal([]byte(query.Data), &queryData); err != nil {
 		log.Printf("unexpected callback data %v: %v", query, err)
+		return
 	}
 	if queryData.Name == "stop" {
 		chatID, messageID := query.Message.Chat.ID, query.Message.MessageID
 		msg := tgbotapi.NewDeleteMessage(chatID, messageID)
-		if _, err := s.bot.Send(msg); err != nil {
-			log.Printf("deletion error for the menu %v from the chat %v: %v", messageID, chatID, err)
-		}
+		s.bot.Send(msg)
+		return
 	}
 }
