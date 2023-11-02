@@ -71,7 +71,7 @@ func (h HandlerContainer) settings(ctx c.Context, message *tgbotapi.Message) {
 
 func (h HandlerContainer) getAllAdresses(ctx c.Context, message *tgbotapi.Message) {
 	address := message.CommandArguments()
-	limit := 1
+	limit := 2
 	h.returnAddresses(ctx, message.Chat.ID, address, limit, 0)
 }
 
@@ -201,4 +201,9 @@ func (h HandlerContainer) next(ctx c.Context, query *tgbotapi.CallbackQuery) {
 	}
 	address = strings.TrimSpace(address)
 	h.returnAddresses(ctx, chatID, address, button.Limit, button.Offset)
+	callbackAnswer := tgbotapi.NewCallback(query.ID, "")
+	_, err := h.bot.Request(callbackAnswer)
+	if err != nil {
+		log.Printf("could not answer to a callback %v: %v", query.ID, err)
+	}
 }
