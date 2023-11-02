@@ -58,23 +58,37 @@ func (h CommandHandlerContainer) settings(ctx c.Context, message *tgbotapi.Messa
 
 func (h CommandHandlerContainer) getAllAdresses(ctx c.Context, message *tgbotapi.Message) {
 	address := message.CommandArguments()
-	limit := 10
+	limit := 15
 	buildings, err := h.buildingService.GetBuildingPreviews(ctx, address, limit)
 	if err != nil {
 		log.Printf("can not get addresses: %s", err.Error())
 		h.SendMessage(message.Chat.ID, "Internal error")
 		return
 	}
-	response := "Available building addresses and names:\n"
-	items := make([]string, len(buildings))
+	items := make([]string, len(buildings) + 1)
+	items[0] = "Available building addresses and names:"
 	itemTemplate := "%v. %s - %s"
 	for i, building := range buildings {
-		items[i] = fmt.Sprintf(itemTemplate, i+1, building.Address, building.Name)
+		items[i + 1] = fmt.Sprintf(itemTemplate, i+1, building.Address, building.Name)
 	}
-	response = response + strings.Join(items, "\n") + "\nEnd"
-	msg := tgbotapi.NewMessage(message.Chat.ID, response)
-	msg.ParseMode = tgbotapi.ModeHTML
 
+	response := strings.Join(items, "\n")
+	if len(items) < limit {
+		response += "\nEnd"
+		msg := tgbotapi.NewMessage(message.Chat.ID, response)
+		if _, err := h.bot.Send(msg); err != nil {
+			log.Printf(
+				"Can not send a response %v to the chat %v: %v",
+				response,
+				message.Chat.ID,
+				err,
+			)
+		}
+		return
+	}
+	
+	msg := tgbotapi.NewMessage(message.Chat.ID, response)
+	
 	buttonLabel := fmt.Sprintf("Next %v buildings", limit)
 	button := Button{buttonLabel, "next", limit, limit}
 	buttonCallbackData, err := json.Marshal(button)
