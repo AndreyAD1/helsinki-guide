@@ -12,13 +12,13 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-func NewHandler(bot *tgbotapi.BotAPI, service services.BuildingService) HandlerContainer {
+func NewHandler(bot *tgbotapi.BotAPI, service services.BuildingService) CommandHandlerContainer {
 	handlersPerCommand := map[string]Handler{
-		"start":     {HandlerContainer.start, "Start the bot"},
-		"help":      {HandlerContainer.help, "Get help"},
-		"settings":  {HandlerContainer.settings, "Configure settings"},
-		"addresses": {HandlerContainer.getAllAdresses, "Get all available addresses"},
-		"building":  {HandlerContainer.getBuilding, "Get building by address"},
+		"start":     {CommandHandlerContainer.start, "Start the bot"},
+		"help":      {CommandHandlerContainer.help, "Get help"},
+		"settings":  {CommandHandlerContainer.settings, "Configure settings"},
+		"addresses": {CommandHandlerContainer.getAllAdresses, "Get all available addresses"},
+		"building":  {CommandHandlerContainer.getBuilding, "Get building by address"},
 	}
 	availableCommands := []string{}
 	for command := range handlersPerCommand {
@@ -26,37 +26,37 @@ func NewHandler(bot *tgbotapi.BotAPI, service services.BuildingService) HandlerC
 	}
 	slices.Sort(availableCommands)
 	commandsForHelp := strings.Join(availableCommands, ", ")
-	return HandlerContainer{service, bot, handlersPerCommand, commandsForHelp}
+	return CommandHandlerContainer{service, bot, handlersPerCommand, commandsForHelp}
 }
 
-func (h HandlerContainer) GetHandler(command string) (Handler, bool) {
+func (h CommandHandlerContainer) GetHandler(command string) (Handler, bool) {
 	handler, ok := h.HandlersPerCommand[command]
 	return handler, ok
 }
 
-func (h HandlerContainer) SendMessage(chatId int64, msgText string) {
+func (h CommandHandlerContainer) SendMessage(chatId int64, msgText string) {
 	msg := tgbotapi.NewMessage(chatId, msgText)
 	if _, err := h.bot.Send(msg); err != nil {
 		log.Printf("An error occured: %s", err.Error())
 	}
 }
 
-func (h HandlerContainer) start(ctx c.Context, message *tgbotapi.Message) {
+func (h CommandHandlerContainer) start(ctx c.Context, message *tgbotapi.Message) {
 	startMsg := "Hello! I'm a bot that helps you to understand Helsinki better."
 	h.SendMessage(message.Chat.ID, startMsg)
 }
 
-func (h HandlerContainer) help(ctx c.Context, message *tgbotapi.Message) {
+func (h CommandHandlerContainer) help(ctx c.Context, message *tgbotapi.Message) {
 	helpMsg := fmt.Sprintf("Available commands: %s", h.commandsForHelp)
 	h.SendMessage(message.Chat.ID, helpMsg)
 }
 
-func (h HandlerContainer) settings(ctx c.Context, message *tgbotapi.Message) {
+func (h CommandHandlerContainer) settings(ctx c.Context, message *tgbotapi.Message) {
 	settingsMsg := "No settings yet."
 	h.SendMessage(message.Chat.ID, settingsMsg)
 }
 
-func (h HandlerContainer) getAllAdresses(ctx c.Context, message *tgbotapi.Message) {
+func (h CommandHandlerContainer) getAllAdresses(ctx c.Context, message *tgbotapi.Message) {
 	address := message.CommandArguments()
 	limit := 10
 	buildings, err := h.buildingService.GetBuildingPreviews(ctx, address, limit)
@@ -75,23 +75,19 @@ func (h HandlerContainer) getAllAdresses(ctx c.Context, message *tgbotapi.Messag
 	msg := tgbotapi.NewMessage(message.Chat.ID, response)
 	msg.ParseMode = tgbotapi.ModeHTML
 
-	buttonQueries := []CallBackQuery{{"next", 10, 10}, {"stop", 0, 0}}
-	buttons := []tgbotapi.InlineKeyboardButton{}
-	for _, buttonQuery := range buttonQueries {
-		buttonParams, err := json.Marshal(buttonQuery)
-		if err != nil {
-			log.Printf("can not create a button %v: %v", buttonQuery, err)
-			return
-		}
-		button := tgbotapi.NewInlineKeyboardButtonData(
-			buttonQuery.Name,
-			string(buttonParams),
-		)
-		buttons = append(buttons, button)
+	buttonLabel := fmt.Sprintf("Next %v buildings", limit)
+	button := Button{buttonLabel, "next", limit, limit}
+	buttonCallbackData, err := json.Marshal(button)
+	if err != nil {
+		log.Printf("can not create a button %v: %v", button, err)
+		return
 	}
-
+	buttonData := tgbotapi.NewInlineKeyboardButtonData(
+		button.label,
+		string(buttonCallbackData),
+	)
 	moreAddressesMenuMarkup := tgbotapi.NewInlineKeyboardMarkup(
-		tgbotapi.NewInlineKeyboardRow(buttons...),
+		tgbotapi.NewInlineKeyboardRow(buttonData),
 	)
 	msg.ReplyMarkup = moreAddressesMenuMarkup
 	if _, err := h.bot.Send(msg); err != nil {
@@ -99,7 +95,7 @@ func (h HandlerContainer) getAllAdresses(ctx c.Context, message *tgbotapi.Messag
 	}
 }
 
-func (h HandlerContainer) getBuilding(ctx c.Context, message *tgbotapi.Message) {
+func (h CommandHandlerContainer) getBuilding(ctx c.Context, message *tgbotapi.Message) {
 	address := message.CommandArguments()
 	if address == "" {
 		h.SendMessage(message.Chat.ID, "Please add an address to this command.")

@@ -18,7 +18,7 @@ import (
 
 type Server struct {
 	bot           *tgbotapi.BotAPI
-	handlers      handlers.HandlerContainer
+	commands      handlers.CommandHandlerContainer
 	shutdownFuncs []func()
 }
 
@@ -71,7 +71,7 @@ func (s *Server) RunBot() {
 
 func (s *Server) setBotCommands() error {
 	commands := []tgbotapi.BotCommand{}
-	for commandName, handler := range s.handlers.HandlersPerCommand {
+	for commandName, handler := range s.commands.HandlersPerCommand {
 		command := tgbotapi.BotCommand{
 			Command:     commandName,
 			Description: handler.Description,
@@ -116,7 +116,7 @@ func (s *Server) handleMessage(ctx context.Context, message *tgbotapi.Message) {
 	if user == nil {
 		return
 	}
-	handler, ok := s.handlers.GetHandler(message.Command())
+	handler, ok := s.commands.GetHandler(message.Command())
 	if !ok {
 		answer := fmt.Sprintf(
 			"Unfortunately, I don't understand this message: %s",
@@ -128,11 +128,11 @@ func (s *Server) handleMessage(ctx context.Context, message *tgbotapi.Message) {
 		}
 		return
 	}
-	handler.Function(s.handlers, ctx, message)
+	handler.Function(s.commands, ctx, message)
 }
 
 func (s *Server) handleButton(query *tgbotapi.CallbackQuery) {
-	var queryData handlers.CallBackQuery
+	var queryData handlers.Button
 	if err := json.Unmarshal([]byte(query.Data), &queryData); err != nil {
 		log.Printf("unexpected callback data %v: %v", query, err)
 		return
@@ -144,7 +144,7 @@ func (s *Server) handleButton(query *tgbotapi.CallbackQuery) {
 		if err != nil {
 			log.Printf(
 				"could not delete the message %v from the chat %v: %v",
-				messageID, 
+				messageID,
 				chatID,
 				err,
 			)
