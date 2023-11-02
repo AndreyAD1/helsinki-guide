@@ -139,8 +139,15 @@ func (s *Server) handleButton(query *tgbotapi.CallbackQuery) {
 	}
 	if queryData.Name == "stop" {
 		chatID, messageID := query.Message.Chat.ID, query.Message.MessageID
-		msg := tgbotapi.NewDeleteMessage(chatID, messageID)
-		s.bot.Send(msg)
-		return
+		deleteMsg := tgbotapi.NewDeleteMessage(chatID, messageID)
+		_, err := s.bot.Request(deleteMsg)
+		if err != nil {
+			log.Printf(
+				"could not delete the message %v from the chat %v: %v",
+				messageID, 
+				chatID,
+				err,
+			)
+		}
 	}
 }
