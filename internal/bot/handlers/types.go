@@ -7,15 +7,18 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-type Handler struct {
-	Function    func(CommandHandlerContainer, c.Context, *tgbotapi.Message)
+type CommandHandler struct {
+	Function    func(HandlerContainer, c.Context, *tgbotapi.Message)
 	Description string
 }
 
-type CommandHandlerContainer struct {
+type ButtonHandler func(HandlerContainer, c.Context, *tgbotapi.CallbackQuery)
+
+type HandlerContainer struct {
 	buildingService    services.BuildingService
 	bot                *tgbotapi.BotAPI
-	HandlersPerCommand map[string]Handler
+	HandlersPerCommand map[string]CommandHandler
+	handlersPerButton  map[string]ButtonHandler
 	commandsForHelp    string
 }
 
@@ -24,12 +27,4 @@ type Button struct {
 	Name   string `json:"name"`
 	Limit  int    `json:"limit,omitempty"`
 	Offset int    `json:"offset,omitempty"`
-}
-
-type ButtonHandler func(ButtonHandlerContainer, c.Context, *tgbotapi.CallbackQuery)
-
-type ButtonHandlerContainer struct {
-	buildingService   services.BuildingService
-	bot               *tgbotapi.BotAPI
-	handlersPerButton map[string]ButtonHandler
 }

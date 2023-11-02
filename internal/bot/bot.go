@@ -18,8 +18,7 @@ import (
 
 type Server struct {
 	bot           *tgbotapi.BotAPI
-	buttons       handlers.ButtonHandlerContainer
-	commands      handlers.CommandHandlerContainer
+	handlers      handlers.HandlerContainer
 	shutdownFuncs []func()
 }
 
@@ -41,13 +40,7 @@ func NewServer(config configuration.StartupConfig) (*Server, error) {
 	buildingRepo := repositories.NewBuildingRepo(dbpool)
 	buildingService := services.NewBuildingService(buildingRepo)
 	handlerContainer := handlers.NewCommandContainer(bot, buildingService)
-	buttonContainer := handlers.NewButtonContainer(bot, buildingService)
-	server := Server{
-		bot,
-		buttonContainer,
-		handlerContainer,
-		[]func(){dbpool.Close},
-	}
+	server := Server{bot, handlerContainer, []func(){dbpool.Close}}
 	return &server, nil
 }
 
@@ -79,7 +72,7 @@ func (s *Server) RunBot() {
 
 func (s *Server) setBotCommands() error {
 	commands := []tgbotapi.BotCommand{}
-	for commandName, handler := range s.commands.HandlersPerCommand {
+	for commandName, handler := range s.handlers.HandlersPerCommand {
 		command := tgbotapi.BotCommand{
 			Command:     commandName,
 			Description: handler.Description,
@@ -124,7 +117,7 @@ func (s *Server) handleMessage(ctx context.Context, message *tgbotapi.Message) {
 	if user == nil {
 		return
 	}
-	handler, ok := s.commands.GetHandler(message.Command())
+	handler, ok := s.handlers.GetHandler(message.Command())
 	if !ok {
 		answer := fmt.Sprintf(
 			"Unfortunately, I don't understand this message: %s",
@@ -136,7 +129,7 @@ func (s *Server) handleMessage(ctx context.Context, message *tgbotapi.Message) {
 		}
 		return
 	}
-	handler.Function(s.commands, ctx, message)
+	handler.Function(s.handlers, ctx, message)
 }
 
 func (s *Server) handleButton(ctx context.Context, query *tgbotapi.CallbackQuery) {
@@ -145,7 +138,7 @@ func (s *Server) handleButton(ctx context.Context, query *tgbotapi.CallbackQuery
 		log.Printf("unexpected callback data %v: %v", query, err)
 		return
 	}
-	handler, ok := s.buttons.GetHandler(queryData.Name)
+	handler, ok := s.handlers.GetButtonHandler(queryData.Name)
 	if !ok {
 		log.Printf(
 			"the unexpected button name %v from the chat %v: initial message %v",
@@ -155,5 +148,5 @@ func (s *Server) handleButton(ctx context.Context, query *tgbotapi.CallbackQuery
 		)
 		return
 	}
-	handler(s.buttons, ctx, query)
+	handler(s.handlers, ctx, query)
 }
