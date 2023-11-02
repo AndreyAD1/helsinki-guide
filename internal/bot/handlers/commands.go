@@ -12,7 +12,10 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-func NewHandler(bot *tgbotapi.BotAPI, service services.BuildingService) CommandHandlerContainer {
+func NewCommandContainer(
+	bot *tgbotapi.BotAPI,
+	service services.BuildingService,
+) CommandHandlerContainer {
 	handlersPerCommand := map[string]Handler{
 		"start":     {CommandHandlerContainer.start, "Start the bot"},
 		"help":      {CommandHandlerContainer.help, "Get help"},
@@ -71,7 +74,6 @@ func (h CommandHandlerContainer) getAllAdresses(ctx c.Context, message *tgbotapi
 	for i, building := range buildings {
 		items[i+1] = fmt.Sprintf(template, i+1, building.Address, building.Name)
 	}
-
 	response := strings.Join(items, "\n")
 	if len(items) < limit {
 		response += "\nEnd"

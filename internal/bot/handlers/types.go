@@ -25,3 +25,11 @@ type Button struct {
 	Limit  int    `json:"limit,omitempty"`
 	Offset int    `json:"offset,omitempty"`
 }
+
+type ButtonHandler func(ButtonHandlerContainer, c.Context, *tgbotapi.CallbackQuery)
+
+type ButtonHandlerContainer struct {
+	buildingService   services.BuildingService
+	bot               *tgbotapi.BotAPI
+	handlersPerButton map[string]ButtonHandler
+}

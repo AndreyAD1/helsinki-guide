@@ -18,6 +18,7 @@ import (
 
 type Server struct {
 	bot           *tgbotapi.BotAPI
+	buttons       handlers.ButtonHandlerContainer
 	commands      handlers.CommandHandlerContainer
 	shutdownFuncs []func()
 }
@@ -39,8 +40,15 @@ func NewServer(config configuration.StartupConfig) (*Server, error) {
 	}
 	buildingRepo := repositories.NewBuildingRepo(dbpool)
 	buildingService := services.NewBuildingService(buildingRepo)
-	handlerContainer := handlers.NewHandler(bot, buildingService)
-	return &Server{bot, handlerContainer, []func(){dbpool.Close}}, nil
+	handlerContainer := handlers.NewCommandContainer(bot, buildingService)
+	buttonContainer := handlers.NewButtonContainer(bot, buildingService)
+	server := Server{
+		bot,
+		buttonContainer,
+		handlerContainer,
+		[]func(){dbpool.Close},
+	}
+	return &server, nil
 }
 
 func (s *Server) Shutdown() {
@@ -106,7 +114,7 @@ func (s *Server) handleUpdate(ctx context.Context, update tgbotapi.Update) {
 	case update.Message != nil:
 		s.handleMessage(ctx, update.Message)
 	case update.CallbackQuery != nil:
-		s.handleButton(update.CallbackQuery)
+		s.handleButton(ctx, update.CallbackQuery)
 	}
 }
 
@@ -131,23 +139,21 @@ func (s *Server) handleMessage(ctx context.Context, message *tgbotapi.Message) {
 	handler.Function(s.commands, ctx, message)
 }
 
-func (s *Server) handleButton(query *tgbotapi.CallbackQuery) {
+func (s *Server) handleButton(ctx context.Context, query *tgbotapi.CallbackQuery) {
 	var queryData handlers.Button
 	if err := json.Unmarshal([]byte(query.Data), &queryData); err != nil {
 		log.Printf("unexpected callback data %v: %v", query, err)
 		return
 	}
-	if queryData.Name == "stop" {
-		chatID, messageID := query.Message.Chat.ID, query.Message.MessageID
-		deleteMsg := tgbotapi.NewDeleteMessage(chatID, messageID)
-		_, err := s.bot.Request(deleteMsg)
-		if err != nil {
-			log.Printf(
-				"could not delete the message %v from the chat %v: %v",
-				messageID,
-				chatID,
-				err,
-			)
-		}
+	handler, ok := s.buttons.GetHandler(queryData.Name)
+	if !ok {
+		log.Printf(
+			"the unexpected button name %v from the chat %v: initial message %v",
+			queryData,
+			query.Message.Chat.ID,
+			query.Message.MessageID,
+		)
+		return
 	}
+	handler(s.buttons, ctx, query)
 }
