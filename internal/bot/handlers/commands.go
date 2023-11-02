@@ -37,7 +37,7 @@ func (h CommandHandlerContainer) GetHandler(command string) (Handler, bool) {
 func (h CommandHandlerContainer) SendMessage(chatId int64, msgText string) {
 	msg := tgbotapi.NewMessage(chatId, msgText)
 	if _, err := h.bot.Send(msg); err != nil {
-		log.Printf("An error occured: %s", err.Error())
+		log.Printf("An error occured: %v", err)
 	}
 }
 
@@ -61,15 +61,15 @@ func (h CommandHandlerContainer) getAllAdresses(ctx c.Context, message *tgbotapi
 	limit := 15
 	buildings, err := h.buildingService.GetBuildingPreviews(ctx, address, limit)
 	if err != nil {
-		log.Printf("can not get addresses: %s", err.Error())
+		log.Printf("can not get addresses: %v", err)
 		h.SendMessage(message.Chat.ID, "Internal error")
 		return
 	}
-	items := make([]string, len(buildings) + 1)
+	items := make([]string, len(buildings)+1)
 	items[0] = "Available building addresses and names:"
-	itemTemplate := "%v. %s - %s"
+	template := "%v. %s - %s"
 	for i, building := range buildings {
-		items[i + 1] = fmt.Sprintf(itemTemplate, i+1, building.Address, building.Name)
+		items[i+1] = fmt.Sprintf(template, i+1, building.Address, building.Name)
 	}
 
 	response := strings.Join(items, "\n")
@@ -86,9 +86,8 @@ func (h CommandHandlerContainer) getAllAdresses(ctx c.Context, message *tgbotapi
 		}
 		return
 	}
-	
+
 	msg := tgbotapi.NewMessage(message.Chat.ID, response)
-	
 	buttonLabel := fmt.Sprintf("Next %v buildings", limit)
 	button := Button{buttonLabel, "next", limit, limit}
 	buttonCallbackData, err := json.Marshal(button)
@@ -105,7 +104,7 @@ func (h CommandHandlerContainer) getAllAdresses(ctx c.Context, message *tgbotapi
 	)
 	msg.ReplyMarkup = moreAddressesMenuMarkup
 	if _, err := h.bot.Send(msg); err != nil {
-		log.Printf("An error occured: %s", err.Error())
+		log.Printf("An error occured: %v", err)
 	}
 }
 
@@ -117,7 +116,7 @@ func (h CommandHandlerContainer) getBuilding(ctx c.Context, message *tgbotapi.Me
 	}
 	buildings, err := h.buildingService.GetBuildingsByAddress(ctx, address)
 	if err != nil {
-		log.Printf("can not get building by address '%s': %s", address, err.Error())
+		log.Printf("can not get building by address '%s': %v", address, err)
 		h.SendMessage(message.Chat.ID, "Internal error.")
 		return
 	}
@@ -129,7 +128,7 @@ func (h CommandHandlerContainer) getBuilding(ctx c.Context, message *tgbotapi.Me
 	for i, building := range buildings {
 		serializedItem, err := SerializeIntoMessage(building, userLanguage)
 		if err != nil {
-			log.Printf("can not serialize a building '%s': %s", address, err.Error())
+			log.Printf("can not serialize a building '%s': %v", address, err)
 			items[i] = "A building error."
 			continue
 		}
