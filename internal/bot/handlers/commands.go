@@ -12,6 +12,8 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
+const unexpectedTextTemplate = "an unexpected message text for a button 'next': %s: message_id: %v: chat id: %v"
+
 func NewCommandContainer(
 	bot *tgbotapi.BotAPI,
 	service services.BuildingService,
@@ -69,9 +71,11 @@ func (h HandlerContainer) settings(ctx c.Context, message *tgbotapi.Message) {
 
 func (h HandlerContainer) getAllAdresses(ctx c.Context, message *tgbotapi.Message) {
 	address := message.CommandArguments()
-	limit := 2
+	limit := 1
 	h.returnAddresses(ctx, message.Chat.ID, address, limit, 0)
 }
+
+var prefixTemplate = "Search address: %s\nAvailable building addresses and names:"
 
 func (h HandlerContainer) returnAddresses(
 	ctx c.Context,
@@ -92,7 +96,7 @@ func (h HandlerContainer) returnAddresses(
 		return
 	}
 	items := make([]string, len(buildings)+1)
-	items[0] = "Available building addresses and names:"
+	items[0] = fmt.Sprintf(prefixTemplate, address)
 	template := "%v. %s - %s"
 	for i, building := range buildings {
 		items[i+1] = fmt.Sprintf(
@@ -170,10 +174,31 @@ func (h HandlerContainer) getBuilding(ctx c.Context, message *tgbotapi.Message) 
 }
 
 func (h HandlerContainer) next(ctx c.Context, query *tgbotapi.CallbackQuery) {
+	msgID, chatID := query.Message.MessageID, query.Message.Chat.ID
 	var button Button
 	if err := json.Unmarshal([]byte(query.Data), &button); err != nil {
-		log.Printf("unexpected callback data %v: %v", query, err)
+		log.Printf(
+			"unexpected callback data %v from a message %v and chat %v: %v", 
+			query.Data,
+			msgID,
+			chatID,
+			err,
+		)
 		return
 	}
-	h.returnAddresses(ctx, query.Message.Chat.ID, "", button.Limit, button.Offset)
+	// I need to extract an address from a message text 
+	//  instead of using query data because the Telegram API specifies that
+	//  query data should be less than 64 bytes.
+	firstRow, _, found := strings.Cut(query.Message.Text, "\n")
+	if !found {
+		log.Printf(unexpectedTextTemplate, query.Message.Text, msgID, chatID)
+		return
+	}
+	_, address, found := strings.Cut(firstRow, ":")
+	if !found {
+		log.Printf(unexpectedTextTemplate, query.Message.Text, msgID, chatID)
+		return
+	}
+	address = strings.TrimSpace(address)
+	h.returnAddresses(ctx, chatID, address, button.Limit, button.Offset)
 }
