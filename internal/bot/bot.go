@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"log/slog"
 	"os"
 
@@ -13,6 +12,7 @@ import (
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/handlers"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/services"
 	"github.com/AndreyAD1/helsinki-guide/internal/infrastructure/repositories"
+	"github.com/AndreyAD1/helsinki-guide/internal/logger"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -91,20 +91,26 @@ func (s *Server) setBotCommands(ctx context.Context) error {
 	if err != nil {
 		slog.ErrorContext(
 			ctx,
-			"can not set commands: command config: %v: %v",
-			setCommandsConfig,
-			err,
+			fmt.Sprintf(
+				"can not set commands: command config: %v",
+				setCommandsConfig,
+			),
+			slog.Any(logger.ErrorKey, err),
 		)
 		return fmt.Errorf("can not make a request to set commands: %w", err)
 	}
 	if !result.Ok {
+		err = fmt.Errorf(result.Description)
 		slog.ErrorContext(
 			ctx,
-			"can not set commands: an error code '%v': a response body '%s'",
-			result.ErrorCode,
-			result.Result,
+			fmt.Sprintf(
+				"can not set commands: an error code '%v': a response body '%s'",
+				result.ErrorCode,
+				result.Result,
+			),
+			slog.Any(logger.ErrorKey, err),
 		)
-		return fmt.Errorf(result.Description)
+		return err
 	}
 
 	return nil
@@ -144,7 +150,12 @@ func (s *Server) handleMessage(ctx context.Context, message *tgbotapi.Message) {
 		)
 		responseMsg := tgbotapi.NewMessage(message.Chat.ID, answer)
 		if _, err := s.bot.Send(responseMsg); err != nil {
-			log.Printf("An error occured: %s", err.Error())
+			logMsg := fmt.Sprintf(
+				"can not send a message to %v: %v",
+				message.Chat.ID, 
+				answer,
+			)
+			slog.WarnContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
 		}
 		return
 	}
@@ -154,17 +165,22 @@ func (s *Server) handleMessage(ctx context.Context, message *tgbotapi.Message) {
 func (s *Server) handleButton(ctx context.Context, query *tgbotapi.CallbackQuery) {
 	var queryData handlers.Button
 	if err := json.Unmarshal([]byte(query.Data), &queryData); err != nil {
-		log.Printf("unexpected callback data %v: %v", query, err)
+		slog.WarnContext(
+			ctx, 
+			fmt.Sprintf("unexpected callback data %v", query), 
+			slog.Any(logger.ErrorKey, err),
+		)
 		return
 	}
 	handler, ok := s.handlers.GetButtonHandler(queryData.Name)
 	if !ok {
-		log.Printf(
+		logMsg := fmt.Sprintf(
 			"the unexpected button name %v from the chat %v: initial message %v",
 			queryData,
 			query.Message.Chat.ID,
 			query.Message.MessageID,
 		)
+		slog.WarnContext(ctx, logMsg)
 		return
 	}
 	handler(s.handlers, ctx, query)

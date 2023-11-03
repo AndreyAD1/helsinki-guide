@@ -4,16 +4,17 @@ import (
 	c "context"
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"slices"
 	"strings"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/services"
+	"github.com/AndreyAD1/helsinki-guide/internal/logger"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 const (
-	unexpectedTextTemplate = "an unexpected message text for a button " +
+	unexpectedTextTmpl = "an unexpected message text for a button " +
 		"'next': %s: message_id: %v: chat id: %v"
 	defaultLimit = 2
 )
@@ -57,26 +58,30 @@ func (h HandlerContainer) GetButtonHandler(buttonName string) (ButtonHandler, bo
 	return handler, ok
 }
 
-func (h HandlerContainer) SendMessage(chatId int64, msgText string) {
+func (h HandlerContainer) SendMessage(ctx c.Context, chatId int64, msgText string) {
 	msg := tgbotapi.NewMessage(chatId, msgText)
 	if _, err := h.bot.Send(msg); err != nil {
-		log.Printf("An error occured: %v", err)
+		slog.WarnContext(
+			ctx, 
+			fmt.Sprintf("can no send a message to %v: %v", chatId, msgText), 
+			slog.Any(logger.ErrorKey, err),
+		)
 	}
 }
 
 func (h HandlerContainer) start(ctx c.Context, message *tgbotapi.Message) {
 	startMsg := "Hello! I'm a bot that helps you to understand Helsinki better."
-	h.SendMessage(message.Chat.ID, startMsg)
+	h.SendMessage(ctx, message.Chat.ID, startMsg)
 }
 
 func (h HandlerContainer) help(ctx c.Context, message *tgbotapi.Message) {
 	helpMsg := fmt.Sprintf("Available commands: %s", h.commandsForHelp)
-	h.SendMessage(message.Chat.ID, helpMsg)
+	h.SendMessage(ctx, message.Chat.ID, helpMsg)
 }
 
 func (h HandlerContainer) settings(ctx c.Context, message *tgbotapi.Message) {
 	settingsMsg := "No settings yet."
-	h.SendMessage(message.Chat.ID, settingsMsg)
+	h.SendMessage(ctx, message.Chat.ID, settingsMsg)
 }
 
 func (h HandlerContainer) getAllAdresses(ctx c.Context, message *tgbotapi.Message) {
@@ -100,8 +105,7 @@ func (h HandlerContainer) returnAddresses(
 		offset,
 	)
 	if err != nil {
-		log.Printf("can not get addresses: %v", err)
-		h.SendMessage(chatID, "Internal error")
+		h.SendMessage(ctx, chatID, "Internal error")
 		return
 	}
 	items := make([]string, len(buildings)+1)
@@ -120,11 +124,14 @@ func (h HandlerContainer) returnAddresses(
 		response += "\nEnd"
 		msg := tgbotapi.NewMessage(chatID, response)
 		if _, err := h.bot.Send(msg); err != nil {
-			log.Printf(
-				"Can not send a response %v to the chat %v: %v",
-				response,
-				chatID,
-				err,
+			slog.WarnContext(
+				ctx, 
+				fmt.Sprintf(
+					"Can not send a response %v to the chat %v",
+					response,
+					chatID,
+				),
+				slog.Any(logger.ErrorKey, err),
 			)
 		}
 		return
@@ -135,10 +142,13 @@ func (h HandlerContainer) returnAddresses(
 	button := Button{buttonLabel, "next", limit, offset + len(buildings)}
 	buttonCallbackData, err := json.Marshal(button)
 	if err != nil {
-		log.Printf("can not create a button %v: %v", button, err)
+		slog.ErrorContext(
+			ctx, 
+			fmt.Sprintf("can not create a button %v", button),
+			slog.Any(logger.ErrorKey, err),
+		)
 		return
 	}
-	log.Println(string(buttonCallbackData))
 	buttonData := tgbotapi.NewInlineKeyboardButtonData(
 		button.label,
 		string(buttonCallbackData),
@@ -148,20 +158,28 @@ func (h HandlerContainer) returnAddresses(
 	)
 	msg.ReplyMarkup = moreAddressesMenuMarkup
 	if _, err := h.bot.Send(msg); err != nil {
-		log.Printf("An error occured: %v", err)
+		slog.WarnContext(
+			ctx, 
+			fmt.Sprintf("can not send an inline keyboard to: %v", chatID),
+			slog.Any(logger.ErrorKey, err),
+		)
 	}
 }
 
 func (h HandlerContainer) getBuilding(ctx c.Context, message *tgbotapi.Message) {
 	address := message.CommandArguments()
 	if address == "" {
-		h.SendMessage(message.Chat.ID, "Please add an address to this command.")
+		h.SendMessage(ctx, message.Chat.ID, "Please add an address to this command.")
 		return
 	}
 	buildings, err := h.buildingService.GetBuildingsByAddress(ctx, address)
 	if err != nil {
-		log.Printf("can not get building by address '%s': %v", address, err)
-		h.SendMessage(message.Chat.ID, "Internal error.")
+		slog.WarnContext(
+			ctx, 
+			fmt.Sprintf("can not get building by address '%s'", address),
+			slog.Any(logger.ErrorKey, err),
+		)
+		h.SendMessage(ctx, message.Chat.ID, "Internal error.")
 		return
 	}
 	userLanguage := "en"
@@ -172,40 +190,45 @@ func (h HandlerContainer) getBuilding(ctx c.Context, message *tgbotapi.Message) 
 	for i, building := range buildings {
 		serializedItem, err := SerializeIntoMessage(building, userLanguage)
 		if err != nil {
-			log.Printf("can not serialize a building '%s': %v", address, err)
+			slog.ErrorContext(
+				ctx, 
+				fmt.Sprintf("can not serialize a building '%s'", address),
+				slog.Any(logger.ErrorKey, err),
+			)
 			items[i] = "A building error."
 			continue
 		}
 		items[i] = serializedItem
 	}
 	response := strings.Join(items, "\n\n")
-	h.SendMessage(message.Chat.ID, response)
+	h.SendMessage(ctx, message.Chat.ID, response)
 }
 
 func (h HandlerContainer) next(ctx c.Context, query *tgbotapi.CallbackQuery) {
 	msgID, chatID := query.Message.MessageID, query.Message.Chat.ID
 	var button Button
 	if err := json.Unmarshal([]byte(query.Data), &button); err != nil {
-		log.Printf(
-			"unexpected callback data %v from a message %v and chat %v: %v",
+		logMsg := fmt.Sprintf(
+			"unexpected callback data %v from a message %v and the chat %v",
 			query.Data,
 			msgID,
 			chatID,
-			err,
 		)
+		slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
 		return
 	}
 	// I need to extract an address from a message text
 	//  instead of using query data because the Telegram API specifies that
 	//  query data should be less than 64 bytes.
 	firstRow, _, found := strings.Cut(query.Message.Text, "\n")
+	logMsg := fmt.Sprintf(unexpectedTextTmpl, query.Message.Text, msgID, chatID)
 	if !found {
-		log.Printf(unexpectedTextTemplate, query.Message.Text, msgID, chatID)
+		slog.ErrorContext(ctx, logMsg)
 		return
 	}
 	_, address, found := strings.Cut(firstRow, ":")
 	if !found {
-		log.Printf(unexpectedTextTemplate, query.Message.Text, msgID, chatID)
+		slog.ErrorContext(ctx, logMsg)
 		return
 	}
 	address = strings.TrimSpace(address)
@@ -214,6 +237,10 @@ func (h HandlerContainer) next(ctx c.Context, query *tgbotapi.CallbackQuery) {
 	callbackAnswer := tgbotapi.NewCallback(query.ID, "")
 	_, err := h.bot.Request(callbackAnswer)
 	if err != nil {
-		log.Printf("could not answer to a callback %v: %v", query.ID, err)
+		slog.WarnContext(
+			ctx, 
+			fmt.Sprintf("could not answer to a callback %v", query.ID), 
+			slog.Any(logger.ErrorKey, err),
+		)
 	}
 }
