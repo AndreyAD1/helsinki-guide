@@ -1,7 +1,10 @@
 package bot
 
 import (
-	"log"
+	"context"
+	"fmt"
+	"log/slog"
+	"os"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/configuration"
@@ -14,12 +17,13 @@ var (
 	BotCmd   = &cobra.Command{
 		Use:   "bot",
 		Short: "Run a Telegram bot",
-		Run: func(cmd *cobra.Command, args []string) {
-			run()
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return run()
 		},
 	}
-	panicCounter int
-	panicThreshold = 5
+	panicCounter   int
+	panicThreshold = 10
+	logLevel       = new(slog.LevelVar)
 )
 
 func init() {
@@ -32,11 +36,27 @@ func init() {
 	)
 }
 
-func run() {
+func run() error {
+	ctx := context.Background()
+	handlerOptions := slog.HandlerOptions{
+		AddSource: true,
+		Level:     logLevel,
+	}
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, &handlerOptions))
+	slog.SetDefault(logger)
+
 	config := configuration.StartupConfig{}
 	err := env.Parse(&config)
 	if err != nil {
-		log.Fatal(err)
+		slog.ErrorContext(
+			ctx,
+			"a configuration error",
+			slog.Any("error", err),
+		)
+		return fmt.Errorf("a configuration error: %w", err)
+	}
+	if config.Debug {
+		logLevel.Set(slog.LevelDebug)
 	}
 	if botToken != "" {
 		config.BotAPIToken = botToken
@@ -46,18 +66,26 @@ func run() {
 		if p == nil {
 			return
 		}
-		log.Printf("catch a panic: %v", p)
+		slog.ErrorContext(
+			ctx,
+			fmt.Sprintf("catch a panic"),
+			slog.Any("panic", p),
+		)
 		panicCounter++
 		if panicCounter >= panicThreshold {
-			log.Fatalf("too many panics: %v", panicCounter)
+			slog.ErrorContext(
+				ctx,
+				fmt.Sprintf("too many panics: %v", panicCounter),
+				slog.Any("panic", p),
+			)
 			return
 		}
 		run()
 	}()
 	server, err := bot.NewServer(config)
 	if err != nil {
-		log.Fatalf("can not run a server: %v", err)
+		return fmt.Errorf("can not create a new server: %w", err)
 	}
 	defer server.Shutdown()
-	server.RunBot()
+	return server.RunBot(ctx)
 }

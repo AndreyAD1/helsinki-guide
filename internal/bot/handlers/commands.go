@@ -14,7 +14,7 @@ import (
 
 const (
 	unexpectedTextTemplate = "an unexpected message text for a button " +
-	"'next': %s: message_id: %v: chat id: %v"
+		"'next': %s: message_id: %v: chat id: %v"
 	defaultLimit = 2
 )
 

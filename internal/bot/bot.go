@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"log/slog"
 	"os"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/configuration"
@@ -17,9 +18,10 @@ import (
 )
 
 type Server struct {
-	bot           *tgbotapi.BotAPI
-	handlers      handlers.HandlerContainer
-	shutdownFuncs []func()
+	bot             *tgbotapi.BotAPI
+	handlers        handlers.HandlerContainer
+	shutdownFuncs   []func()
+	tgUpdateTimeout int
 }
 
 func NewServer(config configuration.StartupConfig) (*Server, error) {
@@ -40,7 +42,12 @@ func NewServer(config configuration.StartupConfig) (*Server, error) {
 	buildingRepo := repositories.NewBuildingRepo(dbpool)
 	buildingService := services.NewBuildingService(buildingRepo)
 	handlerContainer := handlers.NewCommandContainer(bot, buildingService)
-	server := Server{bot, handlerContainer, []func(){dbpool.Close}}
+	server := Server{
+		bot,
+		handlerContainer,
+		[]func(){dbpool.Close},
+		config.TGUpdateTimeout,
+	}
 	return &server, nil
 }
 
@@ -50,27 +57,27 @@ func (s *Server) Shutdown() {
 	}
 }
 
-func (s *Server) RunBot() {
-	if err := s.setBotCommands(); err != nil {
-		log.Fatalf("can not set commands: %v", err)
+func (s *Server) RunBot(ctx context.Context) error {
+	if err := s.setBotCommands(ctx); err != nil {
+		return fmt.Errorf("can not set bot commands: %w", err)
 	}
 
 	u := tgbotapi.NewUpdate(0)
-	u.Timeout = 60
+	u.Timeout = s.tgUpdateTimeout
 
-	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	updates := s.bot.GetUpdatesChan(u)
 
 	go s.receiveUpdates(ctx, updates)
 
-	log.Println("Start listening for updates. Press enter to stop")
+	fmt.Println("Start listening for updates. Press enter to stop")
 
 	bufio.NewReader(os.Stdin).ReadBytes('\n')
+	return nil
 }
 
-func (s *Server) setBotCommands() error {
+func (s *Server) setBotCommands(ctx context.Context) error {
 	commands := []tgbotapi.BotCommand{}
 	for commandName, handler := range s.handlers.HandlersPerCommand {
 		command := tgbotapi.BotCommand{
@@ -82,9 +89,21 @@ func (s *Server) setBotCommands() error {
 	setCommandsConfig := tgbotapi.NewSetMyCommands(commands...)
 	result, err := s.bot.Request(setCommandsConfig)
 	if err != nil {
+		slog.ErrorContext(
+			ctx,
+			"can not set commands: command config: %v: %v",
+			setCommandsConfig,
+			err,
+		)
 		return fmt.Errorf("can not make a request to set commands: %w", err)
 	}
 	if !result.Ok {
+		slog.ErrorContext(
+			ctx,
+			"can not set commands: an error code '%v': a response body '%s'",
+			result.ErrorCode,
+			result.Result,
+		)
 		return fmt.Errorf(result.Description)
 	}
 
