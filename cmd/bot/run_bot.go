@@ -18,6 +18,8 @@ var (
 			run()
 		},
 	}
+	panicCounter int
+	panicThreshold = 5
 )
 
 func init() {
@@ -39,6 +41,19 @@ func run() {
 	if botToken != "" {
 		config.BotAPIToken = botToken
 	}
+	defer func() {
+		p := recover()
+		if p == nil {
+			return
+		}
+		log.Printf("catch a panic: %v", p)
+		panicCounter++
+		if panicCounter >= panicThreshold {
+			log.Fatalf("too many panics: %v", panicCounter)
+			return
+		}
+		run()
+	}()
 	server, err := bot.NewServer(config)
 	if err != nil {
 		log.Fatalf("can not run a server: %v", err)
