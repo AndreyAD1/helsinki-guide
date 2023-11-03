@@ -12,7 +12,11 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-const unexpectedTextTemplate = "an unexpected message text for a button 'next': %s: message_id: %v: chat id: %v"
+const (
+	unexpectedTextTemplate = "an unexpected message text for a button " +
+	"'next': %s: message_id: %v: chat id: %v"
+	defaultLimit = 2
+)
 
 func NewCommandContainer(
 	bot *tgbotapi.BotAPI,
@@ -34,7 +38,13 @@ func NewCommandContainer(
 	}
 	slices.Sort(availableCommands)
 	commandsForHelp := strings.Join(availableCommands, ", ")
-	return HandlerContainer{service, bot, handlersPerCommand, handlersPerButton, commandsForHelp}
+	return HandlerContainer{
+		service,
+		bot,
+		handlersPerCommand,
+		handlersPerButton,
+		commandsForHelp,
+	}
 }
 
 func (h HandlerContainer) GetHandler(command string) (CommandHandler, bool) {
@@ -71,8 +81,7 @@ func (h HandlerContainer) settings(ctx c.Context, message *tgbotapi.Message) {
 
 func (h HandlerContainer) getAllAdresses(ctx c.Context, message *tgbotapi.Message) {
 	address := message.CommandArguments()
-	limit := 2
-	h.returnAddresses(ctx, message.Chat.ID, address, limit, 0)
+	h.returnAddresses(ctx, message.Chat.ID, address, defaultLimit, 0)
 }
 
 var prefixTemplate = "Search address: %s\nAvailable building addresses and names:"
@@ -85,9 +94,9 @@ func (h HandlerContainer) returnAddresses(
 	offset int,
 ) {
 	buildings, err := h.buildingService.GetBuildingPreviews(
-		ctx, 
-		address, 
-		limit, 
+		ctx,
+		address,
+		limit,
 		offset,
 	)
 	if err != nil {
@@ -100,9 +109,9 @@ func (h HandlerContainer) returnAddresses(
 	template := "%v. %s - %s"
 	for i, building := range buildings {
 		items[i+1] = fmt.Sprintf(
-			template, 
-			offset+i+1, 
-			building.Address, 
+			template,
+			offset+i+1,
+			building.Address,
 			building.Name,
 		)
 	}
@@ -178,7 +187,7 @@ func (h HandlerContainer) next(ctx c.Context, query *tgbotapi.CallbackQuery) {
 	var button Button
 	if err := json.Unmarshal([]byte(query.Data), &button); err != nil {
 		log.Printf(
-			"unexpected callback data %v from a message %v and chat %v: %v", 
+			"unexpected callback data %v from a message %v and chat %v: %v",
 			query.Data,
 			msgID,
 			chatID,
@@ -186,7 +195,7 @@ func (h HandlerContainer) next(ctx c.Context, query *tgbotapi.CallbackQuery) {
 		)
 		return
 	}
-	// I need to extract an address from a message text 
+	// I need to extract an address from a message text
 	//  instead of using query data because the Telegram API specifies that
 	//  query data should be less than 64 bytes.
 	firstRow, _, found := strings.Cut(query.Message.Text, "\n")
@@ -201,6 +210,7 @@ func (h HandlerContainer) next(ctx c.Context, query *tgbotapi.CallbackQuery) {
 	}
 	address = strings.TrimSpace(address)
 	h.returnAddresses(ctx, chatID, address, button.Limit, button.Offset)
+	// Telegram asks a bot server to explicitly answer every callback call
 	callbackAnswer := tgbotapi.NewCallback(query.ID, "")
 	_, err := h.bot.Request(callbackAnswer)
 	if err != nil {
