@@ -200,7 +200,10 @@ func (h HandlerContainer) getBuilding(ctx c.Context, message *tgbotapi.Message) 
 		}
 		items[i] = serializedItem
 	}
-	response := strings.Join(items, "\n\n")
+	response := "Unfortunately, I don't know this address."
+	if len(items) > 0 {
+		response = strings.Join(items, "\n\n")
+	}
 	h.SendMessage(ctx, message.Chat.ID, response)
 }
 

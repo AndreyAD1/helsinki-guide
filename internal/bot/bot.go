@@ -1,12 +1,10 @@
 package bot
 
 import (
-	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
 	"log/slog"
-	"os"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/configuration"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/handlers"
@@ -78,9 +76,8 @@ func (s *Server) RunBot(ctx context.Context) error {
 
 	go s.receiveUpdates(ctx, updates)
 
-	fmt.Println("Start listening for updates. Press enter to stop")
-
-	bufio.NewReader(os.Stdin).ReadBytes('\n')
+	fmt.Println("Start listening for updates")
+	<-ctx.Done()
 	return nil
 }
 
