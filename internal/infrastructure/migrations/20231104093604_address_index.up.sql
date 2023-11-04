@@ -1,0 +1,1 @@
+CREATE INDEX CONCURRENTLY street_address_index ON addresses (street_address);

@@ -1,11 +1,11 @@
 build:
-	docker build .
+	docker build --tag helsinki-guide:latest .
 
 migrate:
 	migrate -database ${DatabaseURL} -path internal/infrastructure/migrations up
 
 run:
-	docker run helsinki-guide
+	docker run -it --env DatabaseURL=${DatabaseURL} --env BotAPIToken=${BotAPIToken} helsinki-guide
 
 .NOTPARALLEL:
 

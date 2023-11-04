@@ -1,0 +1,1 @@
+DROP INDEX CONCURRENTLY street_address_index;
