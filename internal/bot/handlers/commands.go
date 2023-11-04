@@ -62,8 +62,8 @@ func (h HandlerContainer) SendMessage(ctx c.Context, chatId int64, msgText strin
 	msg := tgbotapi.NewMessage(chatId, msgText)
 	if _, err := h.bot.Send(msg); err != nil {
 		slog.WarnContext(
-			ctx, 
-			fmt.Sprintf("can no send a message to %v: %v", chatId, msgText), 
+			ctx,
+			fmt.Sprintf("can no send a message to %v: %v", chatId, msgText),
 			slog.Any(logger.ErrorKey, err),
 		)
 	}
@@ -125,7 +125,7 @@ func (h HandlerContainer) returnAddresses(
 		msg := tgbotapi.NewMessage(chatID, response)
 		if _, err := h.bot.Send(msg); err != nil {
 			slog.WarnContext(
-				ctx, 
+				ctx,
 				fmt.Sprintf(
 					"Can not send a response %v to the chat %v",
 					response,
@@ -143,7 +143,7 @@ func (h HandlerContainer) returnAddresses(
 	buttonCallbackData, err := json.Marshal(button)
 	if err != nil {
 		slog.ErrorContext(
-			ctx, 
+			ctx,
 			fmt.Sprintf("can not create a button %v", button),
 			slog.Any(logger.ErrorKey, err),
 		)
@@ -159,7 +159,7 @@ func (h HandlerContainer) returnAddresses(
 	msg.ReplyMarkup = moreAddressesMenuMarkup
 	if _, err := h.bot.Send(msg); err != nil {
 		slog.WarnContext(
-			ctx, 
+			ctx,
 			fmt.Sprintf("can not send an inline keyboard to: %v", chatID),
 			slog.Any(logger.ErrorKey, err),
 		)
@@ -175,7 +175,7 @@ func (h HandlerContainer) getBuilding(ctx c.Context, message *tgbotapi.Message) 
 	buildings, err := h.buildingService.GetBuildingsByAddress(ctx, address)
 	if err != nil {
 		slog.WarnContext(
-			ctx, 
+			ctx,
 			fmt.Sprintf("can not get building by address '%s'", address),
 			slog.Any(logger.ErrorKey, err),
 		)
@@ -191,7 +191,7 @@ func (h HandlerContainer) getBuilding(ctx c.Context, message *tgbotapi.Message) 
 		serializedItem, err := SerializeIntoMessage(building, userLanguage)
 		if err != nil {
 			slog.ErrorContext(
-				ctx, 
+				ctx,
 				fmt.Sprintf("can not serialize a building '%s'", address),
 				slog.Any(logger.ErrorKey, err),
 			)
@@ -241,8 +241,8 @@ func (h HandlerContainer) next(ctx c.Context, query *tgbotapi.CallbackQuery) {
 	_, err := h.bot.Request(callbackAnswer)
 	if err != nil {
 		slog.WarnContext(
-			ctx, 
-			fmt.Sprintf("could not answer to a callback %v", query.ID), 
+			ctx,
+			fmt.Sprintf("could not answer to a callback %v", query.ID),
 			slog.Any(logger.ErrorKey, err),
 		)
 	}

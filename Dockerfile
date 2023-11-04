@@ -1,4 +1,3 @@
-# argument for Go version
 ARG GO_VERSION=1.21.3
  
 # STAGE 1: building the executable
@@ -23,5 +22,4 @@ USER nonroot:nonroot
 # copy compiled app
 COPY --from=build --chown=nonroot:nonroot /helsinki-guide /helsinki-guide
  
-# run binary; use vector form
 ENTRYPOINT ["/helsinki-guide", "bot"]

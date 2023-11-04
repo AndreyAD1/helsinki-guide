@@ -104,9 +104,9 @@ func (bs *BuildingStorage) GetAllBuildingsAndAddresses(
 	if err != nil {
 		logTemplate := "can not get addresses: address prefix '%v', limit %v, offset %v, query '%v'"
 		logMsg := fmt.Sprintf(
-			logTemplate, 
-			addressPrefix, 
-			limit, 
+			logTemplate,
+			addressPrefix,
+			limit,
 			offset,
 			query,
 		)

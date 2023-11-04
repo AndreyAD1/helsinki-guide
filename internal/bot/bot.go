@@ -38,7 +38,7 @@ func NewServer(ctx context.Context, config configuration.StartupConfig) (*Server
 	}
 	if err := dbpool.Ping(ctx); err != nil {
 		logMsg := fmt.Sprintf(
-			"unable to connect to the DB '%v'", 
+			"unable to connect to the DB '%v'",
 			config.DatabaseURL,
 		)
 		slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
@@ -156,7 +156,7 @@ func (s *Server) handleMessage(ctx context.Context, message *tgbotapi.Message) {
 		if _, err := s.bot.Send(responseMsg); err != nil {
 			logMsg := fmt.Sprintf(
 				"can not send a message to %v: %v",
-				message.Chat.ID, 
+				message.Chat.ID,
 				answer,
 			)
 			slog.WarnContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
@@ -170,8 +170,8 @@ func (s *Server) handleButton(ctx context.Context, query *tgbotapi.CallbackQuery
 	var queryData handlers.Button
 	if err := json.Unmarshal([]byte(query.Data), &queryData); err != nil {
 		slog.WarnContext(
-			ctx, 
-			fmt.Sprintf("unexpected callback data %v", query), 
+			ctx,
+			fmt.Sprintf("unexpected callback data %v", query),
 			slog.Any(logger.ErrorKey, err),
 		)
 		return
