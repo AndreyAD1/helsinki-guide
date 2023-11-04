@@ -3,8 +3,10 @@ package repositories
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
+	"github.com/AndreyAD1/helsinki-guide/internal/logger"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -100,7 +102,16 @@ func (bs *BuildingStorage) GetAllBuildingsAndAddresses(
 	)
 	rows, err := bs.dbPool.Query(ctx, query)
 	if err != nil {
-		return nil, fmt.Errorf("a query returns an error: '%v': %w", query, err)
+		logTemplate := "can not get addresses: address prefix '%v', limit %v, offset %v, query '%v'"
+		logMsg := fmt.Sprintf(
+			logTemplate, 
+			addressPrefix, 
+			limit, 
+			offset,
+			query,
+		)
+		slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
+		return nil, fmt.Errorf("%v: %w", logMsg, err)
 	}
 	var buildings []BuildingWithAddress
 	for rows.Next() {
@@ -130,7 +141,9 @@ func (bs *BuildingStorage) GetBuildingsByAddress(
 	query := fmt.Sprintf(queryTemplate, address)
 	rows, err := bs.dbPool.Query(ctx, query)
 	if err != nil {
-		return nil, err
+		logMsg := fmt.Sprintf("can not get a building: address prefix '%v'", address)
+		slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
+		return nil, fmt.Errorf("%v: %w", logMsg, err)
 	}
 	var buildings []Building
 	for rows.Next() {

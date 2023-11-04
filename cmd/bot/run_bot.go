@@ -61,6 +61,9 @@ func run() error {
 	if botToken != "" {
 		config.BotAPIToken = botToken
 	}
+	if config.BotAPIToken == "" {
+		return fmt.Errorf("no configured bot API token")
+	}
 	defer func() {
 		p := recover()
 		if p == nil {
