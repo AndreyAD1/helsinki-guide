@@ -2,7 +2,7 @@ build:
 	docker build .
 
 migrate:
-	python $(CURDIR)/scripts/migrate.py
+	migrate -database ${DatabaseURL} -path internal/infrastructure/migrations up
 
 run:
 	docker run helsinki-guide
