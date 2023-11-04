@@ -24,20 +24,27 @@ type Server struct {
 	tgUpdateTimeout int
 }
 
-func NewServer(config configuration.StartupConfig) (*Server, error) {
+func NewServer(ctx context.Context, config configuration.StartupConfig) (*Server, error) {
 	bot, err := tgbotapi.NewBotAPI(config.BotAPIToken)
 	if err != nil {
 		return nil, fmt.Errorf("can not connect to the Telegram API: %w", err)
 	}
 	bot.Debug = false
-
-	dbpool, err := pgxpool.New(context.Background(), config.DatabaseURL)
+	dbpool, err := pgxpool.New(ctx, config.DatabaseURL)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"unable to create a connection pool: DB URL '%s': %w",
 			config.DatabaseURL,
 			err,
 		)
+	}
+	if err := dbpool.Ping(ctx); err != nil {
+		logMsg := fmt.Sprintf(
+			"unable to connect to the DB '%v'", 
+			config.DatabaseURL,
+		)
+		slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
+		return nil, fmt.Errorf("%v: %w", logMsg, err)
 	}
 	buildingRepo := repositories.NewBuildingRepo(dbpool)
 	buildingService := services.NewBuildingService(buildingRepo)

@@ -45,6 +45,10 @@ func run() error {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &handlerOptions))
 	slog.SetDefault(logger)
 
+	if botToken != "" {
+		os.Setenv("BotAPIToken", botToken)
+	}
+
 	config := configuration.StartupConfig{}
 	err := env.Parse(&config)
 	if err != nil {
@@ -57,12 +61,6 @@ func run() error {
 	}
 	if config.Debug {
 		logLevel.Set(slog.LevelDebug)
-	}
-	if botToken != "" {
-		config.BotAPIToken = botToken
-	}
-	if config.BotAPIToken == "" {
-		return fmt.Errorf("no configured bot API token")
 	}
 	defer func() {
 		p := recover()
@@ -85,7 +83,7 @@ func run() error {
 		}
 		run()
 	}()
-	server, err := bot.NewServer(config)
+	server, err := bot.NewServer(ctx, config)
 	if err != nil {
 		return fmt.Errorf("can not create a new server: %w", err)
 	}
