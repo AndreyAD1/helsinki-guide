@@ -8,6 +8,7 @@ WORKDIR /build_app
 COPY ./go.mod ./go.sum ./
 RUN go mod download
 COPY ./ ./
+RUN go test ./... -v
 # Build the executable
 RUN CGO_ENABLED=0 go build \
     -installsuffix 'static' \
@@ -15,11 +16,8 @@ RUN CGO_ENABLED=0 go build \
  
 # STAGE 2: build the container to run
 FROM gcr.io/distroless/static AS final
- 
-LABEL maintainer="andreyad1"
+
 USER nonroot:nonroot
- 
 # copy compiled app
 COPY --from=build --chown=nonroot:nonroot /helsinki-guide /helsinki-guide
- 
 ENTRYPOINT ["/helsinki-guide", "bot"]
