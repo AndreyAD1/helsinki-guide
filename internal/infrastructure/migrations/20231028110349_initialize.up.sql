@@ -2,9 +2,9 @@ BEGIN;
 
 CREATE TABLE "users" (
   "id" SERIAL PRIMARY KEY,
-  "created_at" timestamp NOT NULL,
-  "updated_at" timestamp,
-  "deleted_at" timestamp,
+  "created_at" timestamp with time zone NOT NULL,
+  "updated_at" timestamp with time zone,
+  "deleted_at" timestamp with time zone,
   "username" varchar NOT NULL,
   "role" varchar,
   "language" varchar
@@ -54,27 +54,27 @@ CREATE TABLE "buildings" (
   "special_features_ru" varchar,
   "latitude_ETRSGK25" real,
   "longitude_ETRSGK25" real,
-  "created_at" timestamp NOT NULL,
-  "updated_at" timestamp,
-  "deleted_at" timestamp
+  "created_at" timestamp with time zone NOT NULL,
+  "updated_at" timestamp with time zone,
+  "deleted_at" timestamp with time zone
 );
 
 CREATE TABLE "addresses" (
   "id" SERIAL PRIMARY KEY,
   "street_address" varchar UNIQUE NOT NULL,
   "neighbourhood_id" integer,
-  "created_at" timestamp NOT NULL,
-  "updated_at" timestamp,
-  "deleted_at" timestamp
+  "created_at" timestamp with time zone NOT NULL,
+  "updated_at" timestamp with time zone,
+  "deleted_at" timestamp with time zone
 );
 
 CREATE TABLE "neighbourhoods" (
   "id" SERIAL PRIMARY KEY,
   "name" varchar,
   "municipality" varchar,
-  "created_at" timestamp NOT NULL,
-  "updated_at" timestamp,
-  "deleted_at" timestamp
+  "created_at" timestamp with time zone NOT NULL,
+  "updated_at" timestamp with time zone,
+  "deleted_at" timestamp with time zone
 );
 
 CREATE TABLE "actors" (
@@ -83,9 +83,9 @@ CREATE TABLE "actors" (
   "title_fi" varchar,
   "title_en" varchar,
   "title_ru" varchar,
-  "created_at" timestamp NOT NULL,
-  "updated_at" timestamp,
-  "deleted_at" timestamp
+  "created_at" timestamp with time zone NOT NULL,
+  "updated_at" timestamp with time zone,
+  "deleted_at" timestamp with time zone
 );
 
 CREATE TABLE "building_authors" (
@@ -113,9 +113,9 @@ CREATE TABLE "use_types" (
   "name_fi" varchar UNIQUE,
   "name_en" varchar UNIQUE,
   "name_ru" varchar UNIQUE,
-  "created_at" timestamp NOT NULL,
-  "updated_at" timestamp,
-  "deleted_at" timestamp
+  "created_at" timestamp with time zone NOT NULL,
+  "updated_at" timestamp with time zone,
+  "deleted_at" timestamp with time zone
 );
 
 CREATE TABLE "initial_uses" (

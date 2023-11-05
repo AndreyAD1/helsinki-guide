@@ -100,7 +100,7 @@ func (s *Server) RunBot(ctx context.Context) error {
 
 	select {
 	case sig := <-signalCh:
-		slog.DebugContext(ctx, fmt.Sprintf("receive an OS signal %v", sig))
+		slog.DebugContext(ctx, fmt.Sprintf("receive an OS signal '%v'", sig))
 	case <-ctx.Done():
 	}
 	cancel()
