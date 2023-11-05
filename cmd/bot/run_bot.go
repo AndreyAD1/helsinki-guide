@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"time"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/configuration"
@@ -87,6 +88,6 @@ func run() error {
 	if err != nil {
 		return fmt.Errorf("can not create a new server: %w", err)
 	}
-	defer server.Shutdown()
+	defer server.Shutdown(10 * time.Second)
 	return server.RunBot(ctx)
 }

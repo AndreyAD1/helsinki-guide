@@ -4,7 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"log/slog"
+	"os"
+	"os/signal"
+	"sync"
+	"syscall"
+	"time"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/configuration"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/handlers"
@@ -56,7 +62,17 @@ func NewServer(ctx context.Context, config configuration.StartupConfig) (*Server
 	return &server, nil
 }
 
-func (s *Server) Shutdown() {
+func (s *Server) Shutdown(timeout time.Duration) {
+	// set the timeout to prevent a system hang
+	timeoutFunc := time.AfterFunc(timeout, func() {
+		logMsg := fmt.Sprintf(
+			"timeout %v has been elapsed, force exit", 
+			timeout.Seconds(),
+		)
+		slog.Error(logMsg)
+		os.Exit(0)
+	})
+	defer timeoutFunc.Stop()
 	for _, f := range s.shutdownFuncs {
 		f()
 	}
@@ -74,10 +90,22 @@ func (s *Server) RunBot(ctx context.Context) error {
 	defer cancel()
 	updates := s.bot.GetUpdatesChan(u)
 
-	go s.receiveUpdates(ctx, updates)
+	signalCh := make(chan os.Signal)
+	signal.Notify(signalCh, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
+	
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go s.receiveUpdates(ctx, updates, &wg)
+	log.Println("Start listening for updates")
 
-	fmt.Println("Start listening for updates")
-	<-ctx.Done()
+	select {
+	case sig := <-signalCh:
+		slog.DebugContext(ctx, fmt.Sprintf("receive an OS signal %v", sig))
+	case <-ctx.Done():
+	}
+	cancel()
+	wg.Wait()
+	slog.DebugContext(ctx, "stopped listening updates")
 	return nil
 }
 
@@ -120,7 +148,12 @@ func (s *Server) setBotCommands(ctx context.Context) error {
 	return nil
 }
 
-func (s *Server) receiveUpdates(ctx context.Context, updates tgbotapi.UpdatesChannel) {
+func (s *Server) receiveUpdates(
+	ctx context.Context, 
+	updates tgbotapi.UpdatesChannel,
+	wg *sync.WaitGroup,
+) {
+	defer wg.Done()
 	for {
 		select {
 		case <-ctx.Done():
@@ -142,11 +175,11 @@ func (s *Server) handleUpdate(ctx context.Context, update tgbotapi.Update) {
 
 func (s *Server) handleMessage(ctx context.Context, message *tgbotapi.Message) {
 	user := message.From
-
+	handler, ok := s.handlers.GetHandler(message.Command())
+	slog.DebugContext(ctx, "handle a command", slog.String("command", message.Command()))
 	if user == nil {
 		return
 	}
-	handler, ok := s.handlers.GetHandler(message.Command())
 	if !ok {
 		answer := fmt.Sprintf(
 			"Unfortunately, I don't understand this message: %s",
