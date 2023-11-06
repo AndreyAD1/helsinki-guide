@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-
 func Test_SerializeIntoMessage(t *testing.T) {
 	test_name_fi := "fin name"
 	address := "osoite"

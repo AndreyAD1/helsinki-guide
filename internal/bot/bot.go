@@ -66,7 +66,7 @@ func (s *Server) Shutdown(timeout time.Duration) {
 	// set the timeout to prevent a system hang
 	timeoutFunc := time.AfterFunc(timeout, func() {
 		logMsg := fmt.Sprintf(
-			"timeout %v has been elapsed, force exit", 
+			"timeout %v has been elapsed, force exit",
 			timeout.Seconds(),
 		)
 		slog.Error(logMsg)
@@ -92,7 +92,7 @@ func (s *Server) RunBot(ctx context.Context) error {
 
 	signalCh := make(chan os.Signal)
 	signal.Notify(signalCh, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
-	
+
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go s.receiveUpdates(ctx, updates, &wg)
@@ -149,7 +149,7 @@ func (s *Server) setBotCommands(ctx context.Context) error {
 }
 
 func (s *Server) receiveUpdates(
-	ctx context.Context, 
+	ctx context.Context,
 	updates tgbotapi.UpdatesChannel,
 	wg *sync.WaitGroup,
 ) {
