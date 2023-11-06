@@ -130,6 +130,15 @@ func (t Translator) translateRow(
 			len(rowValues),
 		)
 	}
+
+	nameTranslation, err := t.getTranslation(ctx, rowValues[1])
+	if err != nil {
+		log.Printf("TRANSLATION ERROR for a name: %v", err)
+		nameTranslation = "TRANSLATION ERROR"
+	}
+	cellName := fmt.Sprintf("%v%v", "B", rowNumber)
+	file.SetCellStr(sheetName, cellName, nameTranslation)
+
 	translatedValues := []interface{}{}
 	for _, cellValue := range rowValues[startColumn.index:] {
 		if num, err := strconv.ParseFloat(cellValue, 32); err == nil {
