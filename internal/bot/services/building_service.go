@@ -4,7 +4,9 @@ import (
 	"context"
 	"strings"
 
+	"github.com/AndreyAD1/helsinki-guide/internal"
 	"github.com/AndreyAD1/helsinki-guide/internal/infrastructure/repositories"
+	s "github.com/AndreyAD1/helsinki-guide/internal/infrastructure/specifications"
 )
 
 type BuildingService struct {
@@ -31,7 +33,7 @@ type BuildingDTO struct {
 	HistoryRu      *string `valueLanguage:"ru" nameFi:"Rakennushistoria" nameEn:"Building_history" nameRu:"История_здания"`
 }
 
-func NewBuildingDTO(b repositories.Building, address string) BuildingDTO {
+func NewBuildingDTO(b internal.Building, address string) BuildingDTO {
 	return BuildingDTO{
 		b.NameFi,
 		b.NameEn,
@@ -51,19 +53,19 @@ func (bs BuildingService) GetBuildingPreviews(
 	offset int,
 ) ([]BuildingPreview, error) {
 	addressPrefix = strings.TrimLeft(addressPrefix, " ")
-	buildings, err := bs.storage.GetAllBuildingsAndAddresses(
-		ctx,
-		addressPrefix,
-		limit,
-		offset,
-	)
+	spec := s.NewBuildingSpecificationByAlikeAddress(addressPrefix, limit, offset)
+	buildings, err := bs.storage.Query(ctx, spec)
 	if err != nil {
 		return nil, err
 	}
 
 	previews := make([]BuildingPreview, len(buildings))
 	for i, building := range buildings {
-		previews[i] = BuildingPreview{building.StreetAddress, building.NameFi}
+		name := ""
+		if building.NameFi != nil {
+			name = *building.NameFi
+		}
+		previews[i] = BuildingPreview{building.Address, name}
 	}
 	return previews, nil
 }
@@ -73,7 +75,8 @@ func (bs BuildingService) GetBuildingsByAddress(
 	address string,
 ) ([]BuildingDTO, error) {
 	address = strings.TrimSpace(address)
-	buildings, err := bs.storage.GetBuildingsByAddress(ctx, address)
+	spec := s.NewBuildingSpecificationByAddress(address)
+	buildings, err := bs.storage.Query(ctx, spec)
 	if err != nil {
 		return nil, err
 	}

@@ -3,23 +3,15 @@ package repositories
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	i "github.com/AndreyAD1/helsinki-guide/internal"
 )
 
-type Address struct {
-	ID              int64
-	StreetAddress   string
-	NeighbourhoodID *int64
-	CreatedAt       time.Time
-	UpdatedAt       *time.Time
-	DeletedAt       *time.Time
-}
-
 type AddressRepository interface {
-	GetAddresses(ctx context.Context, limit, offset int) ([]Address, error)
-	GetAlikeAddresses(context.Context, string) ([]Address, error)
+	GetAddresses(ctx context.Context, limit, offset int) ([]i.Address, error)
+	GetAlikeAddresses(context.Context, string) ([]i.Address, error)
 }
 
 type AddressStorage struct {
@@ -30,7 +22,7 @@ func NewAddressRepo(dbPool *pgxpool.Pool) *AddressStorage {
 	return &AddressStorage{dbPool}
 }
 
-func (as *AddressStorage) GetAddresses(ctx context.Context, limit, offset int) ([]Address, error) {
+func (as *AddressStorage) GetAddresses(ctx context.Context, limit, offset int) ([]i.Address, error) {
 	query := fmt.Sprintf(
 		"SELECT * FROM addresses ORDER BY street_address LIMIT %v OFFSET %v",
 		limit,
@@ -40,9 +32,9 @@ func (as *AddressStorage) GetAddresses(ctx context.Context, limit, offset int) (
 	if err != nil {
 		return nil, err
 	}
-	var addresses []Address
+	var addresses []i.Address
 	for rows.Next() {
-		var address Address
+		var address i.Address
 		if err := rows.Scan(
 			&address.ID,
 			&address.StreetAddress,
@@ -58,6 +50,6 @@ func (as *AddressStorage) GetAddresses(ctx context.Context, limit, offset int) (
 	return addresses, nil
 }
 
-func (as *AddressStorage) GetAlikeAddresses(ctx context.Context, like string) ([]Address, error) {
+func (as *AddressStorage) GetAlikeAddresses(ctx context.Context, like string) ([]i.Address, error) {
 	return nil, ErrNotImplemented
 }
