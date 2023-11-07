@@ -25,7 +25,7 @@ func NewBuildingSpecificationByAlikeAddress(
 func (b *BuildingSpecificationByAlikeAddress) ToSQL() string {
 	queryTemplate := `SELECT buildings.ID, buildings.code, name_fi, name_en,
 	name_ru, street_address, completion_year, history_fi, history_en,
-	history_ru,
+	history_ru
 	FROM buildings JOIN addresses ON 
 	buildings.address_id = addresses.id WHERE street_address ILIKE '%v%%'
 	ORDER BY street_address LIMIT %v OFFSET %v;`
@@ -50,7 +50,7 @@ func NewBuildingSpecificationByAddress(address string) *BuildingSpecificationByA
 func (b *BuildingSpecificationByAddress) ToSQL() string {
 	queryTemplate := `SELECT buildings.ID, buildings.code, name_fi, name_en,
 	name_ru, street_address, completion_year, history_fi, history_en,
-	history_ru,
+	history_ru
 	FROM buildings JOIN addresses ON 
 	buildings.address_id = addresses.id WHERE street_address = '%s'`
 	query := fmt.Sprintf(queryTemplate, b.address)
