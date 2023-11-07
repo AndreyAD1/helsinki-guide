@@ -110,9 +110,9 @@ CREATE TABLE "building_contractors" (
 
 CREATE TABLE "use_types" (
   "id" SERIAL PRIMARY KEY,
-  "name_fi" varchar UNIQUE,
-  "name_en" varchar UNIQUE,
-  "name_ru" varchar UNIQUE,
+  "name_fi" varchar UNIQUE NOT NULL,
+  "name_en" varchar UNIQUE NOT NULL,
+  "name_ru" varchar UNIQUE NOT NULL,
   "created_at" timestamp with time zone NOT NULL,
   "updated_at" timestamp with time zone,
   "deleted_at" timestamp with time zone

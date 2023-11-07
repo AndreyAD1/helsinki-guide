@@ -5,6 +5,7 @@ import (
 
 	"github.com/AndreyAD1/helsinki-guide/cmd/bot"
 	"github.com/AndreyAD1/helsinki-guide/cmd/translate"
+	"github.com/AndreyAD1/helsinki-guide/cmd/populate_db"
 )
 
 var debug *bool
@@ -25,5 +26,6 @@ func Execute() error {
 func init() {
 	rootCmd.AddCommand(translate.TranslateCmd)
 	rootCmd.AddCommand(bot.BotCmd)
+	rootCmd.AddCommand(populate_db.PopulateCmd)
 	debug = rootCmd.Flags().BoolP("debug", "d", false, "Run in a debug mode")
 }
