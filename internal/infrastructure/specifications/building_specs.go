@@ -1,11 +1,7 @@
 package specifications
 
-import (
-	"fmt"
-)
-
 type BuildingSpecification interface {
-	ToSQL() string
+	ToSQL() (string, map[string]any)
 }
 
 type BuildingSpecificationByAlikeAddress struct {
@@ -22,19 +18,18 @@ func NewBuildingSpecificationByAlikeAddress(
 	return &BuildingSpecificationByAlikeAddress{prefix, limit, offset}
 }
 
-func (b *BuildingSpecificationByAlikeAddress) ToSQL() string {
+func (b *BuildingSpecificationByAlikeAddress) ToSQL() (string, map[string]any) {
 	queryTemplate := `SELECT *
 	FROM buildings JOIN addresses ON 
-	buildings.address_id = addresses.id WHERE street_address ILIKE '%v%%'
-	ORDER BY street_address LIMIT %v OFFSET %v;`
-
-	query := fmt.Sprintf(
-		queryTemplate,
-		b.addressPrefix,
-		b.limit,
-		b.offset,
-	)
-	return query
+	buildings.address_id = addresses.id WHERE street_address 
+	ILIKE @search_pattern
+	ORDER BY street_address LIMIT @limit OFFSET @offset;`
+	queryArgs := map[string]any{
+		"search_pattern": b.addressPrefix + "%", 
+		"limit": b.limit, 
+		"offset": b.offset,
+	}
+	return queryTemplate, queryArgs
 }
 
 type BuildingSpecificationByAddress struct {
@@ -45,10 +40,8 @@ func NewBuildingSpecificationByAddress(address string) *BuildingSpecificationByA
 	return &BuildingSpecificationByAddress{address}
 }
 
-func (b *BuildingSpecificationByAddress) ToSQL() string {
-	queryTemplate := `SELECT *
-	FROM buildings JOIN addresses ON 
-	buildings.address_id = addresses.id WHERE street_address = '%s'`
-	query := fmt.Sprintf(queryTemplate, b.address)
-	return query
+func (b *BuildingSpecificationByAddress) ToSQL() (string, map[string]any) {
+	queryTemplate := `SELECT * FROM buildings JOIN addresses ON 
+	buildings.address_id = addresses.id WHERE street_address = @address;`
+	return queryTemplate, map[string]any{"address": b.address}
 }

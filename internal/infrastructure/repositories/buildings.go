@@ -8,6 +8,7 @@ import (
 	i "github.com/AndreyAD1/helsinki-guide/internal"
 	s "github.com/AndreyAD1/helsinki-guide/internal/infrastructure/specifications"
 	"github.com/AndreyAD1/helsinki-guide/internal/logger"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -29,12 +30,9 @@ func NewBuildingRepo(dbPool *pgxpool.Pool) *BuildingStorage {
 func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Building, error) {
 	// queryTemplate := `INSERT INTO building
 	// (code, name_fi, name_en, name_ru, address_id, construction_start_year,
-	// completion_year, complex_fi, complex_en, complex_ru, history_fi,
-	// history_en, history_ru, reasoning_fi, reasoning_en, reasoning_ru,
-	// protection_status_fi, protection_status_en, protection_status_ru,
-	// info_source_fi,...
-	// )
-	// `
+	// 	completion_year, complex_fi, complex_en, complex_ru, history_fi,
+	// 	history_en, history_ru, reasoning_fi, reasoning_en, reasoning_ru,
+	// 	protection_status_fi, protection_status_en, protection_status_ru,
 	return nil, ErrNotImplemented
 }
 
@@ -50,8 +48,9 @@ func (b *BuildingStorage) Query(
 	ctx context.Context,
 	spec s.BuildingSpecification,
 ) ([]i.Building, error) {
-	query := spec.ToSQL()
-	rows, err := b.dbPool.Query(ctx, query)
+	query, queryArgs := spec.ToSQL()
+	slog.DebugContext(ctx, fmt.Sprintf("implement the query %v: %v", query, queryArgs))
+	rows, err := b.dbPool.Query(ctx, query, pgx.NamedArgs(queryArgs))
 	if err != nil {
 		logMsg := fmt.Sprintf("can not query buildings: '%v'", query)
 		slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
