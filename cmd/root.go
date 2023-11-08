@@ -4,8 +4,8 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/AndreyAD1/helsinki-guide/cmd/bot"
-	"github.com/AndreyAD1/helsinki-guide/cmd/translate"
 	"github.com/AndreyAD1/helsinki-guide/cmd/populate_db"
+	"github.com/AndreyAD1/helsinki-guide/cmd/translate"
 )
 
 var debug *bool

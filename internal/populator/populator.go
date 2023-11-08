@@ -12,10 +12,10 @@ import (
 )
 
 type Populator struct {
-	addressRepo repositories.AddressRepository
+	addressRepo  repositories.AddressRepository
 	buildingRepo repositories.BuildingRepository
-	actorRepo repositories.ActorRepository
-	useTypeRepo repositories.UseTypeRepository
+	actorRepo    repositories.ActorRepository
+	useTypeRepo  repositories.UseTypeRepository
 }
 
 func NewPopulator(ctx context.Context, config configuration.PopulatorConfig) (*Populator, error) {

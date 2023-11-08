@@ -2,14 +2,41 @@ package internal
 
 import "time"
 
+type Timestamps struct {
+	CreatedAt time.Time
+	UpdatedAt *time.Time
+	DeletedAt *time.Time
+}
+
+type Neighbourhood struct {
+	ID           int64
+	Name         string
+	Municipality *string
+	Timestamps
+}
 
 type Address struct {
 	ID              int64
 	StreetAddress   string
-	NeighbourhoodID *int64
-	CreatedAt       time.Time
-	UpdatedAt       *time.Time
-	DeletedAt       *time.Time
+	NeighbourhoodID *Neighbourhood
+	Timestamps
+}
+
+type Actors struct {
+	ID      int64
+	Name    string
+	TitleFi *string
+	TitleEn *string
+	TitleRu *string
+	Timestamps
+}
+
+type UseTypes struct {
+	ID     int64
+	NameFi string
+	NameEn string
+	NameRu string
+	Timestamps
 }
 
 type Building struct {
@@ -18,7 +45,7 @@ type Building struct {
 	NameFi                *string
 	NameEn                *string
 	NameRu                *string
-	Address               string
+	Address               Address
 	ConstructionStartYear *int
 	CompletionYear        *int
 	ComplexFi             *string
@@ -54,9 +81,9 @@ type Building struct {
 	SpeciaFeaturesFi      *string
 	SpeciaFeaturesEn      *string
 	SpeciaFeaturesRu      *string
-	latitude_ETRSGK25     *float32
-	longitude_ERRSGK25    *float32
-	CreatedAt             time.Time
-	UpdatedAt             *time.Time
-	DeletedAt             *time.Time
+	Latitude_ETRSGK25     *float32
+	Longitude_ERRSGK25    *float32
+	Authors               []Actors
+	Uses                  []UseTypes
+	Timestamps
 }

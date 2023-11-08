@@ -70,7 +70,7 @@ CREATE TABLE "addresses" (
 
 CREATE TABLE "neighbourhoods" (
   "id" SERIAL PRIMARY KEY,
-  "name" varchar,
+  "name" varchar NOT NULL,
   "municipality" varchar,
   "created_at" timestamp with time zone NOT NULL,
   "updated_at" timestamp with time zone,

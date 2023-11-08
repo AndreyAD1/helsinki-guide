@@ -65,7 +65,7 @@ func (bs BuildingService) GetBuildingPreviews(
 		if building.NameFi != nil {
 			name = *building.NameFi
 		}
-		previews[i] = BuildingPreview{building.Address, name}
+		previews[i] = BuildingPreview{building.Address.StreetAddress, name}
 	}
 	return previews, nil
 }

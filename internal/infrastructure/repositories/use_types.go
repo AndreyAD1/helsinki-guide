@@ -7,18 +7,18 @@ import (
 )
 
 type UseType struct {
-	ID int
-	NameFi string
-	NameEn string
-	NameRu string
+	ID        int
+	NameFi    string
+	NameEn    string
+	NameRu    string
 	CreatedAt time.Time
 	UpdatedAt *time.Time
 	DeletedAt *time.Time
 }
 
 type UseTypeRepository interface {
-	GetUseType (id int) (UseType, error)
-	SetUseType (item UseType) (UseType, error)
+	GetUseType(id int) (UseType, error)
+	SetUseType(item UseType) (UseType, error)
 }
 
 type useTypeStorage struct {

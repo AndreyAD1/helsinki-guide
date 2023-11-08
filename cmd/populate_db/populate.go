@@ -12,12 +12,12 @@ import (
 )
 
 var (
-	dbURL string
-	PopulateCmd   = &cobra.Command{
+	dbURL       string
+	PopulateCmd = &cobra.Command{
 		Use:   "populate <path-to-a-source-xlsx-file>",
 		Short: "Populate a database",
-		Long: "This command transfers data from an xlsx file to a database",
-		Args: cobra.ExactArgs(1),
+		Long:  "This command transfers data from an xlsx file to a database",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return run(args[0])
 		},

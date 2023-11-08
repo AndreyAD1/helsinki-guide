@@ -47,7 +47,7 @@ func (b *BuildingStorage) Update(ctx context.Context, building i.Building) (*i.B
 }
 
 func (b *BuildingStorage) Query(
-	ctx context.Context, 
+	ctx context.Context,
 	spec s.BuildingSpecification,
 ) ([]i.Building, error) {
 	query := spec.ToSQL()
@@ -60,20 +60,66 @@ func (b *BuildingStorage) Query(
 	var buildings []i.Building
 	for rows.Next() {
 		var building i.Building
+		var addressID int64
+		var neighbourhoodID int64
+		var address i.Address
 		if err := rows.Scan(
 			&building.ID,
 			&building.Code,
 			&building.NameFi,
 			&building.NameEn,
 			&building.NameRu,
-			&building.Address,
+			&addressID,
+			&building.ConstructionStartYear,
 			&building.CompletionYear,
+			&building.ComplexFi,
+			&building.ComplexEn,
+			&building.ComplexRu,
 			&building.HistoryFi,
 			&building.HistoryEn,
 			&building.HistoryRu,
+			&building.ReasoningFi,
+			&building.ReasoningEn,
+			&building.ReasoningRu,
+			&building.ProtectionStatusFi,
+			&building.ProtectionStatusEn,
+			&building.ProtectionStatusRu,
+			&building.InfoSourceFi,
+			&building.InfoSourceEn,
+			&building.InfoSourceRu,
+			&building.SurroundingsFi,
+			&building.SurroundingsEn,
+			&building.SurroundingsRu,
+			&building.FoundationFi,
+			&building.FoundationEn,
+			&building.FoundationRu,
+			&building.FrameFi,
+			&building.FrameEn,
+			&building.FrameRu,
+			&building.FloorDescriptionFi,
+			&building.FloorDescriptionEn,
+			&building.FloorDescriptionRu,
+			&building.FacadesFi,
+			&building.FacadesEn,
+			&building.FacadesRu,
+			&building.SpeciaFeaturesFi,
+			&building.SpeciaFeaturesEn,
+			&building.SpeciaFeaturesRu,
+			&building.Latitude_ETRSGK25,
+			&building.Longitude_ERRSGK25,
+			&building.CreatedAt,
+			&building.UpdatedAt,
+			&building.DeletedAt,
+			&address.ID,
+			&address.StreetAddress,
+			&neighbourhoodID,
+			&address.CreatedAt,
+			&address.UpdatedAt,
+			&address.DeletedAt,
 		); err != nil {
 			return nil, err
 		}
+		building.Address = address
 		buildings = append(buildings, building)
 	}
 	return buildings, nil

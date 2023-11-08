@@ -7,19 +7,19 @@ import (
 )
 
 type Actor struct {
-	ID int
-	Name string
-	TitleFi *string
-	TitleEn *string
-	TitleRu *string
+	ID        int
+	Name      string
+	TitleFi   *string
+	TitleEn   *string
+	TitleRu   *string
 	CreatedAt time.Time
 	UpdatedAt *time.Time
 	DeletedAt *time.Time
 }
 
 type ActorRepository interface {
-	GetActor (id int) (*Actor, error)
-	SetActor (item Actor) (*Actor, error)
+	GetActor(id int) (*Actor, error)
+	SetActor(item Actor) (*Actor, error)
 }
 
 type actorStorage struct {
