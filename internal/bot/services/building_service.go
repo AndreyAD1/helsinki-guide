@@ -2,6 +2,8 @@ package services
 
 import (
 	"context"
+	"fmt"
+	"log/slog"
 	"strings"
 
 	i "github.com/AndreyAD1/helsinki-guide/internal"
@@ -94,6 +96,7 @@ func (bs BuildingService) GetBuildingsByAddress(
 	if err != nil {
 		return nil, err
 	}
+	slog.DebugContext(ctx, fmt.Sprintf("buildings: %v", buildings))
 	buildingsDto := make([]BuildingDTO, len(buildings))
 	for i, building := range buildings {
 		spec := s.NewActorSpecificationByBuilding(building.ID)
@@ -102,6 +105,8 @@ func (bs BuildingService) GetBuildingsByAddress(
 			return nil, err
 		}
 		buildingsDto[i] = NewBuildingDTO(building, authors, address)
+		slog.DebugContext(ctx, fmt.Sprintf("authors: %v", authors))
 	}
+	
 	return buildingsDto, nil
 }
