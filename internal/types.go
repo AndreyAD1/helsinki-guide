@@ -22,7 +22,7 @@ type Address struct {
 	Timestamps
 }
 
-type Actors struct {
+type Actor struct {
 	ID      int64
 	Name    string
 	TitleFi *string

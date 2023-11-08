@@ -51,7 +51,8 @@ func NewServer(ctx context.Context, config configuration.StartupConfig) (*Server
 		return nil, fmt.Errorf("%v: %w", logMsg, err)
 	}
 	buildingRepo := repositories.NewBuildingRepo(dbpool)
-	buildingService := services.NewBuildingService(buildingRepo)
+	actorRepo := repositories.NewActorRepo(dbpool)
+	buildingService := services.NewBuildingService(buildingRepo, actorRepo)
 	handlerContainer := handlers.NewCommandContainer(bot, buildingService)
 	server := Server{
 		bot,

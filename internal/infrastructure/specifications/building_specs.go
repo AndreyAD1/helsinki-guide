@@ -1,6 +1,6 @@
 package specifications
 
-type BuildingSpecification interface {
+type Specification interface {
 	ToSQL() (string, map[string]any)
 }
 
@@ -25,9 +25,9 @@ func (b *BuildingSpecificationByAlikeAddress) ToSQL() (string, map[string]any) {
 	ILIKE @search_pattern
 	ORDER BY street_address LIMIT @limit OFFSET @offset;`
 	queryArgs := map[string]any{
-		"search_pattern": b.addressPrefix + "%", 
-		"limit": b.limit, 
-		"offset": b.offset,
+		"search_pattern": b.addressPrefix + "%",
+		"limit":          b.limit,
+		"offset":         b.offset,
 	}
 	return queryTemplate, queryArgs
 }

@@ -16,7 +16,7 @@ type BuildingRepository interface {
 	Add(context.Context, i.Building) (*i.Building, error)
 	Remove(context.Context, i.Building) error
 	Update(context.Context, i.Building) (*i.Building, error)
-	Query(context.Context, s.BuildingSpecification) ([]i.Building, error)
+	Query(context.Context, s.Specification) ([]i.Building, error)
 }
 
 type BuildingStorage struct {
@@ -46,7 +46,7 @@ func (b *BuildingStorage) Update(ctx context.Context, building i.Building) (*i.B
 
 func (b *BuildingStorage) Query(
 	ctx context.Context,
-	spec s.BuildingSpecification,
+	spec s.Specification,
 ) ([]i.Building, error) {
 	query, queryArgs := spec.ToSQL()
 	slog.DebugContext(ctx, fmt.Sprintf("send the query %v: %v", query, queryArgs))
@@ -123,7 +123,7 @@ func (b *BuildingStorage) Query(
 		uses, err := b.getUses(ctx, initialUsesTable, building.ID)
 		if err != nil {
 			logMsg := fmt.Sprintf(
-				"can not get uses for a building '%v'", 
+				"can not get uses for a building '%v'",
 				building.ID,
 			)
 			slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
@@ -131,11 +131,11 @@ func (b *BuildingStorage) Query(
 			continue
 		}
 		building.InitialUses = uses
-		
+
 		uses, err = b.getUses(ctx, currentUsesTable, building.ID)
 		if err != nil {
 			logMsg := fmt.Sprintf(
-				"can not get uses for a building '%v'", 
+				"can not get uses for a building '%v'",
 				building.ID,
 			)
 			slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
@@ -174,17 +174,17 @@ func (b *BuildingStorage) getUses(
 	for rows.Next() {
 		var use i.UseType
 		if err := rows.Scan(
-			&use.ID, 
-			&use.NameFi, 
-			&use.NameEn, 
-			&use.NameRu, 
+			&use.ID,
+			&use.NameFi,
+			&use.NameEn,
+			&use.NameRu,
 			&use.CreatedAt,
 			&use.UpdatedAt,
 			&use.DeletedAt,
 		); err != nil {
 			msg := fmt.Sprintf(
-				"can not scan %v for a building '%v'", 
-				table_name, 
+				"can not scan %v for a building '%v'",
+				table_name,
 				buildingID,
 			)
 			slog.ErrorContext(ctx, msg, slog.Any(logger.ErrorKey, err))

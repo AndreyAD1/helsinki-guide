@@ -44,6 +44,12 @@ func SerializeIntoMessage(object any, outputLanguage string) (string, error) {
 			featureValue = fieldValue.String()
 		case reflect.Int:
 			featureValue = fmt.Sprint(fieldValue.Int())
+		case reflect.Slice, reflect.Array:
+			items := []string{}
+			for i:=0; i<fieldValue.Len(); i++ {
+				items = append(items, fieldValue.Index(i).String())
+			} 
+			featureValue = strings.Join(items, ",")
 		case reflect.Pointer:
 			if fieldValue.IsNil() {
 				featureValue = noDataPerLanguages[outputLanguage]
@@ -54,6 +60,12 @@ func SerializeIntoMessage(object any, outputLanguage string) (string, error) {
 					featureValue = pointerValue.String()
 				case reflect.Int:
 					featureValue = fmt.Sprint(fieldValue.Int())
+				case reflect.Slice, reflect.Array:
+					items := []string{}
+					for i:=0; i<fieldValue.Len(); i++ {
+						items = append(items, fieldValue.Index(i).String())
+					} 
+					featureValue = strings.Join(items, ",")
 				}
 			}
 		default:
