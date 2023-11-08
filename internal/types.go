@@ -18,7 +18,7 @@ type Neighbourhood struct {
 type Address struct {
 	ID              int64
 	StreetAddress   string
-	NeighbourhoodID *Neighbourhood
+	NeighbourhoodID *int64
 	Timestamps
 }
 
@@ -31,7 +31,7 @@ type Actors struct {
 	Timestamps
 }
 
-type UseTypes struct {
+type UseType struct {
 	ID     int64
 	NameFi string
 	NameEn string
@@ -83,7 +83,8 @@ type Building struct {
 	SpeciaFeaturesRu      *string
 	Latitude_ETRSGK25     *float32
 	Longitude_ERRSGK25    *float32
-	Authors               []Actors
-	Uses                  []UseTypes
+	AuthorIds             []int64
+	InitialUses           []UseType
+	CurrentUses           []UseType
 	Timestamps
 }

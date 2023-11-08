@@ -49,13 +49,14 @@ func (b *BuildingStorage) Query(
 	spec s.BuildingSpecification,
 ) ([]i.Building, error) {
 	query, queryArgs := spec.ToSQL()
-	slog.DebugContext(ctx, fmt.Sprintf("implement the query %v: %v", query, queryArgs))
+	slog.DebugContext(ctx, fmt.Sprintf("send the query %v: %v", query, queryArgs))
 	rows, err := b.dbPool.Query(ctx, query, pgx.NamedArgs(queryArgs))
 	if err != nil {
-		logMsg := fmt.Sprintf("can not query buildings: '%v'", query)
-		slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
+		logMsg := fmt.Sprintf("a query error: '%v'", query)
+		slog.WarnContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
 		return nil, fmt.Errorf("%v: %w", logMsg, err)
 	}
+	defer rows.Close()
 	var buildings []i.Building
 	for rows.Next() {
 		var building i.Building
@@ -119,7 +120,77 @@ func (b *BuildingStorage) Query(
 			return nil, err
 		}
 		building.Address = address
+		uses, err := b.getUses(ctx, initialUsesTable, building.ID)
+		if err != nil {
+			logMsg := fmt.Sprintf(
+				"can not get uses for a building '%v'", 
+				building.ID,
+			)
+			slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
+			buildings = append(buildings, building)
+			continue
+		}
+		building.InitialUses = uses
+		
+		uses, err = b.getUses(ctx, currentUsesTable, building.ID)
+		if err != nil {
+			logMsg := fmt.Sprintf(
+				"can not get uses for a building '%v'", 
+				building.ID,
+			)
+			slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
+			buildings = append(buildings, building)
+			continue
+		}
+		building.CurrentUses = uses
 		buildings = append(buildings, building)
 	}
 	return buildings, nil
+}
+
+type UseTableNames string
+
+const (
+	initialUsesTable = UseTableNames("initial_uses")
+	currentUsesTable = UseTableNames("current_uses")
+)
+
+func (b *BuildingStorage) getUses(
+	ctx context.Context,
+	table_name UseTableNames,
+	buildingID int64,
+) ([]i.UseType, error) {
+	query := fmt.Sprintf(`SELECT id, name_fi, name_en, name_ru, 
+	created_at,updated_at, deleted_at FROM use_types JOIN %v
+	ON id = use_type_id WHERE building_id = $1;`, table_name)
+	rows, err := b.dbPool.Query(ctx, query, buildingID)
+	if err != nil {
+		logMsg := fmt.Sprintf("a query error: '%v'", query)
+		slog.WarnContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
+		return nil, fmt.Errorf("%v: %w", logMsg, err)
+	}
+	defer rows.Close()
+	var uses []i.UseType
+	for rows.Next() {
+		var use i.UseType
+		if err := rows.Scan(
+			&use.ID, 
+			&use.NameFi, 
+			&use.NameEn, 
+			&use.NameRu, 
+			&use.CreatedAt,
+			&use.UpdatedAt,
+			&use.DeletedAt,
+		); err != nil {
+			msg := fmt.Sprintf(
+				"can not scan %v for a building '%v'", 
+				table_name, 
+				buildingID,
+			)
+			slog.ErrorContext(ctx, msg, slog.Any(logger.ErrorKey, err))
+			return nil, err
+		}
+		uses = append(uses, use)
+	}
+	return uses, nil
 }
