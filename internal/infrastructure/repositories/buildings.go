@@ -33,9 +33,9 @@ func NewBuildingRepo(dbPool *pgxpool.Pool) *BuildingStorage {
 
 func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Building, error) {
 	created_at := time.Now().Format(time.RFC3339)
-	var addressID int64
-
+	
 	batch := &pgx.Batch{}
+	var addressID int64
 	batch.Queue(
 		insertAddress, 
 		building.Address.StreetAddress,
@@ -50,21 +50,22 @@ func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Buil
 	})
 
 	for _, authorID := range building.AuthorIds {
-		err := b.dbPool.QueryRow(
-			ctx, 
+		batch.Queue(
 			insertBuildingAuthor, 
 			building.ID,
 			authorID,
 			created_at,
-		).Scan()
-		if err != nil {
-			return nil, processPostgresError(ctx, "building_author", err)
-		}
+		).QueryRow(func(row pgx.Row) error {
+			err := row.Scan()
+			if err != nil {
+				return processPostgresError(ctx, "building_author", err)
+			}
+			return nil
+		})
 	}
 
-	var id int64
-	err := b.dbPool.QueryRow(
-		ctx,
+	var buildingID int64
+	batch.Queue(
 		insertBuilding,
 		building.Code,
 		building.NameFi,
@@ -109,12 +110,19 @@ func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Buil
 		building.Latitude_ETRSGK25,
 		building.Longitude_ERRSGK25,
 		created_at,
-	).Scan(&id)
-	if err != nil {
-		return nil, processPostgresError(ctx, "building", err)
-	}
-	building.ID = id
+	).QueryRow(func(row pgx.Row) error {
+		err := row.Scan(&buildingID)
+		if err != nil {
+			return processPostgresError(ctx, "building", err)
+		}
+		building.ID = buildingID
 
+		return nil
+	})
+	err := b.dbPool.SendBatch(ctx, batch).Close()
+	if err != nil {
+		return nil, err
+	}
 	return &building, nil
 }
 
