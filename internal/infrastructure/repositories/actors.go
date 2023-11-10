@@ -31,18 +31,18 @@ func (a *actorStorage) Add(ctx context.Context, actor i.Actor) (*i.Actor, error)
 	return nil, ErrNotImplemented
 }
 
-func (b *actorStorage) Remove(ctx context.Context, actor i.Actor) error {
+func (a *actorStorage) Remove(ctx context.Context, actor i.Actor) error {
 	return ErrNotImplemented
 }
 
-func (b *actorStorage) Update(ctx context.Context, actor i.Actor) (*i.Actor, error) {
+func (a *actorStorage) Update(ctx context.Context, actor i.Actor) (*i.Actor, error) {
 	return nil, ErrNotImplemented
 }
 
-func (b *actorStorage) Query(ctx context.Context, spec s.Specification) ([]i.Actor, error) {
+func (a *actorStorage) Query(ctx context.Context, spec s.Specification) ([]i.Actor, error) {
 	query, queryArgs := spec.ToSQL()
 	slog.DebugContext(ctx, fmt.Sprintf("send the query %v: %v", query, queryArgs))
-	rows, err := b.dbPool.Query(ctx, query, pgx.NamedArgs(queryArgs))
+	rows, err := a.dbPool.Query(ctx, query, pgx.NamedArgs(queryArgs))
 	if err != nil {
 		logMsg := fmt.Sprintf("a query error: '%v'", query)
 		slog.WarnContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
