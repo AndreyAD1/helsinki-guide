@@ -14,7 +14,6 @@ import (
 type Populator struct {
 	buildingRepo repositories.BuildingRepository
 	actorRepo    repositories.ActorRepository
-	useTypeRepo  repositories.UseTypeRepository
 }
 
 func NewPopulator(ctx context.Context, config configuration.PopulatorConfig) (*Populator, error) {
@@ -42,7 +41,6 @@ func NewPopulator(ctx context.Context, config configuration.PopulatorConfig) (*P
 	populator := Populator{
 		repositories.NewBuildingRepo(dbpool),
 		repositories.NewActorRepo(dbpool),
-		repositories.NewUseTypeRepo(dbpool),
 	}
 	return &populator, nil
 }

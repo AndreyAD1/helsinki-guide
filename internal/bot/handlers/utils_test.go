@@ -15,6 +15,7 @@ func Test_SerializeIntoMessage(t *testing.T) {
 		`Nimi: %v
 Katuosoite: %v
 Käyttöönottovuosi: no data
+Suunnittelijat: no data
 Rakennushistoria: no data`,
 		test_name_fi,
 		address,
