@@ -34,32 +34,36 @@ func NewBuildingRepo(dbPool *pgxpool.Pool) *BuildingStorage {
 func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Building, error) {
 	created_at := time.Now().Format(time.RFC3339)
 	
-	batch := &pgx.Batch{}
+	tx, err := b.dbPool.Begin(ctx)
+	if err != nil {
+		logMsg := "can not begin a transaction"
+		slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
+		return nil, err
+	}
+	defer tx.Rollback(ctx)
+	
 	var addressID int64
-	batch.Queue(
+	// TODO check that there is no similar address yet
+	if err := b.dbPool.QueryRow(
+		ctx,
 		insertAddress, 
 		building.Address.StreetAddress,
 		building.Address.NeighbourhoodID,
 		created_at,
-	).QueryRow(func(row pgx.Row) error {
-		if err := row.Scan(&addressID); err != nil {
-			return processPostgresError(ctx, "address", err)
-		}
-		return nil
-	})
+	).Scan(&addressID); err != nil {
+		return nil, processPostgresError(ctx, "address", err)
+	}
 
 	for _, authorID := range building.AuthorIds {
-		batch.Queue(
+		if err := b.dbPool.QueryRow(
+			ctx,
 			insertBuildingAuthor, 
 			building.ID,
 			authorID,
 			created_at,
-		).QueryRow(func(row pgx.Row) error {
-			if err := row.Scan(); err != nil {
-				return processPostgresError(ctx, "building_author", err)
-			}
-			return nil
-		})
+		).Scan(); err != nil {
+			return nil, processPostgresError(ctx, "building_author", err)
+		}
 	}
 	for _, useType := range building.InitialUses {
 		useTypeID := useType.ID
@@ -69,35 +73,32 @@ func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Buil
 			slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
 			return nil, err
 		} else {
-			batch.Queue(
+			if err := b.dbPool.QueryRow(
+				ctx,
 				insertUseType, 
 				useType.NameFi, 
 				useType.NameEn, 
 				useType.NameRu, 
 				created_at,
-			).QueryRow(func(row pgx.Row) error {
-				if err := row.Scan(&useTypeID); err != nil {
-					itemName := fmt.Sprintf("use type: %v", useType.NameEn)
-					return processPostgresError(ctx, itemName, err)
-				}
-				return nil
-			})
+			).Scan(&useTypeID); err != nil {
+				itemName := fmt.Sprintf("use type: %v", useType.NameEn)
+				return nil, processPostgresError(ctx, itemName, err)
+			}
 		}
-		batch.Queue(
+		if err := b.dbPool.QueryRow(
+			ctx,
 			insertInitialUses, 
 			building.ID,
 			useTypeID,
 			created_at,
-		).QueryRow(func(row pgx.Row) error {
-			if err := row.Scan(); err != nil {
-				return processPostgresError(ctx, "building_author", err)
-			}
-			return nil
-		})
+		).Scan(); err != nil {
+			return nil, processPostgresError(ctx, "building_author", err)
+		}
 	}
 
 	var buildingID int64
-	batch.Queue(
+	err = b.dbPool.QueryRow(
+		ctx,
 		insertBuilding,
 		building.Code,
 		building.NameFi,
@@ -142,18 +143,18 @@ func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Buil
 		building.Latitude_ETRSGK25,
 		building.Longitude_ERRSGK25,
 		created_at,
-	).QueryRow(func(row pgx.Row) error {
-		err := row.Scan(&buildingID)
-		if err != nil {
-			return processPostgresError(ctx, "building", err)
-		}
-		building.ID = buildingID
-
-		return nil
-	})
-	err := b.dbPool.SendBatch(ctx, batch).Close()
+	).Scan(&buildingID)
 	if err != nil {
-		return nil, err
+		return nil, processPostgresError(ctx, "building", err)
+	}
+	building.ID = buildingID
+	if err := tx.Commit(ctx); err != nil {
+		logMsg := fmt.Sprintf(
+			"can not close a transaction for the building %v - %v", 
+			building.NameEn,
+			building.Address.StreetAddress,
+		)
+		slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
 	}
 	return &building, nil
 }
