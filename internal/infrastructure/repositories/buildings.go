@@ -43,15 +43,28 @@ func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Buil
 	defer tx.Rollback(ctx)
 	
 	var addressID int64
-	// TODO check that there is no similar address yet
-	if err := b.dbPool.QueryRow(
-		ctx,
-		insertAddress, 
-		building.Address.StreetAddress,
-		building.Address.NeighbourhoodID,
-		created_at,
-	).Scan(&addressID); err != nil {
-		return nil, processPostgresError(ctx, "address", err)
+	address := building.Address.StreetAddress
+	err = b.dbPool.QueryRow(
+		ctx, 
+		getAddress, 
+		address,
+	).Scan(&addressID)
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		logMsg := fmt.Sprintf("can not get an address: %v", address)
+		slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
+		return nil, err
+	}
+	if errors.Is(err, pgx.ErrNoRows) {
+		if err := b.dbPool.QueryRow(
+			ctx,
+			insertAddress, 
+			address, 
+			building.Address.NeighbourhoodID, 
+			created_at,
+		).Scan(&addressID); err != nil {
+			itemName := fmt.Sprintf("address: %v", address)
+			return nil, processPostgresError(ctx, itemName, err)
+		}
 	}
 
 	for _, authorID := range building.AuthorIds {
@@ -68,11 +81,12 @@ func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Buil
 	for _, useType := range building.InitialUses {
 		useTypeID := useType.ID
 		err := b.dbPool.QueryRow(ctx, getUseType, useType.NameEn).Scan()
-		if !errors.Is(err, pgx.ErrNoRows) {
+		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 			logMsg := fmt.Sprintf("can not get a use type: %v", useType)
 			slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
 			return nil, err
-		} else {
+		}
+		if errors.Is(err, pgx.ErrNoRows) {
 			if err := b.dbPool.QueryRow(
 				ctx,
 				insertUseType, 
