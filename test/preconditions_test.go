@@ -122,5 +122,6 @@ func TestDBInteractions(t *testing.T) {
 	require.Conditionf(t, errCheck, fmt.Sprintf("a migration error: %v", err))
 	fmt.Println("created a db")
 	t.Cleanup(func() { m.Down() })
-	t.Run("neighbourhoods", TestNeighbourhoodsRepository)
+	t.Run("neighbourhoods", TestNeighbourhoodRepository)
+	t.Run("actors", TestActorRepository)
 }

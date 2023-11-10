@@ -2,13 +2,18 @@ package repositories
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
+	"time"
 
 	i "github.com/AndreyAD1/helsinki-guide/internal"
 	s "github.com/AndreyAD1/helsinki-guide/internal/infrastructure/specifications"
 	"github.com/AndreyAD1/helsinki-guide/internal/logger"
+	l "github.com/AndreyAD1/helsinki-guide/internal/logger"
+	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -28,7 +33,32 @@ func NewActorRepo(dbPool *pgxpool.Pool) ActorRepository {
 }
 
 func (a *actorStorage) Add(ctx context.Context, actor i.Actor) (*i.Actor, error) {
-	return nil, ErrNotImplemented
+	query := `INSERT INTO actors (name, title_fi, title_en, title_ru, created_at)
+	VALUES ($1, $2, $3, $4, $5) RETURNING id;`
+	created_at := time.Now().Format(time.RFC3339)
+	var id int64
+    err := a.dbPool.QueryRow(
+		ctx, 
+		query, 
+		actor.Name, 
+		actor.TitleFi,
+		actor.TitleEn,
+		actor.TitleRu, 
+		created_at,
+	).Scan(&id)
+    if err != nil {
+        var pgxError *pgconn.PgError
+        if errors.As(err, &pgxError) {
+            if pgxError.Code == pgerrcode.UniqueViolation {
+                return nil, ErrDuplicate
+            }
+        }
+		slog.WarnContext(ctx, "unexpected DB error", slog.Any(l.ErrorKey, err))
+        return nil, err
+    }
+    actor.ID = id
+
+	return &actor, nil
 }
 
 func (a *actorStorage) Remove(ctx context.Context, actor i.Actor) error {

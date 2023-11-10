@@ -9,10 +9,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestNeighbourhoodRepository(t *testing.T) {
-	storage := repositories.NewNeighbourhoodRepo(dbpool)
-	neighbourbourhood := internal.Neighbourhood{Name: "test"}
-	saved, err := storage.Add(context.Background(), neighbourbourhood)
+func TestActorRepository(t *testing.T) {
+	storage := repositories.NewActorRepo(dbpool)
+	titleEn := "test title en"
+	actor := internal.Actor{Name: "test", TitleEn: &titleEn}
+	saved, err := storage.Add(context.Background(), actor)
 	require.NoError(t, err)
 	require.NotEqualValues(t, 0, saved.ID)
 }
