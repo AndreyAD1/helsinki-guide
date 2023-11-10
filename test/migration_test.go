@@ -23,7 +23,7 @@ func TestMigrations(t *testing.T) {
 	require.NoErrorf(
 		t,
 		err,
-		"can not instantiate a migrate tool '%s' for '%s': %v",
+		"can not instantiate a migration tool '%s' for '%s': %v",
 		migrationPath,
 		databaseUrl,
 		err,

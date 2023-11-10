@@ -34,7 +34,7 @@ func (n *neighbourhoodStorage) Add(
 	neighbourhood i.Neighbourhood,
 ) (*i.Neighbourhood, error) {
 	query := `INSERT INTO neighbourhoods (name, municipality, created_at)
-	VALUES ($1, $2, TIMESTAMP WITH TIME ZONE $3) RETURNING id;`
+	VALUES ($1, $2, $3) RETURNING id;`
 	created_at := time.Now().Format(time.RFC3339)
 	var id int64
     err := n.dbPool.QueryRow(

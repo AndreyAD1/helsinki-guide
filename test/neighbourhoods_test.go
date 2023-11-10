@@ -1,10 +1,18 @@
 package integrationtests
 
 import (
-	"fmt"
+	"context"
 	"testing"
+
+	"github.com/AndreyAD1/helsinki-guide/internal"
+	"github.com/AndreyAD1/helsinki-guide/internal/infrastructure/repositories"
+	"github.com/stretchr/testify/require"
 )
 
-func TestNeighbourhoodsRepo(t *testing.T) {
-	fmt.Println("dummy test")
+func TestNeighbourhoodsRepository(t *testing.T) {
+	storage := repositories.NewNeighbourhoodRepo(dbpool)
+	neighbourbourhood := internal.Neighbourhood{Name: "test"}
+	saved, err := storage.Add(context.Background(), neighbourbourhood)
+	require.NoError(t, err)
+	require.NotEqualValues(t, 0, saved.ID)
 }

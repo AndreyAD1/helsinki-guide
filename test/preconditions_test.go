@@ -107,19 +107,20 @@ func TestDBInteractions(t *testing.T) {
 	require.NoErrorf(
 		t,
 		err,
-		"can not instantiate a migrate tool '%s' for '%s': %v",
+		"can not instantiate a migration tool '%s' for '%s': %v",
 		migrationPath,
 		databaseUrl,
 		err,
 	)
 	err = m.Up()
-	errCheck := func () bool {
+	errCheck := func() bool {
 		if err == nil || errors.Is(err, migrate.ErrNoChange) {
 			return true
 		}
 		return false
-	} 
+	}
 	require.Conditionf(t, errCheck, fmt.Sprintf("a migration error: %v", err))
-	t.Cleanup(func() {m.Down()})
-	t.Run("neighbourhoods", TestNeighbourhoodsRepo)
+	fmt.Println("created a db")
+	t.Cleanup(func() { m.Down() })
+	t.Run("neighbourhoods", TestNeighbourhoodsRepository)
 }
