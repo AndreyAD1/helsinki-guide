@@ -2,13 +2,17 @@ package repositories
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
+	"time"
 
 	i "github.com/AndreyAD1/helsinki-guide/internal"
 	s "github.com/AndreyAD1/helsinki-guide/internal/infrastructure/specifications"
 	"github.com/AndreyAD1/helsinki-guide/internal/logger"
+	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -28,12 +32,90 @@ func NewBuildingRepo(dbPool *pgxpool.Pool) *BuildingStorage {
 }
 
 func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Building, error) {
-	// queryTemplate := `INSERT INTO building
-	// (code, name_fi, name_en, name_ru, address_id, construction_start_year,
-	// 	completion_year, complex_fi, complex_en, complex_ru, history_fi,
-	// 	history_en, history_ru, reasoning_fi, reasoning_en, reasoning_ru,
-	// 	protection_status_fi, protection_status_en, protection_status_ru,
-	return nil, ErrNotImplemented
+	created_at := time.Now().Format(time.RFC3339)
+	var addressID int64
+
+	batch := &pgx.Batch{}
+	batch.Queue(
+		insertAddress, 
+		building.Address.StreetAddress,
+		building.Address.NeighbourhoodID,
+		created_at,
+	).QueryRow(func(row pgx.Row) error {
+		err := row.Scan(&addressID)
+		if err != nil {
+			return processPostgresError(ctx, "address", err)
+		}
+		return nil
+	})
+
+	for _, authorID := range building.AuthorIds {
+		err := b.dbPool.QueryRow(
+			ctx, 
+			insertBuildingAuthor, 
+			building.ID,
+			authorID,
+			created_at,
+		).Scan()
+		if err != nil {
+			return nil, processPostgresError(ctx, "building_author", err)
+		}
+	}
+
+	var id int64
+	err := b.dbPool.QueryRow(
+		ctx,
+		insertBuilding,
+		building.Code,
+		building.NameFi,
+		building.NameEn,
+		building.NameRu,
+		addressID,
+		building.ConstructionStartYear,
+		building.CompletionYear,
+		building.ComplexFi,
+		building.ComplexEn,
+		building.ComplexRu,
+		building.HistoryFi,
+		building.HistoryEn,
+		building.HistoryRu,
+		building.ReasoningFi,
+		building.ReasoningEn,
+		building.ReasoningRu,
+		building.ProtectionStatusFi,
+		building.ProtectionStatusEn,
+		building.ProtectionStatusRu,
+		building.InfoSourceFi,
+		building.InfoSourceEn,
+		building.InfoSourceRu,
+		building.SurroundingsFi,
+		building.SurroundingsEn,
+		building.SurroundingsRu,
+		building.FoundationFi,
+		building.FoundationEn,
+		building.FoundationRu,
+		building.FrameFi,
+		building.FrameEn,
+		building.FrameRu,
+		building.FloorDescriptionFi,
+		building.FloorDescriptionEn,
+		building.FloorDescriptionRu,
+		building.FacadesFi,
+		building.FacadesEn,
+		building.FacadesRu,
+		building.SpecialFeaturesFi,
+		building.SpecialFeaturesEn,
+		building.SpecialFeaturesRu,
+		building.Latitude_ETRSGK25,
+		building.Longitude_ERRSGK25,
+		created_at,
+	).Scan(&id)
+	if err != nil {
+		return nil, processPostgresError(ctx, "building", err)
+	}
+	building.ID = id
+
+	return &building, nil
 }
 
 func (b *BuildingStorage) Remove(ctx context.Context, building i.Building) error {
@@ -102,9 +184,9 @@ func (b *BuildingStorage) Query(
 			&building.FacadesFi,
 			&building.FacadesEn,
 			&building.FacadesRu,
-			&building.SpeciaFeaturesFi,
-			&building.SpeciaFeaturesEn,
-			&building.SpeciaFeaturesRu,
+			&building.SpecialFeaturesFi,
+			&building.SpecialFeaturesEn,
+			&building.SpecialFeaturesRu,
 			&building.Latitude_ETRSGK25,
 			&building.Longitude_ERRSGK25,
 			&building.CreatedAt,
@@ -193,4 +275,23 @@ func (b *BuildingStorage) getUses(
 		uses = append(uses, use)
 	}
 	return uses, nil
+}
+
+func processPostgresError(ctx context.Context, itemName string, err error) error {
+	var pgxError *pgconn.PgError
+	if errors.As(err, &pgxError) {
+		switch pgxError.Code {
+		case pgerrcode.UniqueViolation:
+			logMsg := fmt.Sprintf("the %v is not unique", itemName)
+			slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
+			return ErrDuplicate
+		case pgerrcode.ForeignKeyViolation:
+			logMsg := fmt.Sprintf("the missed %v foreign key", itemName)
+			slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
+			return ErrNoDependency
+		}
+	}
+	logMsg := fmt.Sprintf("unexpected DB error for %v", itemName)
+	slog.WarnContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
+	return err
 }

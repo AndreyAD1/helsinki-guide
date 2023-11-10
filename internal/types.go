@@ -78,9 +78,9 @@ type Building struct {
 	FacadesFi             *string
 	FacadesEn             *string
 	FacadesRu             *string
-	SpeciaFeaturesFi      *string
-	SpeciaFeaturesEn      *string
-	SpeciaFeaturesRu      *string
+	SpecialFeaturesFi     *string
+	SpecialFeaturesEn     *string
+	SpecialFeaturesRu     *string
 	Latitude_ETRSGK25     *float32
 	Longitude_ERRSGK25    *float32
 	AuthorIds             []int64

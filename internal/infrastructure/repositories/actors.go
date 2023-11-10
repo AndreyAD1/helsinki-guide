@@ -10,7 +10,6 @@ import (
 	i "github.com/AndreyAD1/helsinki-guide/internal"
 	s "github.com/AndreyAD1/helsinki-guide/internal/infrastructure/specifications"
 	"github.com/AndreyAD1/helsinki-guide/internal/logger"
-	l "github.com/AndreyAD1/helsinki-guide/internal/logger"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -50,10 +49,13 @@ func (a *actorStorage) Add(ctx context.Context, actor i.Actor) (*i.Actor, error)
         var pgxError *pgconn.PgError
         if errors.As(err, &pgxError) {
             if pgxError.Code == pgerrcode.UniqueViolation {
+				logMsg := fmt.Sprintf("actor duplication: %v", actor)
+				slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
                 return nil, ErrDuplicate
             }
         }
-		slog.WarnContext(ctx, "unexpected DB error", slog.Any(l.ErrorKey, err))
+		logMsg := fmt.Sprintf("unexpected DB error for an actor %v", actor)
+		slog.WarnContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
         return nil, err
     }
     actor.ID = id
