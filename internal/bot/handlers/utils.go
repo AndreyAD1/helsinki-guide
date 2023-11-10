@@ -46,9 +46,9 @@ func SerializeIntoMessage(object any, outputLanguage string) (string, error) {
 			featureValue = fmt.Sprint(fieldValue.Int())
 		case reflect.Slice, reflect.Array:
 			items := []string{}
-			for i:=0; i<fieldValue.Len(); i++ {
+			for i := 0; i < fieldValue.Len(); i++ {
 				items = append(items, fieldValue.Index(i).String())
-			} 
+			}
 			featureValue = strings.Join(items, ", ")
 		case reflect.Pointer:
 			if fieldValue.IsNil() {
@@ -62,9 +62,9 @@ func SerializeIntoMessage(object any, outputLanguage string) (string, error) {
 					featureValue = fmt.Sprint(pointerValue.Int())
 				case reflect.Slice, reflect.Array:
 					items := []string{}
-					for i:=0; i<pointerValue.Len(); i++ {
+					for i := 0; i < pointerValue.Len(); i++ {
 						items = append(items, pointerValue.Index(i).String())
-					} 
+					}
 					featureValue = strings.Join(items, ", ")
 				}
 			}

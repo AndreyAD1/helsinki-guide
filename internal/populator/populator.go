@@ -12,7 +12,6 @@ import (
 )
 
 type Populator struct {
-	addressRepo  repositories.AddressRepository
 	buildingRepo repositories.BuildingRepository
 	actorRepo    repositories.ActorRepository
 	useTypeRepo  repositories.UseTypeRepository
@@ -41,7 +40,6 @@ func NewPopulator(ctx context.Context, config configuration.PopulatorConfig) (*P
 		return nil, fmt.Errorf("%v: %w", logMsg, err)
 	}
 	populator := Populator{
-		repositories.NewAddressRepo(dbpool),
 		repositories.NewBuildingRepo(dbpool),
 		repositories.NewActorRepo(dbpool),
 		repositories.NewUseTypeRepo(dbpool),

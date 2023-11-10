@@ -13,12 +13,12 @@ import (
 
 type BuildingService struct {
 	buildingCollection repositories.BuildingRepository
-	actorCollection repositories.ActorRepository
+	actorCollection    repositories.ActorRepository
 }
 
 func NewBuildingService(
 	buildingCollection repositories.BuildingRepository,
-	actorCollection repositories.ActorRepository,	
+	actorCollection repositories.ActorRepository,
 ) BuildingService {
 	return BuildingService{buildingCollection, actorCollection}
 }
@@ -29,15 +29,15 @@ type BuildingPreview struct {
 }
 
 type BuildingDTO struct {
-	NameFi         *string `valueLanguage:"fi" nameFi:"Nimi" nameEn:"Name" nameRu:"Имя"`
-	NameEn         *string `valueLanguage:"en" nameFi:"Nimi" nameEn:"Name" nameRu:"Имя"`
-	NameRu         *string `valueLanguage:"ru" nameFi:"Nimi" nameEn:"Name" nameRu:"Имя"`
-	Address        string  `valueLanguage:"all" nameFi:"Katuosoite" nameEn:"Address" nameRu:"Адрес"`
-	CompletionYear *int    `valueLanguage:"all" nameFi:"Käyttöönottovuosi" nameEn:"Completion_year" nameRu:"Год_постройки"`
+	NameFi         *string   `valueLanguage:"fi" nameFi:"Nimi" nameEn:"Name" nameRu:"Имя"`
+	NameEn         *string   `valueLanguage:"en" nameFi:"Nimi" nameEn:"Name" nameRu:"Имя"`
+	NameRu         *string   `valueLanguage:"ru" nameFi:"Nimi" nameEn:"Name" nameRu:"Имя"`
+	Address        string    `valueLanguage:"all" nameFi:"Katuosoite" nameEn:"Address" nameRu:"Адрес"`
+	CompletionYear *int      `valueLanguage:"all" nameFi:"Käyttöönottovuosi" nameEn:"Completion_year" nameRu:"Год_постройки"`
 	Authors        *[]string `valueLanguage:"all" nameFi:"Suunnittelijat" nameEn:"Authors" nameRu:"Авторы"`
-	HistoryFi      *string `valueLanguage:"fi" nameFi:"Rakennushistoria" nameEn:"Building_history" nameRu:"История_здания"`
-	HistoryEn      *string `valueLanguage:"en" nameFi:"Rakennushistoria" nameEn:"Building_history" nameRu:"История_здания"`
-	HistoryRu      *string `valueLanguage:"ru" nameFi:"Rakennushistoria" nameEn:"Building_history" nameRu:"История_здания"`
+	HistoryFi      *string   `valueLanguage:"fi" nameFi:"Rakennushistoria" nameEn:"Building_history" nameRu:"История_здания"`
+	HistoryEn      *string   `valueLanguage:"en" nameFi:"Rakennushistoria" nameEn:"Building_history" nameRu:"История_здания"`
+	HistoryRu      *string   `valueLanguage:"ru" nameFi:"Rakennushistoria" nameEn:"Building_history" nameRu:"История_здания"`
 }
 
 func NewBuildingDTO(b i.Building, authors []i.Actor, address string) BuildingDTO {
@@ -107,6 +107,6 @@ func (bs BuildingService) GetBuildingsByAddress(
 		buildingsDto[i] = NewBuildingDTO(building, authors, address)
 		slog.DebugContext(ctx, fmt.Sprintf("authors: %v", authors))
 	}
-	
+
 	return buildingsDto, nil
 }
