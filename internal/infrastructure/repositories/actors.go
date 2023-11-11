@@ -15,13 +15,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type ActorRepository interface {
-	Add(context.Context, i.Actor) (*i.Actor, error)
-	Remove(context.Context, i.Actor) error
-	Update(context.Context, i.Actor) (*i.Actor, error)
-	Query(context.Context, s.Specification) ([]i.Actor, error)
-}
-
 type actorStorage struct {
 	dbPool *pgxpool.Pool
 }

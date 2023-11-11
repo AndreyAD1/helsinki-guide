@@ -15,13 +15,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type BuildingRepository interface {
-	Add(context.Context, i.Building) (*i.Building, error)
-	Remove(context.Context, i.Building) error
-	Update(context.Context, i.Building) (*i.Building, error)
-	Query(context.Context, s.Specification) ([]i.Building, error)
-}
-
 type BuildingStorage struct {
 	dbPool *pgxpool.Pool
 }

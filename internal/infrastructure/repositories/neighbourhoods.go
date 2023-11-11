@@ -13,13 +13,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type NeighbourhoodRepository interface {
-	Add(context.Context, i.Neighbourhood) (*i.Neighbourhood, error)
-	Remove(context.Context, i.Neighbourhood) error
-	Update(context.Context, i.Neighbourhood) (*i.Neighbourhood, error)
-	Query(context.Context, s.Specification) ([]i.Neighbourhood, error)
-}
-
 type neighbourhoodStorage struct {
 	dbPool *pgxpool.Pool
 }
