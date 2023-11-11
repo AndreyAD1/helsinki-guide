@@ -39,11 +39,11 @@ func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Buil
 	}
 	defer tx.Rollback(ctx)
 
-	addressID, err := b.getAddressID(ctx, building)
+	address, err := b.getAddress(ctx, building.Address)
 	if err != nil {
 		return nil, err
 	}
-	building.Address.ID = addressID
+	building.Address = address
 
 	var buildingID int64
 	err = b.dbPool.QueryRow(
@@ -53,7 +53,7 @@ func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Buil
 		building.NameFi,
 		building.NameEn,
 		building.NameRu,
-		addressID,
+		address.ID,
 		building.ConstructionStartYear,
 		building.CompletionYear,
 		building.ComplexFi,
@@ -121,12 +121,16 @@ func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Buil
 		}
 	}
 
-	if err := b.setUses(ctx, insertInitialUses, building.ID, building.InitialUses); err != nil {
+	uses, err := b.setUses(ctx, insertInitialUses, building.ID, building.InitialUses)
+	if err != nil {
 		return nil, err
 	}
-	if err := b.setUses(ctx, insertCurrentUses, building.ID, building.CurrentUses); err != nil {
+	building.InitialUses = uses
+	uses, err = b.setUses(ctx, insertCurrentUses, building.ID, building.CurrentUses)
+	if err != nil {
 		return nil, err
 	}
+	building.CurrentUses = uses
 
 	if err := tx.Commit(ctx); err != nil {
 		logMsg := fmt.Sprintf(
@@ -164,7 +168,6 @@ func (b *BuildingStorage) Query(
 	for rows.Next() {
 		var building i.Building
 		var addressID int64
-		var neighbourhoodID int64
 		var address i.Address
 		if err := rows.Scan(
 			&building.ID,
@@ -215,7 +218,7 @@ func (b *BuildingStorage) Query(
 			&building.DeletedAt,
 			&address.ID,
 			&address.StreetAddress,
-			&neighbourhoodID,
+			&address.NeighbourhoodID,
 			&address.CreatedAt,
 			&address.UpdatedAt,
 			&address.DeletedAt,
@@ -223,6 +226,13 @@ func (b *BuildingStorage) Query(
 			return nil, err
 		}
 		building.Address = address
+
+		authorIDs, err := b.getAuthorIds(ctx, building.ID)
+		if err != nil {
+			return nil, err
+		}
+		building.AuthorIds = authorIDs
+
 		uses, err := b.getUses(ctx, initialUsesTable, building.ID)
 		if err != nil {
 			logMsg := fmt.Sprintf(
@@ -249,6 +259,39 @@ func (b *BuildingStorage) Query(
 		buildings = append(buildings, building)
 	}
 	return buildings, nil
+}
+
+func (b *BuildingStorage) getAuthorIds(
+	ctx context.Context, 
+	buildingID int64,
+) ([]int64, error) {
+	authorQuery := `SELECT actor_id FROM building_authors 
+	WHERE building_id = $1;`
+	rows, err := b.dbPool.Query(ctx, authorQuery, buildingID)
+	if err != nil {
+		logMsg := fmt.Sprintf(
+			"a query error for a building %v: '%v'", 
+			buildingID, 
+			authorQuery,
+		)
+		slog.WarnContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
+		return nil, fmt.Errorf("%v: %w", logMsg, err)
+	}
+	defer rows.Close()
+	var authorIDs []int64
+	for rows.Next() {
+		var authorID int64
+		if err := rows.Scan(&authorID); err != nil {
+			msg := fmt.Sprintf(
+				"can not scan an author ID for a building '%v'",
+				buildingID,
+			)
+			slog.ErrorContext(ctx, msg, slog.Any(logger.ErrorKey, err))
+			return nil, err
+		}
+		authorIDs = append(authorIDs, authorID)
+	}
+	return authorIDs, nil
 }
 
 type UseTableNames string
@@ -298,31 +341,46 @@ func (b *BuildingStorage) getUses(
 	return uses, nil
 }
 
-func (b *BuildingStorage) getAddressID(ctx context.Context, building i.Building) (int64, error) {
-	var addressID int64
-	address := building.Address.StreetAddress
+func (b *BuildingStorage) getAddress(
+	ctx context.Context, 
+	address i.Address,
+) (i.Address, error) {
 	err := b.dbPool.QueryRow(
 		ctx,
 		getAddress,
-		address,
-	).Scan(&addressID)
+		address.StreetAddress,
+	).Scan(
+		&address.ID, 
+		&address.StreetAddress, 
+		&address.NeighbourhoodID,
+		&address.CreatedAt,
+		&address.UpdatedAt,
+		&address.DeletedAt,
+	)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		logMsg := fmt.Sprintf("can not get an address: %v", address)
 		slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
-		return addressID, err
+		return i.Address{}, err
 	}
 	if errors.Is(err, pgx.ErrNoRows) {
 		if err := b.dbPool.QueryRow(
 			ctx,
 			insertAddress,
-			address,
-			building.Address.NeighbourhoodID,
-		).Scan(&addressID); err != nil {
+			address.StreetAddress,
+			address.NeighbourhoodID,
+		).Scan(		
+			&address.ID, 
+			&address.StreetAddress, 
+			&address.NeighbourhoodID,
+			&address.CreatedAt,
+			&address.UpdatedAt,
+			&address.DeletedAt,
+		); err != nil {
 			itemName := fmt.Sprintf("address: %v", address)
-			return addressID, processPostgresError(ctx, itemName, err)
+			return i.Address{}, processPostgresError(ctx, itemName, err)
 		}
 	}
-	return addressID, nil
+	return address, nil
 }
 
 func (b *BuildingStorage) setUses(
@@ -330,14 +388,22 @@ func (b *BuildingStorage) setUses(
 	insertQuery string,
 	buildingID int64,
 	uses []i.UseType,
-) error {
+) ([]i.UseType, error) {
+	storedUseTypes := []i.UseType{}
 	for _, useType := range uses {
-		var useTypeID int64
-		err := b.dbPool.QueryRow(ctx, getUseTypeID, useType.NameEn).Scan(&useTypeID)
+		err := b.dbPool.QueryRow(ctx, getUseType, useType.NameEn).Scan(
+			&useType.ID,
+			&useType.NameFi,
+			&useType.NameEn,
+			&useType.NameRu,
+			&useType.CreatedAt,
+			&useType.UpdatedAt,
+			&useType.DeletedAt,
+		)
 		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 			logMsg := fmt.Sprintf("can not get a use type: %v", useType.NameEn)
 			slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
-			return err
+			return storedUseTypes, err
 		}
 		if errors.Is(err, pgx.ErrNoRows) {
 			if err := b.dbPool.QueryRow(
@@ -346,9 +412,17 @@ func (b *BuildingStorage) setUses(
 				useType.NameFi,
 				useType.NameEn,
 				useType.NameRu,
-			).Scan(&useTypeID); err != nil {
+			).Scan(
+				&useType.ID,
+				&useType.NameFi,
+				&useType.NameEn,
+				&useType.NameRu,
+				&useType.CreatedAt,
+				&useType.UpdatedAt,
+				&useType.DeletedAt,
+			); err != nil {
 				itemName := fmt.Sprintf("use type: %v", useType.NameEn)
-				return processPostgresError(ctx, itemName, err)
+				return storedUseTypes, processPostgresError(ctx, itemName, err)
 			}
 		}
 
@@ -356,25 +430,26 @@ func (b *BuildingStorage) setUses(
 			ctx,
 			insertQuery,
 			buildingID,
-			useTypeID,
+			useType.ID,
 		)
 		if err != nil {
-			itemName := fmt.Sprintf("building use %v - %v", buildingID, useTypeID)
-			return processPostgresError(ctx, itemName, err)
+			itemName := fmt.Sprintf("building use %v - %v", buildingID, useType.ID)
+			return storedUseTypes, processPostgresError(ctx, itemName, err)
 		}
 		if res.RowsAffected() != 1 {
 			logMsg := fmt.Sprintf(
 				"couldn't add a building use: %v - %v; affected rows: %v: %v",
 				buildingID,
-				useTypeID,
+				useType.ID,
 				res.RowsAffected(),
 				insertQuery,
 			)
 			slog.WarnContext(ctx, logMsg)
-			return ErrInsertFailed
+			return storedUseTypes, ErrInsertFailed
 		}
+		storedUseTypes = append(storedUseTypes, useType)
 	}
-	return nil
+	return storedUseTypes, nil
 }
 
 func processPostgresError(ctx context.Context, itemName string, err error) error {

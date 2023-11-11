@@ -6,6 +6,7 @@ import (
 
 	i "github.com/AndreyAD1/helsinki-guide/internal"
 	"github.com/AndreyAD1/helsinki-guide/internal/infrastructure/repositories"
+	s "github.com/AndreyAD1/helsinki-guide/internal/infrastructure/specifications"
 	"github.com/stretchr/testify/require"
 )
 
@@ -25,10 +26,11 @@ func testBuildingRepository(t *testing.T) {
 
 	storage := repositories.NewBuildingRepo(dbpool)
 	nameEn := "test_building"
+	streetAddress := "test stree"
 	building := i.Building{
 		NameEn: &nameEn,
 		Address: i.Address{
-			StreetAddress: "test street", 
+			StreetAddress: streetAddress, 
 			NeighbourhoodID: &savedNeighbour.ID,
 		},
 		AuthorIds: []int64{savedAuthor1.ID, savedAuthor2.ID},
@@ -44,4 +46,17 @@ func testBuildingRepository(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEqualValues(t, 0, saved.ID)
 	require.NotEqualValues(t, 0, saved.Address.ID)
+
+	spec := s.NewBuildingSpecificationByAddress(streetAddress)
+	buildings, err := storage.Query(context.Background(), spec)
+	require.NoError(t, err)
+	require.Equalf(
+		t, 
+		1, 
+		len(buildings), 
+		"unexpected building number: %v", 
+		buildings,
+	)
+	
+	require.Equal(t, *saved, buildings[0])
 }

@@ -89,16 +89,21 @@ var insertBuilding = `INSERT INTO buildings
 	$42
 ) RETURNING id;`
 
-var getAddress = `SELECT * FROM addresses WHERE street_address = $1`
+var getAddress = `SELECT id, street_address, neighbourhood_id, created_at, 
+updated_at, deleted_at FROM addresses WHERE street_address = $1`
+
 var insertAddress = `INSERT INTO addresses (street_address, neighbourhood_id) 
-VALUES ($1, $2) RETURNING id;`
+VALUES ($1, $2) RETURNING id, street_address, neighbourhood_id, created_at, 
+updated_at, deleted_at;`
 
 var insertBuildingAuthor = `INSERT INTO building_authors (building_id, actor_id)
 VALUES ($1, $2);`
 
-var getUseTypeID = `SELECT id FROM use_types WHERE name_en = $1;`
+var getUseType = `SELECT id, name_fi, name_en, name_ru, created_at, updated_at, 
+deleted_at FROM use_types WHERE name_en = $1;`
 var insertUseType = `INSERT INTO use_types (name_fi, name_en, name_ru)
-VALUES ($1, $2, $3) RETURNING id;`
+VALUES ($1, $2, $3) RETURNING id, name_fi, name_en, name_ru, created_at,
+updated_at, deleted_at;`
 
 var insertInitialUses = `INSERT INTO initial_uses (building_id, use_type_id)
 VALUES ($1, $2);`
