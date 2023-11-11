@@ -99,7 +99,7 @@ VALUES ($1, $2);`
 
 var getUseType = `SELECT * FROM use_types WHERE name_en = $1;`
 var insertUseType = `INSERT INTO use_types (name_fi, name_en, name_ru)
-VALUES ($1, $2, $3, $4);`
+VALUES ($1, $2, $3);`
 
 var insertInitialUses = `INSERT INTO initial_uses (building_id, use_type_id)
 VALUES ($1, $2);`

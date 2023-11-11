@@ -43,24 +43,7 @@ func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Buil
 	if err != nil {
 		return nil, err
 	}
-
-	for _, authorID := range building.AuthorIds {
-		if err := b.dbPool.QueryRow(
-			ctx,
-			insertBuildingAuthor, 
-			building.ID,
-			authorID,
-		).Scan(); err != nil {
-			return nil, processPostgresError(ctx, "building_author", err)
-		}
-	}
-
-	if err := b.setUses(ctx, insertInitialUses, building.ID, building.InitialUses); err != nil {
-		return nil, err
-	}
-	if err := b.setUses(ctx, insertCurrentUses, building.ID, building.CurrentUses); err != nil {
-		return nil, err
-	}
+	building.Address.ID = addressID
 
 	var buildingID int64
 	err = b.dbPool.QueryRow(
@@ -114,6 +97,37 @@ func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Buil
 		return nil, processPostgresError(ctx, itemName, err)
 	}
 	building.ID = buildingID
+
+	for _, authorID := range building.AuthorIds {
+		res, err := b.dbPool.Exec(
+			ctx,
+			insertBuildingAuthor, 
+			building.ID,
+			authorID,
+		)
+		if err != nil {
+			itemName := fmt.Sprintf("building author %v", authorID)
+			return nil, processPostgresError(ctx, itemName, err)
+		}
+		if res.RowsAffected() != 1 {
+			logMsg := fmt.Sprintf(
+				"couldn't add a building author: %v - %v; affecte rows: %v",
+				building.ID,
+				authorID,
+				res.RowsAffected(),
+			)
+			slog.WarnContext(ctx, logMsg)
+			return nil, ErrInsertFailed
+		}
+	}
+
+	if err := b.setUses(ctx, insertInitialUses, building.ID, building.InitialUses); err != nil {
+		return nil, err
+	}
+	if err := b.setUses(ctx, insertCurrentUses, building.ID, building.CurrentUses); err != nil {
+		return nil, err
+	}
+
 	if err := tx.Commit(ctx); err != nil {
 		logMsg := fmt.Sprintf(
 			"can not close a transaction for the building %v - %v", 
@@ -337,6 +351,29 @@ func (b *BuildingStorage) setUses(
 				return processPostgresError(ctx, itemName, err)
 			}
 		}
+
+		res, err := b.dbPool.Exec(
+			ctx,
+			insertQuery, 
+			buildingID,
+			useTypeID,
+		)
+		if err != nil {
+			itemName := fmt.Sprintf("building use %v - %v", buildingID, useTypeID)
+			return processPostgresError(ctx, itemName, err)
+		}
+		if res.RowsAffected() != 1 {
+			logMsg := fmt.Sprintf(
+				"couldn't add a building use: %v - %v; affected rows: %v: %v",
+				buildingID,
+				useTypeID,
+				res.RowsAffected(),
+				insertQuery,
+			)
+			slog.WarnContext(ctx, logMsg)
+			return ErrInsertFailed
+		}
+
 		if err := b.dbPool.QueryRow(
 			ctx,
 			insertQuery, 
@@ -355,15 +392,15 @@ func processPostgresError(ctx context.Context, itemName string, err error) error
 		switch pgxError.Code {
 		case pgerrcode.UniqueViolation:
 			logMsg := fmt.Sprintf("the %v is not unique", itemName)
-			slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
+			slog.WarnContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
 			return ErrDuplicate
 		case pgerrcode.ForeignKeyViolation:
 			logMsg := fmt.Sprintf("the missed %v foreign key", itemName)
-			slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
+			slog.WarnContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
 			return ErrNoDependency
 		}
 	}
-	logMsg := fmt.Sprintf("unexpected DB error for %v", itemName)
-	slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
+	logMsg := fmt.Sprintf("the unexpected DB error for %v", itemName)
+	slog.WarnContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
 	return err
 }

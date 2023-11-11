@@ -10,9 +10,17 @@ import (
 )
 
 func testBuildingRepository(t *testing.T) {
-	storage1 := repositories.NewNeighbourhoodRepo(dbpool)
+	storageN := repositories.NewNeighbourhoodRepo(dbpool)
 	neighbourbourhood := i.Neighbourhood{Name: "test neighbourhood"}
-	savedNeighbour, err := storage1.Add(context.Background(), neighbourbourhood)
+	savedNeighbour, err := storageN.Add(context.Background(), neighbourbourhood)
+
+	actorStorage := repositories.NewActorRepo(dbpool)
+	titleEn := "test title en"
+	author1 := i.Actor{Name: "test1", TitleEn: &titleEn}
+	author2 := i.Actor{Name: "test2", TitleEn: &titleEn}
+	savedAuthor1, err := actorStorage.Add(context.Background(), author1)
+	savedAuthor2, err := actorStorage.Add(context.Background(), author2)
+	require.NoError(t, err)
 
 	storage := repositories.NewBuildingRepo(dbpool)
 	nameEn := "test_building"
@@ -22,8 +30,10 @@ func testBuildingRepository(t *testing.T) {
 			StreetAddress: "test street", 
 			NeighbourhoodID: &savedNeighbour.ID,
 		},
+		AuthorIds: []int64{savedAuthor1.ID, savedAuthor2.ID},
 	}
 	saved, err := storage.Add(context.Background(), building)
 	require.NoError(t, err)
 	require.NotEqualValues(t, 0, saved.ID)
+	require.NotEqualValues(t, 0, saved.Address.ID)
 }
