@@ -31,8 +31,6 @@ func NewBuildingRepo(dbPool *pgxpool.Pool) *BuildingStorage {
 }
 
 func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Building, error) {
-	created_at := getPostgresNow()
-	
 	tx, err := b.dbPool.Begin(ctx)
 	if err != nil {
 		logMsg := "can not begin a transaction"
@@ -52,7 +50,6 @@ func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Buil
 			insertBuildingAuthor, 
 			building.ID,
 			authorID,
-			created_at,
 		).Scan(); err != nil {
 			return nil, processPostgresError(ctx, "building_author", err)
 		}
@@ -111,7 +108,6 @@ func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Buil
 		building.SpecialFeaturesRu,
 		building.Latitude_ETRSGK25,
 		building.Longitude_ERRSGK25,
-		created_at,
 	).Scan(&buildingID)
 	if err != nil {
 		return nil, processPostgresError(ctx, "building", err)
@@ -325,7 +321,6 @@ func (b *BuildingStorage) getAddressID(ctx context.Context, building i.Building)
 			insertAddress, 
 			address, 
 			building.Address.NeighbourhoodID, 
-			getPostgresNow(),
 		).Scan(&addressID); err != nil {
 			itemName := fmt.Sprintf("address: %v", address)
 			return addressID, processPostgresError(ctx, itemName, err)
@@ -334,8 +329,12 @@ func (b *BuildingStorage) getAddressID(ctx context.Context, building i.Building)
 	return addressID, nil
 }
 
-func (b *BuildingStorage) setUses(ctx context.Context, insertQuery string, buildingID int64, uses []i.UseType) error {
-	created_at := getPostgresNow()
+func (b *BuildingStorage) setUses(
+	ctx context.Context, 
+	insertQuery string, 
+	buildingID int64, 
+	uses []i.UseType,
+) error {
 	for _, useType := range uses {
 		useTypeID := useType.ID
 		err := b.dbPool.QueryRow(ctx, getUseType, useType.NameEn).Scan()
@@ -351,7 +350,6 @@ func (b *BuildingStorage) setUses(ctx context.Context, insertQuery string, build
 				useType.NameFi, 
 				useType.NameEn, 
 				useType.NameRu, 
-				created_at,
 			).Scan(&useTypeID); err != nil {
 				itemName := fmt.Sprintf("use type: %v", useType.NameEn)
 				return processPostgresError(ctx, itemName, err)

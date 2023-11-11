@@ -2,7 +2,7 @@ BEGIN;
 
 CREATE TABLE "users" (
   "id" SERIAL PRIMARY KEY,
-  "created_at" timestamp with time zone NOT NULL,
+  "created_at" timestamp with time zone NOT NULL DEFAULT now(),
   "updated_at" timestamp with time zone,
   "deleted_at" timestamp with time zone,
   "username" varchar NOT NULL,
@@ -54,7 +54,7 @@ CREATE TABLE "buildings" (
   "special_features_ru" varchar,
   "latitude_ETRSGK25" real,
   "longitude_ETRSGK25" real,
-  "created_at" timestamp with time zone NOT NULL,
+  "created_at" timestamp with time zone NOT NULL DEFAULT now(),
   "updated_at" timestamp with time zone,
   "deleted_at" timestamp with time zone
 );
@@ -63,7 +63,7 @@ CREATE TABLE "addresses" (
   "id" SERIAL PRIMARY KEY,
   "street_address" varchar UNIQUE NOT NULL,
   "neighbourhood_id" integer,
-  "created_at" timestamp with time zone NOT NULL,
+  "created_at" timestamp with time zone NOT NULL DEFAULT now(),
   "updated_at" timestamp with time zone,
   "deleted_at" timestamp with time zone
 );
@@ -72,7 +72,7 @@ CREATE TABLE "neighbourhoods" (
   "id" SERIAL PRIMARY KEY,
   "name" varchar NOT NULL,
   "municipality" varchar,
-  "created_at" timestamp with time zone NOT NULL,
+  "created_at" timestamp with time zone NOT NULL DEFAULT now(),
   "updated_at" timestamp with time zone,
   "deleted_at" timestamp with time zone
 );
@@ -83,7 +83,7 @@ CREATE TABLE "actors" (
   "title_fi" varchar,
   "title_en" varchar,
   "title_ru" varchar,
-  "created_at" timestamp with time zone NOT NULL,
+  "created_at" timestamp with time zone NOT NULL DEFAULT now(),
   "updated_at" timestamp with time zone,
   "deleted_at" timestamp with time zone
 );
@@ -113,7 +113,7 @@ CREATE TABLE "use_types" (
   "name_fi" varchar UNIQUE NOT NULL,
   "name_en" varchar UNIQUE NOT NULL,
   "name_ru" varchar UNIQUE NOT NULL,
-  "created_at" timestamp with time zone NOT NULL,
+  "created_at" timestamp with time zone NOT NULL DEFAULT now(),
   "updated_at" timestamp with time zone,
   "deleted_at" timestamp with time zone
 );

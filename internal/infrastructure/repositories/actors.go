@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"time"
 
 	i "github.com/AndreyAD1/helsinki-guide/internal"
 	s "github.com/AndreyAD1/helsinki-guide/internal/infrastructure/specifications"
@@ -32,9 +31,8 @@ func NewActorRepo(dbPool *pgxpool.Pool) ActorRepository {
 }
 
 func (a *actorStorage) Add(ctx context.Context, actor i.Actor) (*i.Actor, error) {
-	query := `INSERT INTO actors (name, title_fi, title_en, title_ru, created_at)
-	VALUES ($1, $2, $3, $4, $5) RETURNING id;`
-	created_at := time.Now().Format(time.RFC3339)
+	query := `INSERT INTO actors (name, title_fi, title_en, title_ru)
+	VALUES ($1, $2, $3, $4) RETURNING id;`
 	var id int64
     err := a.dbPool.QueryRow(
 		ctx, 
@@ -43,7 +41,6 @@ func (a *actorStorage) Add(ctx context.Context, actor i.Actor) (*i.Actor, error)
 		actor.TitleFi,
 		actor.TitleEn,
 		actor.TitleRu, 
-		created_at,
 	).Scan(&id)
     if err != nil {
         var pgxError *pgconn.PgError
@@ -54,7 +51,7 @@ func (a *actorStorage) Add(ctx context.Context, actor i.Actor) (*i.Actor, error)
                 return nil, ErrDuplicate
             }
         }
-		logMsg := fmt.Sprintf("unexpected DB error for an actor %v", actor)
+		logMsg := fmt.Sprintf("unexpected DB error for an actor %v", actor.Name)
 		slog.WarnContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
         return nil, err
     }

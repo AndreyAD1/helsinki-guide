@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestNeighbourhoodRepository(t *testing.T) {
+func testNeighbourhoodRepository(t *testing.T) {
 	storage := repositories.NewNeighbourhoodRepo(dbpool)
 	neighbourbourhood := internal.Neighbourhood{Name: "test"}
 	saved, err := storage.Add(context.Background(), neighbourbourhood)

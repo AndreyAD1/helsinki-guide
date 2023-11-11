@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestActorRepository(t *testing.T) {
+func testActorRepository(t *testing.T) {
 	storage := repositories.NewActorRepo(dbpool)
 	titleEn := "test title en"
 	actor := internal.Actor{Name: "test", TitleEn: &titleEn}

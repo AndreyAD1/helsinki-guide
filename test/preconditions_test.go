@@ -112,16 +112,27 @@ func TestDBInteractions(t *testing.T) {
 		databaseUrl,
 		err,
 	)
-	err = m.Up()
-	errCheck := func() bool {
-		if err == nil || errors.Is(err, migrate.ErrNoChange) {
-			return true
+	t.Cleanup(func() {m.Drop()})
+	for _, test := range integrationTests {
+		err = m.Up()
+		errCheck := func() bool {
+			if err == nil || errors.Is(err, migrate.ErrNoChange) {
+				return true
+			}
+			return false
 		}
-		return false
+		require.Conditionf(t, errCheck, fmt.Sprintf("a migration error: %v", err))
+		t.Run(test.name, test.function)
+		m.Down()
 	}
-	require.Conditionf(t, errCheck, fmt.Sprintf("a migration error: %v", err))
-	fmt.Println("created a db")
-	t.Cleanup(func() { m.Down() })
-	t.Run("neighbourhoods", TestNeighbourhoodRepository)
-	t.Run("actors", TestActorRepository)
+}
+
+type integrationTest struct {
+	name string
+	function func(*testing.T)
+}
+
+var integrationTests = []integrationTest{
+	{"neigbourhoods", testNeighbourhoodRepository},
+	{"actors", testActorRepository},
 }

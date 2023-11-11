@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"log/slog"
-	"time"
 
 	i "github.com/AndreyAD1/helsinki-guide/internal"
 	s "github.com/AndreyAD1/helsinki-guide/internal/infrastructure/specifications"
@@ -33,16 +32,14 @@ func (n *neighbourhoodStorage) Add(
 	ctx context.Context, 
 	neighbourhood i.Neighbourhood,
 ) (*i.Neighbourhood, error) {
-	query := `INSERT INTO neighbourhoods (name, municipality, created_at)
-	VALUES ($1, $2, $3) RETURNING id;`
-	created_at := time.Now().Format(time.RFC3339)
+	query := `INSERT INTO neighbourhoods (name, municipality)
+	VALUES ($1, $2) RETURNING id;`
 	var id int64
     err := n.dbPool.QueryRow(
 		ctx, 
 		query, 
 		neighbourhood.Name, 
 		neighbourhood.Municipality, 
-		created_at,
 	).Scan(&id)
     if err != nil {
         var pgxError *pgconn.PgError
