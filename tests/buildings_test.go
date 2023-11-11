@@ -30,7 +30,7 @@ func testBuildingRepository(t *testing.T) {
 	building := i.Building{
 		NameEn: &nameEn,
 		Address: i.Address{
-			StreetAddress: streetAddress, 
+			StreetAddress:   streetAddress,
 			NeighbourhoodID: &savedNeighbour.ID,
 		},
 		AuthorIds: []int64{savedAuthor1.ID, savedAuthor2.ID},
@@ -51,12 +51,12 @@ func testBuildingRepository(t *testing.T) {
 	buildings, err := storage.Query(context.Background(), spec)
 	require.NoError(t, err)
 	require.Equalf(
-		t, 
-		1, 
-		len(buildings), 
-		"unexpected building number: %v", 
+		t,
+		1,
+		len(buildings),
+		"unexpected building number: %v",
 		buildings,
 	)
-	
+
 	require.Equal(t, *saved, buildings[0])
 }

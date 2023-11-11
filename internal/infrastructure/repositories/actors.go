@@ -27,28 +27,28 @@ func (a *actorStorage) Add(ctx context.Context, actor i.Actor) (*i.Actor, error)
 	query := `INSERT INTO actors (name, title_fi, title_en, title_ru)
 	VALUES ($1, $2, $3, $4) RETURNING id;`
 	var id int64
-    err := a.dbPool.QueryRow(
-		ctx, 
-		query, 
-		actor.Name, 
+	err := a.dbPool.QueryRow(
+		ctx,
+		query,
+		actor.Name,
 		actor.TitleFi,
 		actor.TitleEn,
-		actor.TitleRu, 
+		actor.TitleRu,
 	).Scan(&id)
-    if err != nil {
-        var pgxError *pgconn.PgError
-        if errors.As(err, &pgxError) {
-            if pgxError.Code == pgerrcode.UniqueViolation {
+	if err != nil {
+		var pgxError *pgconn.PgError
+		if errors.As(err, &pgxError) {
+			if pgxError.Code == pgerrcode.UniqueViolation {
 				logMsg := fmt.Sprintf("actor duplication: %v", actor)
 				slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
-                return nil, ErrDuplicate
-            }
-        }
+				return nil, ErrDuplicate
+			}
+		}
 		logMsg := fmt.Sprintf("unexpected DB error for an actor %v", actor.Name)
 		slog.WarnContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
-        return nil, err
-    }
-    actor.ID = id
+		return nil, err
+	}
+	actor.ID = id
 
 	return &actor, nil
 }

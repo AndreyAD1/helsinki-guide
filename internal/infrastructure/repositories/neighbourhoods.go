@@ -22,29 +22,29 @@ func NewNeighbourhoodRepo(dbPool *pgxpool.Pool) NeighbourhoodRepository {
 }
 
 func (n *neighbourhoodStorage) Add(
-	ctx context.Context, 
+	ctx context.Context,
 	neighbourhood i.Neighbourhood,
 ) (*i.Neighbourhood, error) {
 	query := `INSERT INTO neighbourhoods (name, municipality)
 	VALUES ($1, $2) RETURNING id;`
 	var id int64
-    err := n.dbPool.QueryRow(
-		ctx, 
-		query, 
-		neighbourhood.Name, 
-		neighbourhood.Municipality, 
+	err := n.dbPool.QueryRow(
+		ctx,
+		query,
+		neighbourhood.Name,
+		neighbourhood.Municipality,
 	).Scan(&id)
-    if err != nil {
-        var pgxError *pgconn.PgError
-        if errors.As(err, &pgxError) {
-            if pgxError.Code == pgerrcode.UniqueViolation {
-                return nil, ErrDuplicate
-            }
-        }
+	if err != nil {
+		var pgxError *pgconn.PgError
+		if errors.As(err, &pgxError) {
+			if pgxError.Code == pgerrcode.UniqueViolation {
+				return nil, ErrDuplicate
+			}
+		}
 		slog.WarnContext(ctx, "unexpected DB error", slog.Any(l.ErrorKey, err))
-        return nil, err
-    }
-    neighbourhood.ID = id
+		return nil, err
+	}
+	neighbourhood.ID = id
 
 	return &neighbourhood, nil
 }

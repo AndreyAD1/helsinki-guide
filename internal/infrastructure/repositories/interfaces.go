@@ -7,7 +7,6 @@ import (
 	s "github.com/AndreyAD1/helsinki-guide/internal/infrastructure/specifications"
 )
 
-
 type BuildingRepository interface {
 	Add(context.Context, i.Building) (*i.Building, error)
 	Remove(context.Context, i.Building) error

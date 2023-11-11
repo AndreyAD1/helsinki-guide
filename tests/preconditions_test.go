@@ -112,7 +112,7 @@ func TestDBInteractions(t *testing.T) {
 		databaseUrl,
 		err,
 	)
-	t.Cleanup(func() {m.Drop()})
+	t.Cleanup(func() { m.Drop() })
 	for _, test := range integrationTests {
 		err = m.Up()
 		errCheck := func() bool {
@@ -128,7 +128,7 @@ func TestDBInteractions(t *testing.T) {
 }
 
 type integrationTest struct {
-	name string
+	name     string
 	function func(*testing.T)
 }
 

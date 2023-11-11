@@ -252,7 +252,7 @@ func (b *BuildingStorage) Query(
 }
 
 func (b *BuildingStorage) getAuthorIds(
-	ctx context.Context, 
+	ctx context.Context,
 	buildingID int64,
 ) ([]int64, error) {
 	authorQuery := `SELECT actor_id FROM building_authors 
@@ -260,8 +260,8 @@ func (b *BuildingStorage) getAuthorIds(
 	rows, err := b.dbPool.Query(ctx, authorQuery, buildingID)
 	if err != nil {
 		logMsg := fmt.Sprintf(
-			"a query error for a building %v: '%v'", 
-			buildingID, 
+			"a query error for a building %v: '%v'",
+			buildingID,
 			authorQuery,
 		)
 		slog.WarnContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
@@ -332,7 +332,7 @@ func (b *BuildingStorage) getUses(
 }
 
 func (b *BuildingStorage) getAddress(
-	ctx context.Context, 
+	ctx context.Context,
 	address i.Address,
 ) (i.Address, error) {
 	err := b.dbPool.QueryRow(
@@ -340,8 +340,8 @@ func (b *BuildingStorage) getAddress(
 		getAddress,
 		address.StreetAddress,
 	).Scan(
-		&address.ID, 
-		&address.StreetAddress, 
+		&address.ID,
+		&address.StreetAddress,
 		&address.NeighbourhoodID,
 		&address.CreatedAt,
 		&address.UpdatedAt,
@@ -358,9 +358,9 @@ func (b *BuildingStorage) getAddress(
 			insertAddress,
 			address.StreetAddress,
 			address.NeighbourhoodID,
-		).Scan(		
-			&address.ID, 
-			&address.StreetAddress, 
+		).Scan(
+			&address.ID,
+			&address.StreetAddress,
 			&address.NeighbourhoodID,
 			&address.CreatedAt,
 			&address.UpdatedAt,
