@@ -87,7 +87,7 @@ var insertBuilding = `INSERT INTO buildings
 	$40,
 	$41,
 	$42
-) RETURNING id;`
+) RETURNING id, created_at;`
 
 var getAddress = `SELECT id, street_address, neighbourhood_id, created_at, 
 updated_at, deleted_at FROM addresses WHERE street_address = $1`

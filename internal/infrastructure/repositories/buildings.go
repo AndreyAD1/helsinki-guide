@@ -45,7 +45,6 @@ func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Buil
 	}
 	building.Address = address
 
-	var buildingID int64
 	err = b.dbPool.QueryRow(
 		ctx,
 		insertBuilding,
@@ -91,12 +90,11 @@ func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Buil
 		building.SpecialFeaturesRu,
 		building.Latitude_ETRSGK25,
 		building.Longitude_ERRSGK25,
-	).Scan(&buildingID)
+	).Scan(&building.ID, &building.CreatedAt)
 	if err != nil {
 		itemName := fmt.Sprintf("building '%v'", building.Address.StreetAddress)
 		return nil, processPostgresError(ctx, itemName, err)
 	}
-	building.ID = buildingID
 
 	for _, authorID := range building.AuthorIds {
 		res, err := b.dbPool.Exec(
@@ -167,7 +165,6 @@ func (b *BuildingStorage) Query(
 	var buildings []i.Building
 	for rows.Next() {
 		var building i.Building
-		var addressID int64
 		var address i.Address
 		if err := rows.Scan(
 			&building.ID,
@@ -175,7 +172,7 @@ func (b *BuildingStorage) Query(
 			&building.NameFi,
 			&building.NameEn,
 			&building.NameRu,
-			&addressID,
+			&address.ID,
 			&building.ConstructionStartYear,
 			&building.CompletionYear,
 			&building.ComplexFi,
