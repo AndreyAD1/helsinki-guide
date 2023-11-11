@@ -1,6 +1,5 @@
 package repositories
 
-
 var insertBuilding = `INSERT INTO buildings
 (	
 	code, 
@@ -97,9 +96,9 @@ VALUES ($1, $2) RETURNING id;`
 var insertBuildingAuthor = `INSERT INTO building_authors (building_id, actor_id)
 VALUES ($1, $2);`
 
-var getUseType = `SELECT * FROM use_types WHERE name_en = $1;`
+var getUseTypeID = `SELECT id FROM use_types WHERE name_en = $1;`
 var insertUseType = `INSERT INTO use_types (name_fi, name_en, name_ru)
-VALUES ($1, $2, $3);`
+VALUES ($1, $2, $3) RETURNING id;`
 
 var insertInitialUses = `INSERT INTO initial_uses (building_id, use_type_id)
 VALUES ($1, $2);`

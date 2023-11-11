@@ -38,7 +38,7 @@ func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Buil
 		return nil, err
 	}
 	defer tx.Rollback(ctx)
-	
+
 	addressID, err := b.getAddressID(ctx, building)
 	if err != nil {
 		return nil, err
@@ -101,7 +101,7 @@ func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Buil
 	for _, authorID := range building.AuthorIds {
 		res, err := b.dbPool.Exec(
 			ctx,
-			insertBuildingAuthor, 
+			insertBuildingAuthor,
 			building.ID,
 			authorID,
 		)
@@ -130,7 +130,7 @@ func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Buil
 
 	if err := tx.Commit(ctx); err != nil {
 		logMsg := fmt.Sprintf(
-			"can not close a transaction for the building %v - %v", 
+			"can not close a transaction for the building %v - %v",
 			building.NameEn,
 			building.Address.StreetAddress,
 		)
@@ -302,8 +302,8 @@ func (b *BuildingStorage) getAddressID(ctx context.Context, building i.Building)
 	var addressID int64
 	address := building.Address.StreetAddress
 	err := b.dbPool.QueryRow(
-		ctx, 
-		getAddress, 
+		ctx,
+		getAddress,
 		address,
 	).Scan(&addressID)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
@@ -314,9 +314,9 @@ func (b *BuildingStorage) getAddressID(ctx context.Context, building i.Building)
 	if errors.Is(err, pgx.ErrNoRows) {
 		if err := b.dbPool.QueryRow(
 			ctx,
-			insertAddress, 
-			address, 
-			building.Address.NeighbourhoodID, 
+			insertAddress,
+			address,
+			building.Address.NeighbourhoodID,
 		).Scan(&addressID); err != nil {
 			itemName := fmt.Sprintf("address: %v", address)
 			return addressID, processPostgresError(ctx, itemName, err)
@@ -326,26 +326,26 @@ func (b *BuildingStorage) getAddressID(ctx context.Context, building i.Building)
 }
 
 func (b *BuildingStorage) setUses(
-	ctx context.Context, 
-	insertQuery string, 
-	buildingID int64, 
+	ctx context.Context,
+	insertQuery string,
+	buildingID int64,
 	uses []i.UseType,
 ) error {
 	for _, useType := range uses {
-		useTypeID := useType.ID
-		err := b.dbPool.QueryRow(ctx, getUseType, useType.NameEn).Scan()
+		var useTypeID int64
+		err := b.dbPool.QueryRow(ctx, getUseTypeID, useType.NameEn).Scan(&useTypeID)
 		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-			logMsg := fmt.Sprintf("can not get a use type: %v", useType)
+			logMsg := fmt.Sprintf("can not get a use type: %v", useType.NameEn)
 			slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
 			return err
 		}
 		if errors.Is(err, pgx.ErrNoRows) {
 			if err := b.dbPool.QueryRow(
 				ctx,
-				insertUseType, 
-				useType.NameFi, 
-				useType.NameEn, 
-				useType.NameRu, 
+				insertUseType,
+				useType.NameFi,
+				useType.NameEn,
+				useType.NameRu,
 			).Scan(&useTypeID); err != nil {
 				itemName := fmt.Sprintf("use type: %v", useType.NameEn)
 				return processPostgresError(ctx, itemName, err)
@@ -354,7 +354,7 @@ func (b *BuildingStorage) setUses(
 
 		res, err := b.dbPool.Exec(
 			ctx,
-			insertQuery, 
+			insertQuery,
 			buildingID,
 			useTypeID,
 		)
@@ -372,15 +372,6 @@ func (b *BuildingStorage) setUses(
 			)
 			slog.WarnContext(ctx, logMsg)
 			return ErrInsertFailed
-		}
-
-		if err := b.dbPool.QueryRow(
-			ctx,
-			insertQuery, 
-			buildingID,
-			useTypeID,
-		).Scan(); err != nil {
-			return processPostgresError(ctx, "building_author", err)
 		}
 	}
 	return nil
@@ -400,7 +391,7 @@ func processPostgresError(ctx context.Context, itemName string, err error) error
 			return ErrNoDependency
 		}
 	}
-	logMsg := fmt.Sprintf("the unexpected DB error for %v", itemName)
+	logMsg := fmt.Sprintf("the unexpected DB error for '%v'", itemName)
 	slog.WarnContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
 	return err
 }
