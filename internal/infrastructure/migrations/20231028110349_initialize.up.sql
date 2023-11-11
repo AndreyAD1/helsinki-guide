@@ -52,8 +52,8 @@ CREATE TABLE "buildings" (
   "special_features_fi" varchar,
   "special_features_en" varchar,
   "special_features_ru" varchar,
-  "latitude_ETRSGK25" real,
-  "longitude_ETRSGK25" real,
+  "latitude_etrsgk25" real,
+  "longitude_etrsgk25" real,
   "created_at" timestamp with time zone NOT NULL DEFAULT now(),
   "updated_at" timestamp with time zone,
   "deleted_at" timestamp with time zone

@@ -1,7 +1,7 @@
 package repositories
 
 
-var insertBuilding = `INSERT INTO building
+var insertBuilding = `INSERT INTO buildings
 (	
 	code, 
 	name_fi, 
@@ -43,8 +43,8 @@ var insertBuilding = `INSERT INTO building
 	special_features_fi,
 	special_features_en,
 	special_features_ru,
-	latitude_ETRSGK25,
-	longitude_ETRSGK25,
+	latitude_etrsgk25,
+	longitude_etrsgk25
 ) VALUES (
 	$1,
 	$2,
@@ -86,11 +86,13 @@ var insertBuilding = `INSERT INTO building
 	$38,
 	$39,
 	$40,
-	$41
+	$41,
+	$42
 ) RETURNING id;`
 
 var getAddress = `SELECT * FROM addresses WHERE street_address = $1`
-var insertAddress = `INSERT INTO addresses (street_address, neighbourhood_id) VALUES ($1, $2, $3, $4) RETURNING id;`
+var insertAddress = `INSERT INTO addresses (street_address, neighbourhood_id) 
+VALUES ($1, $2) RETURNING id;`
 
 var insertBuildingAuthor = `INSERT INTO building_authors (building_id, actor_id)
 VALUES ($1, $2);`

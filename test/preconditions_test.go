@@ -135,4 +135,5 @@ type integrationTest struct {
 var integrationTests = []integrationTest{
 	{"neigbourhoods", testNeighbourhoodRepository},
 	{"actors", testActorRepository},
+	{"buildings", testBuildingRepository},
 }

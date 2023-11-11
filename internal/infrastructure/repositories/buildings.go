@@ -110,7 +110,8 @@ func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Buil
 		building.Longitude_ERRSGK25,
 	).Scan(&buildingID)
 	if err != nil {
-		return nil, processPostgresError(ctx, "building", err)
+		itemName := fmt.Sprintf("building '%v'", building.Address.StreetAddress)
+		return nil, processPostgresError(ctx, itemName, err)
 	}
 	building.ID = buildingID
 	if err := tx.Commit(ctx); err != nil {
@@ -283,25 +284,6 @@ func (b *BuildingStorage) getUses(
 	return uses, nil
 }
 
-func processPostgresError(ctx context.Context, itemName string, err error) error {
-	var pgxError *pgconn.PgError
-	if errors.As(err, &pgxError) {
-		switch pgxError.Code {
-		case pgerrcode.UniqueViolation:
-			logMsg := fmt.Sprintf("the %v is not unique", itemName)
-			slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
-			return ErrDuplicate
-		case pgerrcode.ForeignKeyViolation:
-			logMsg := fmt.Sprintf("the missed %v foreign key", itemName)
-			slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
-			return ErrNoDependency
-		}
-	}
-	logMsg := fmt.Sprintf("unexpected DB error for %v", itemName)
-	slog.WarnContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
-	return err
-}
-
 func (b *BuildingStorage) getAddressID(ctx context.Context, building i.Building) (int64, error) {
 	var addressID int64
 	address := building.Address.StreetAddress
@@ -365,4 +347,23 @@ func (b *BuildingStorage) setUses(
 		}
 	}
 	return nil
+}
+
+func processPostgresError(ctx context.Context, itemName string, err error) error {
+	var pgxError *pgconn.PgError
+	if errors.As(err, &pgxError) {
+		switch pgxError.Code {
+		case pgerrcode.UniqueViolation:
+			logMsg := fmt.Sprintf("the %v is not unique", itemName)
+			slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
+			return ErrDuplicate
+		case pgerrcode.ForeignKeyViolation:
+			logMsg := fmt.Sprintf("the missed %v foreign key", itemName)
+			slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
+			return ErrNoDependency
+		}
+	}
+	logMsg := fmt.Sprintf("unexpected DB error for %v", itemName)
+	slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
+	return err
 }
