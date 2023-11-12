@@ -24,31 +24,51 @@ func NewActorRepo(dbPool *pgxpool.Pool) ActorRepository {
 }
 
 func (a *actorStorage) Add(ctx context.Context, actor i.Actor) (*i.Actor, error) {
-	query := `INSERT INTO actors (name, title_fi, title_en, title_ru)
-	VALUES ($1, $2, $3, $4) RETURNING id;`
-	var id int64
+	selectQuery := `SELECT id, name, title_fi, title_en, title_ru,
+	created_at, updated_at, deleted_at FROM actors WHERE name = $1;`
+	insertQuery := `INSERT INTO actors (name, title_fi, title_en, title_ru)
+	VALUES ($1, $2, $3, $4) RETURNING id, created_at;`
 	err := a.dbPool.QueryRow(
 		ctx,
-		query,
+		insertQuery,
 		actor.Name,
 		actor.TitleFi,
 		actor.TitleEn,
 		actor.TitleRu,
-	).Scan(&id)
+	).Scan(&actor.ID, &actor.CreatedAt)
 	if err != nil {
 		var pgxError *pgconn.PgError
 		if errors.As(err, &pgxError) {
 			if pgxError.Code == pgerrcode.UniqueViolation {
 				logMsg := fmt.Sprintf("actor duplication: %v", actor)
-				slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
-				return nil, ErrDuplicate
+				slog.WarnContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
+				var existingActor i.Actor
+				err := a.dbPool.QueryRow(
+					ctx,
+					selectQuery,
+					actor.Name,
+				).Scan(
+					&existingActor.ID,
+					&existingActor.Name,
+					&existingActor.TitleFi,
+					&existingActor.TitleEn,
+					&existingActor.TitleRu,
+					&existingActor.CreatedAt,
+					&existingActor.UpdatedAt,
+					&existingActor.DeletedAt,
+				)
+				if err != nil {
+					logMsg := fmt.Sprintf("unexpected DB error for an actor %v", actor.Name)
+					slog.WarnContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
+					return nil, err
+				}
+				return &existingActor, ErrDuplicate
 			}
 		}
 		logMsg := fmt.Sprintf("unexpected DB error for an actor %v", actor.Name)
 		slog.WarnContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
 		return nil, err
 	}
-	actor.ID = id
 
 	return &actor, nil
 }

@@ -7,6 +7,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/AndreyAD1/helsinki-guide/internal"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/configuration"
 	"github.com/AndreyAD1/helsinki-guide/internal/infrastructure/repositories"
 )
@@ -45,6 +46,19 @@ func NewPopulator(ctx context.Context, config configuration.PopulatorConfig) (*P
 	return &populator, nil
 }
 
-func (p *Populator) Run(ctx context.Context) {
-	log.Println("a dummy run")
+func (p *Populator) Run(ctx context.Context) error {
+	// authorIDs := []int64{}
+	// for _, author := range getAuthors(authorCell) {
+	// 	savedAuthor, err := p.actorRepo.Add(ctx, author)
+	// 	if err != nil && err != repositories.ErrDuplicate {
+	// 		return err
+	// 	}
+	// }
+
+	var building internal.Building
+	_, err := p.buildingRepo.Add(ctx, building)
+	if err != nil {
+		return err
+	}
+	return nil
 }

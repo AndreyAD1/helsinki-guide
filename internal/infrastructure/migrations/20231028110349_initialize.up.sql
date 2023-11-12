@@ -79,7 +79,7 @@ CREATE TABLE "neighbourhoods" (
 
 CREATE TABLE "actors" (
   "id" SERIAL PRIMARY KEY,
-  "name" varchar NOT NULL,
+  "name" varchar NOT NULL UNIQUE,
   "title_fi" varchar,
   "title_en" varchar,
   "title_ru" varchar,
