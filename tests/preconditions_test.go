@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"testing"
@@ -24,6 +25,7 @@ import (
 var (
 	dbpool      *pgxpool.Pool
 	databaseUrl string
+	logLevel = new(slog.LevelVar)
 )
 
 func TestMain(m *testing.M) {
@@ -31,6 +33,13 @@ func TestMain(m *testing.M) {
 		log.Println("SKIP integration tests: set an 'INTEGRATION' environment variable")
 		return
 	}
+	handlerOptions := slog.HandlerOptions{
+		AddSource: true,
+		Level:     logLevel,
+	}
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &handlerOptions))
+	slog.SetDefault(logger)
+	logLevel.Set(slog.LevelDebug)
 
 	dockerPool, err := dockertest.NewPool("")
 	if err != nil {
@@ -122,8 +131,8 @@ func TestDBInteractions(t *testing.T) {
 			return false
 		}
 		require.Conditionf(
-			t, 
-			errCheck, 
+			t,
+			errCheck,
 			fmt.Sprintf("a migration error for the test '%v': %v", test.name, err),
 		)
 		t.Run(test.name, test.function)
@@ -140,5 +149,6 @@ var integrationTests = []integrationTest{
 	{"neigbourhoods", testNeighbourhoodRepository},
 	{"actors", testActorRepository},
 	{"addBuilding", testAddNewBuilding},
-	{"addBuildingError", testAddNewBuildingError},
+	{"addBuildingAddressError", testAddNewBuildingAddressError},
+	{"addBuildingAuthorError", testAddNewBuildingAuthorError},
 }

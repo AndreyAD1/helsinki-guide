@@ -30,15 +30,25 @@ func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Buil
 		slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
 		return nil, err
 	}
-	defer tx.Rollback(ctx)
+	defer func() {
+		logMsg := fmt.Sprintf(
+			"rollback a transaction for a building '%v'", 
+			building.Address.StreetAddress,
+		)
+		slog.DebugContext(ctx, logMsg)
+		err := tx.Rollback(ctx)
+		if err != nil {
+			slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
+		}
+	}()
 
-	address, err := b.getAddress(ctx, building.Address)
+	address, err := b.getAddress(ctx, tx, building.Address)
 	if err != nil {
 		return nil, err
 	}
 	building.Address = address
 
-	err = b.dbPool.QueryRow(
+	err = tx.QueryRow(
 		ctx,
 		insertBuilding,
 		building.Code,
@@ -90,7 +100,7 @@ func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Buil
 	}
 
 	for _, authorID := range building.AuthorIds {
-		res, err := b.dbPool.Exec(
+		res, err := tx.Exec(
 			ctx,
 			insertBuildingAuthor,
 			building.ID,
@@ -112,12 +122,12 @@ func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Buil
 		}
 	}
 
-	uses, err := b.setUses(ctx, insertInitialUses, building.ID, building.InitialUses)
+	uses, err := b.setUses(ctx, tx, insertInitialUses, building.ID, building.InitialUses)
 	if err != nil {
 		return nil, err
 	}
 	building.InitialUses = uses
-	uses, err = b.setUses(ctx, insertCurrentUses, building.ID, building.CurrentUses)
+	uses, err = b.setUses(ctx, tx, insertCurrentUses, building.ID, building.CurrentUses)
 	if err != nil {
 		return nil, err
 	}
@@ -333,9 +343,10 @@ func (b *BuildingStorage) getUses(
 
 func (b *BuildingStorage) getAddress(
 	ctx context.Context,
+	transaction pgx.Tx,
 	address i.Address,
 ) (i.Address, error) {
-	err := b.dbPool.QueryRow(
+	err := transaction.QueryRow(
 		ctx,
 		getAddress,
 		address.StreetAddress,
@@ -353,7 +364,7 @@ func (b *BuildingStorage) getAddress(
 		return i.Address{}, err
 	}
 	if errors.Is(err, pgx.ErrNoRows) {
-		if err := b.dbPool.QueryRow(
+		if err := transaction.QueryRow(
 			ctx,
 			insertAddress,
 			address.StreetAddress,
@@ -379,13 +390,14 @@ func (b *BuildingStorage) getAddress(
 
 func (b *BuildingStorage) setUses(
 	ctx context.Context,
+	transaction pgx.Tx,
 	insertQuery string,
 	buildingID int64,
 	uses []i.UseType,
 ) ([]i.UseType, error) {
 	storedUseTypes := []i.UseType{}
 	for _, useType := range uses {
-		err := b.dbPool.QueryRow(ctx, getUseType, useType.NameEn).Scan(
+		err := transaction.QueryRow(ctx, getUseType, useType.NameEn).Scan(
 			&useType.ID,
 			&useType.NameFi,
 			&useType.NameEn,
@@ -400,7 +412,7 @@ func (b *BuildingStorage) setUses(
 			return storedUseTypes, err
 		}
 		if errors.Is(err, pgx.ErrNoRows) {
-			if err := b.dbPool.QueryRow(
+			if err := transaction.QueryRow(
 				ctx,
 				insertUseType,
 				useType.NameFi,
@@ -420,7 +432,7 @@ func (b *BuildingStorage) setUses(
 			}
 		}
 
-		res, err := b.dbPool.Exec(
+		res, err := transaction.Exec(
 			ctx,
 			insertQuery,
 			buildingID,
@@ -451,11 +463,11 @@ func processPostgresError(ctx context.Context, itemName string, err error) error
 	if errors.As(err, &pgxError) {
 		switch pgxError.Code {
 		case pgerrcode.UniqueViolation:
-			logMsg := fmt.Sprintf("the %v is not unique", itemName)
+			logMsg := fmt.Sprintf("the '%v' is not unique", itemName)
 			slog.WarnContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
 			return ErrDuplicate
 		case pgerrcode.ForeignKeyViolation:
-			logMsg := fmt.Sprintf("the missed %v foreign key", itemName)
+			logMsg := fmt.Sprintf("the missed '%v' foreign key", itemName)
 			slog.WarnContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
 			return ErrNoDependency
 		}

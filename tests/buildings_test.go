@@ -79,7 +79,7 @@ func testAddNewBuilding(t *testing.T) {
 	require.Equal(t, *saved1, buildings[1])
 }
 
-func testAddNewBuildingError(t *testing.T) {
+func testAddNewBuildingAddressError(t *testing.T) {
 	storage := repositories.NewBuildingRepo(dbpool)
 	nameEn := "test_building"
 	streetAddress := "test street"
@@ -104,5 +104,38 @@ func testAddNewBuildingError(t *testing.T) {
 		len(buildings),
 		"unexpected building number: %v",
 		buildings,
+	)
+}
+
+func testAddNewBuildingAuthorError(t *testing.T) {
+	storageN := repositories.NewNeighbourhoodRepo(dbpool)
+	neighbourbourhood := i.Neighbourhood{Name: "test neighbourhood"}
+	savedNeighbour, err := storageN.Add(context.Background(), neighbourbourhood)
+	require.NoError(t, err)
+
+	storage := repositories.NewBuildingRepo(dbpool)
+	nameEn := "test_building author error"
+	streetAddress := "test street author error"
+	building := i.Building{
+		NameEn: &nameEn,
+		Address: i.Address{
+			StreetAddress:   streetAddress,
+			NeighbourhoodID: &savedNeighbour.ID,
+		},
+		AuthorIds: []int64{10, 20},
+	}
+	saved, err := storage.Add(context.Background(), building)
+	require.ErrorIs(t, err, repositories.ErrNoDependency)
+	require.Nil(t, saved)
+
+	spec := s.NewBuildingSpecificationByAddress(streetAddress)
+	buildings, err := storage.Query(context.Background(), spec)
+	require.NoError(t, err)
+	require.Equalf(
+		t,
+		0,
+		len(buildings),
+		"unexpected building number: %v",
+		len(buildings),
 	)
 }
