@@ -42,6 +42,7 @@ func NewBuildingSpecificationByAddress(address string) *BuildingSpecificationByA
 
 func (b *BuildingSpecificationByAddress) ToSQL() (string, map[string]any) {
 	queryTemplate := `SELECT * FROM buildings JOIN addresses ON 
-	buildings.address_id = addresses.id WHERE street_address = @address;`
+	buildings.address_id = addresses.id WHERE street_address = @address
+	ORDER BY name_fi, name_en, name_ru;`
 	return queryTemplate, map[string]any{"address": b.address}
 }

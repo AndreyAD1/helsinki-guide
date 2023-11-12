@@ -26,7 +26,7 @@ func testBuildingRepository(t *testing.T) {
 
 	storage := repositories.NewBuildingRepo(dbpool)
 	nameEn := "test_building"
-	streetAddress := "test stree"
+	streetAddress := "test street"
 	building := i.Building{
 		NameEn: &nameEn,
 		Address: i.Address{
@@ -42,10 +42,10 @@ func testBuildingRepository(t *testing.T) {
 			{NameFi: "use2 fi", NameEn: "use2 en", NameRu: "use1 ru"},
 		},
 	}
-	saved, err := storage.Add(context.Background(), building)
+	saved1, err := storage.Add(context.Background(), building)
 	require.NoError(t, err)
-	require.NotEqualValues(t, 0, saved.ID)
-	require.NotEqualValues(t, 0, saved.Address.ID)
+	require.NotEqualValues(t, 0, saved1.ID)
+	require.NotEqualValues(t, 0, saved1.Address.ID)
 
 	spec := s.NewBuildingSpecificationByAddress(streetAddress)
 	buildings, err := storage.Query(context.Background(), spec)
@@ -57,6 +57,24 @@ func testBuildingRepository(t *testing.T) {
 		"unexpected building number: %v",
 		buildings,
 	)
+	require.Equal(t, *saved1, buildings[0])
 
-	require.Equal(t, *saved, buildings[0])
+	// save a similar building
+	name2 := "rakennus"
+	building.NameFi = &name2
+	saved2, err := storage.Add(context.Background(), building)
+	require.NoError(t, err)
+	require.NotEqualValues(t, 0, saved1.ID)
+	require.NotEqualValues(t, 0, saved1.Address.ID)
+	buildings, err = storage.Query(context.Background(), spec)
+	require.NoError(t, err)
+	require.Equalf(
+		t,
+		2,
+		len(buildings),
+		"unexpected building number: %v",
+		buildings,
+	)
+	require.Equal(t, *saved2, buildings[0])
+	require.Equal(t, *saved1, buildings[1])
 }
