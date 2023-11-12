@@ -91,7 +91,7 @@ func (s *Server) RunBot(ctx context.Context) error {
 	defer cancel()
 	updates := s.bot.GetUpdatesChan(u)
 
-	signalCh := make(chan os.Signal)
+	signalCh := make(chan os.Signal, 4)
 	signal.Notify(signalCh, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 
 	var wg sync.WaitGroup

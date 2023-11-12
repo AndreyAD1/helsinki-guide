@@ -25,7 +25,7 @@ import (
 var (
 	dbpool      *pgxpool.Pool
 	databaseUrl string
-	logLevel = new(slog.LevelVar)
+	logLevel    = new(slog.LevelVar)
 )
 
 func TestMain(m *testing.M) {

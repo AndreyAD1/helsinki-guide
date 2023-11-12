@@ -24,7 +24,7 @@ func NewBuildingRepo(dbPool *pgxpool.Pool) *BuildingStorage {
 }
 
 func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Building, error) {
-	tx, err := b.dbPool.Begin(ctx)
+	transaction, err := b.dbPool.Begin(ctx)
 	if err != nil {
 		logMsg := "can not begin a transaction"
 		slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
@@ -32,23 +32,23 @@ func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Buil
 	}
 	defer func() {
 		logMsg := fmt.Sprintf(
-			"rollback a transaction for a building '%v'", 
+			"rollback a transaction for a building '%v'",
 			building.Address.StreetAddress,
 		)
 		slog.DebugContext(ctx, logMsg)
-		err := tx.Rollback(ctx)
+		err := transaction.Rollback(ctx)
 		if err != nil {
 			slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
 		}
 	}()
 
-	address, err := b.getAddress(ctx, tx, building.Address)
+	address, err := b.getAddress(ctx, transaction, building.Address)
 	if err != nil {
 		return nil, err
 	}
 	building.Address = address
 
-	err = tx.QueryRow(
+	err = transaction.QueryRow(
 		ctx,
 		insertBuilding,
 		building.Code,
@@ -100,7 +100,7 @@ func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Buil
 	}
 
 	for _, authorID := range building.AuthorIds {
-		res, err := tx.Exec(
+		res, err := transaction.Exec(
 			ctx,
 			insertBuildingAuthor,
 			building.ID,
@@ -122,18 +122,30 @@ func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Buil
 		}
 	}
 
-	uses, err := b.setUses(ctx, tx, insertInitialUses, building.ID, building.InitialUses)
+	uses, err := b.setUses(
+		ctx,
+		transaction,
+		insertInitialUses,
+		building.ID,
+		building.InitialUses,
+	)
 	if err != nil {
 		return nil, err
 	}
 	building.InitialUses = uses
-	uses, err = b.setUses(ctx, tx, insertCurrentUses, building.ID, building.CurrentUses)
+	uses, err = b.setUses(
+		ctx,
+		transaction,
+		insertCurrentUses,
+		building.ID,
+		building.CurrentUses,
+	)
 	if err != nil {
 		return nil, err
 	}
 	building.CurrentUses = uses
 
-	if err := tx.Commit(ctx); err != nil {
+	if err := transaction.Commit(ctx); err != nil {
 		logMsg := fmt.Sprintf(
 			"can not close a transaction for the building %v - %v",
 			building.NameEn,
@@ -378,8 +390,8 @@ func (b *BuildingStorage) getAddress(
 			&address.DeletedAt,
 		); err != nil {
 			itemName := fmt.Sprintf(
-				"address: '%v-%v'", 
-				address.StreetAddress, 
+				"address: '%v-%v'",
+				address.StreetAddress,
 				*address.NeighbourhoodID,
 			)
 			return i.Address{}, processPostgresError(ctx, itemName, err)
