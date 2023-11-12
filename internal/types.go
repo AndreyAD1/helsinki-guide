@@ -83,7 +83,7 @@ type Building struct {
 	SpecialFeaturesRu     *string
 	Latitude_ETRSGK25     *float32
 	Longitude_ERRSGK25    *float32
-	AuthorIds             []int64
+	AuthorIDs             []int64
 	InitialUses           []UseType
 	CurrentUses           []UseType
 	Timestamps

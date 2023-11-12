@@ -99,7 +99,7 @@ func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Buil
 		return nil, processPostgresError(ctx, itemName, err)
 	}
 
-	for _, authorID := range building.AuthorIds {
+	for _, authorID := range building.AuthorIDs {
 		res, err := transaction.Exec(
 			ctx,
 			insertBuildingAuthor,
@@ -243,7 +243,7 @@ func (b *BuildingStorage) Query(
 		if err != nil {
 			return nil, err
 		}
-		building.AuthorIds = authorIDs
+		building.AuthorIDs = authorIDs
 
 		uses, err := b.getUses(ctx, initialUsesTable, building.ID)
 		if err != nil {

@@ -33,7 +33,7 @@ func testAddNewBuilding(t *testing.T) {
 			StreetAddress:   streetAddress,
 			NeighbourhoodID: &savedNeighbour.ID,
 		},
-		AuthorIds: []int64{savedAuthor1.ID, savedAuthor2.ID},
+		AuthorIDs: []int64{savedAuthor1.ID, savedAuthor2.ID},
 		InitialUses: []i.UseType{
 			{NameFi: "use1 fi", NameEn: "use1 en", NameRu: "use1 ru"},
 			{NameFi: "use2 fi", NameEn: "use2 en", NameRu: "use2 ru"},
@@ -122,7 +122,7 @@ func testAddNewBuildingAuthorError(t *testing.T) {
 			StreetAddress:   streetAddress,
 			NeighbourhoodID: &savedNeighbour.ID,
 		},
-		AuthorIds: []int64{10, 20},
+		AuthorIDs: []int64{10, 20},
 	}
 	saved, err := storage.Add(context.Background(), building)
 	require.ErrorIs(t, err, repositories.ErrNoDependency)

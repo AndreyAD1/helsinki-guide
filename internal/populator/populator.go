@@ -6,10 +6,15 @@ import (
 	"log"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/xuri/excelize/v2"
 
 	"github.com/AndreyAD1/helsinki-guide/internal"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/configuration"
 	"github.com/AndreyAD1/helsinki-guide/internal/infrastructure/repositories"
+)
+
+var (
+	nameIdx = 2
 )
 
 type Populator struct {
@@ -46,19 +51,78 @@ func NewPopulator(ctx context.Context, config configuration.PopulatorConfig) (*P
 	return &populator, nil
 }
 
-func (p *Populator) Run(ctx context.Context) error {
-	// authorIDs := []int64{}
-	// for _, author := range getAuthors(authorCell) {
-	// 	savedAuthor, err := p.actorRepo.Add(ctx, author)
-	// 	if err != nil && err != repositories.ErrDuplicate {
-	// 		return err
-	// 	}
-	// }
+func (p *Populator) Run(ctx context.Context, sheetName, fiFilename, enFilename, ruFilename string) error {
+	var rowSet []*excelize.Rows
+	for _, filename := range []string{fiFilename, enFilename, ruFilename} {
+		source, err := excelize.OpenFile(filename)
+		if err != nil {
+			log.Printf("can not open a file %v: %v", filename, err)
+			return err
+		}
+		defer func() {
+			if err := source.Close(); err != nil {
+				log.Printf("can not close the file %s: %v", filename, err)
+			}
+		}()
+		rows, err := source.Rows(sheetName)
+		if err != nil {
+			return fmt.Errorf(
+				"can not get rows of a sheet '%v': %w", sheetName, err)
+		}
+		defer func() {
+			if err := rows.Close(); err != nil {
+				log.Printf("can not close a sheet '%v'", sheetName)
+			}
+		}()
+		rowSet = append(rowSet, rows)
+	}
+	fiRows, enRows, ruRows := rowSet[0], rowSet[1], rowSet[2]
+	// skip the first line
+	fiRows.Next()
+	enRows.Next()
+	ruRows.Next()
 
-	var building internal.Building
-	_, err := p.buildingRepo.Add(ctx, building)
-	if err != nil {
-		return err
+	for fiRows.Next() {
+		enRows.Next()
+		ruRows.Next()
+
+		fiRow, err := fiRows.Columns()
+		enRow, err := enRows.Columns()
+		ruRow, err := ruRows.Columns()
+
+		address, err := getAddress(fiRow)
+		if err != nil {
+			return err
+		}
+
+		authorIDs := []int64{}
+		for _, author := range getAuthors(fiRow, enRow, ruRow) {
+			savedAuthor, err := p.actorRepo.Add(ctx, author)
+			if err != nil && err != repositories.ErrDuplicate {
+				return err
+			}
+			authorIDs = append(authorIDs, savedAuthor.ID)
+		}
+
+		building := internal.Building{
+			Address: address,
+			NameFi: &fiRow[nameIdx],
+			NameEn: &enRow[nameIdx],
+			NameRu: &ruRow[nameIdx],
+			AuthorIDs: authorIDs,
+		}
+		_, err = p.buildingRepo.Add(ctx, building)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
+}
+
+func getAddress(row []string) (internal.Address, error) {
+	return internal.Address{}, nil
+}
+
+func getAuthors(fiRow, enRow, ruRow []string) []internal.Actor {
+	return []internal.Actor{}
 }
