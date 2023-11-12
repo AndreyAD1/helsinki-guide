@@ -102,7 +102,7 @@ func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Buil
 		}
 		if res.RowsAffected() != 1 {
 			logMsg := fmt.Sprintf(
-				"couldn't add a building author: %v - %v; affecte rows: %v",
+				"couldn't add a building author: %v - %v; affected rows: %v",
 				building.ID,
 				authorID,
 				res.RowsAffected(),
@@ -366,7 +366,11 @@ func (b *BuildingStorage) getAddress(
 			&address.UpdatedAt,
 			&address.DeletedAt,
 		); err != nil {
-			itemName := fmt.Sprintf("address: %v", address)
+			itemName := fmt.Sprintf(
+				"address: '%v-%v'", 
+				address.StreetAddress, 
+				*address.NeighbourhoodID,
+			)
 			return i.Address{}, processPostgresError(ctx, itemName, err)
 		}
 	}

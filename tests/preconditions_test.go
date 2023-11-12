@@ -84,13 +84,13 @@ func TestMain(m *testing.M) {
 		log.Println("ping a DB")
 		return dbpool.Ping(ctx)
 	}); err != nil {
-		log.Fatalf("Could not connect to docker: %s", err)
+		log.Fatalf("Could not connect to a DB container: %s", err)
 	}
 
 	code := m.Run()
 
 	if err := dockerPool.Purge(resource); err != nil {
-		log.Fatalf("Could not purge a resource: %s", err)
+		log.Fatalf("Could not purge a docker resource: %s", err)
 	}
 
 	os.Exit(code)
@@ -121,7 +121,11 @@ func TestDBInteractions(t *testing.T) {
 			}
 			return false
 		}
-		require.Conditionf(t, errCheck, fmt.Sprintf("a migration error: %v", err))
+		require.Conditionf(
+			t, 
+			errCheck, 
+			fmt.Sprintf("a migration error for the test '%v': %v", test.name, err),
+		)
 		t.Run(test.name, test.function)
 		m.Down()
 	}
@@ -135,5 +139,6 @@ type integrationTest struct {
 var integrationTests = []integrationTest{
 	{"neigbourhoods", testNeighbourhoodRepository},
 	{"actors", testActorRepository},
-	{"buildings", testBuildingRepository},
+	{"addBuilding", testAddNewBuilding},
+	{"addBuildingError", testAddNewBuildingError},
 }

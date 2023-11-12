@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func testBuildingRepository(t *testing.T) {
+func testAddNewBuilding(t *testing.T) {
 	storageN := repositories.NewNeighbourhoodRepo(dbpool)
 	neighbourbourhood := i.Neighbourhood{Name: "test neighbourhood"}
 	savedNeighbour, err := storageN.Add(context.Background(), neighbourbourhood)
@@ -77,4 +77,32 @@ func testBuildingRepository(t *testing.T) {
 	)
 	require.Equal(t, *saved2, buildings[0])
 	require.Equal(t, *saved1, buildings[1])
+}
+
+func testAddNewBuildingError(t *testing.T) {
+	storage := repositories.NewBuildingRepo(dbpool)
+	nameEn := "test_building"
+	streetAddress := "test street"
+	absentNeghbourhoodID := int64(999)
+	building := i.Building{
+		NameEn: &nameEn,
+		Address: i.Address{
+			StreetAddress:   streetAddress,
+			NeighbourhoodID: &absentNeghbourhoodID,
+		},
+	}
+	saved, err := storage.Add(context.Background(), building)
+	require.ErrorIs(t, err, repositories.ErrNoDependency)
+	require.Nil(t, saved)
+
+	spec := s.NewBuildingSpecificationByAddress(streetAddress)
+	buildings, err := storage.Query(context.Background(), spec)
+	require.NoError(t, err)
+	require.Equalf(
+		t,
+		0,
+		len(buildings),
+		"unexpected building number: %v",
+		buildings,
+	)
 }
