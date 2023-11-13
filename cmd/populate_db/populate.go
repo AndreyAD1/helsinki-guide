@@ -49,5 +49,5 @@ func run(sourceFilename string) error {
 	if err != nil {
 		return err
 	}
-	return populator.Run(ctx)
+	return populator.Run(ctx, "dummy", "dummy", "dummy", "dummy")
 }

@@ -74,7 +74,8 @@ CREATE TABLE "neighbourhoods" (
   "municipality" varchar,
   "created_at" timestamp with time zone NOT NULL DEFAULT now(),
   "updated_at" timestamp with time zone,
-  "deleted_at" timestamp with time zone
+  "deleted_at" timestamp with time zone,
+  UNIQUE NULLS NOT DISTINCT (name, municipality)
 );
 
 CREATE TABLE "actors" (

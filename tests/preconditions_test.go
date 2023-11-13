@@ -33,6 +33,7 @@ func TestMain(m *testing.M) {
 		log.Println("SKIP integration tests: set an 'INTEGRATION' environment variable")
 		return
 	}
+	log.Println("run integration tests")
 	handlerOptions := slog.HandlerOptions{
 		AddSource: true,
 		Level:     logLevel,
@@ -46,11 +47,13 @@ func TestMain(m *testing.M) {
 		log.Fatalf("Could not construct a pool: %s", err)
 	}
 
+	log.Println("ping a docker service")
 	err = dockerPool.Client.Ping()
 	if err != nil {
 		log.Fatalf("Could not connect to Docker: %s", err)
 	}
 
+	log.Println("run a postgres container")
 	resource, err := dockerPool.RunWithOptions(&dockertest.RunOptions{
 		Repository: "postgres",
 		Tag:        "15",

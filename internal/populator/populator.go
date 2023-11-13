@@ -14,6 +14,7 @@ import (
 )
 
 var (
+	codeIdx = 1
 	nameIdx = 2
 )
 
@@ -105,6 +106,7 @@ func (p *Populator) Run(ctx context.Context, sheetName, fiFilename, enFilename, 
 		}
 
 		building := internal.Building{
+			Code: &fiRow[codeIdx],
 			Address: address,
 			NameFi: &fiRow[nameIdx],
 			NameEn: &enRow[nameIdx],
@@ -120,6 +122,7 @@ func (p *Populator) Run(ctx context.Context, sheetName, fiFilename, enFilename, 
 }
 
 func getAddress(row []string) (internal.Address, error) {
+	
 	return internal.Address{}, nil
 }
 
