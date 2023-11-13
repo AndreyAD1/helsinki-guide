@@ -8,6 +8,5 @@ type StartupConfig struct {
 }
 
 type PopulatorConfig struct {
-	DatabaseURL    string `env:"DatabaseURL,required,notEmpty"`
-	SourceFilename string `env:"PopulatorSource,required,notEmpty"`
+	DatabaseURL string `env:"DatabaseURL,required,notEmpty"`
 }

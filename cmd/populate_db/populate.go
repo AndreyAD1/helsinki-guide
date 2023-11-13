@@ -13,13 +13,14 @@ import (
 
 var (
 	dbURL       string
+	sheetName   string
 	PopulateCmd = &cobra.Command{
-		Use:   "populate <path-to-a-source-xlsx-file>",
+		Use:   "populate <finnish-file> <english-file> <russian-file>",
 		Short: "Populate a database",
-		Long:  "This command transfers data from an xlsx file to a database",
-		Args:  cobra.ExactArgs(1),
+		Long:  "This command transfers data from xlsx files to a database",
+		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return run(args[0])
+			return run(args[0], args[1], args[2], args[3])
 		},
 	}
 )
@@ -32,10 +33,17 @@ func init() {
 		"",
 		"A database URL. You can also use an environment variable 'DatabaseURL'.",
 	)
+	PopulateCmd.Flags().StringVarP(
+		&sheetName,
+		"sheet",
+		"s",
+		"",
+		"An xlsx sheet name to translate (required)",
+	)
+	PopulateCmd.MarkFlagRequired("sheet")
 }
 
-func run(sourceFilename string) error {
-	os.Setenv("PopulatorSource", sourceFilename)
+func run(sheetName, finFile, enFilename, ruFilename string) error {
 	if dbURL != "" {
 		os.Setenv("DatabaseURL", dbURL)
 	}
@@ -49,5 +57,5 @@ func run(sourceFilename string) error {
 	if err != nil {
 		return err
 	}
-	return populator.Run(ctx, "dummy", "dummy", "dummy", "dummy")
+	return populator.Run(ctx, sheetName, finFile, enFilename, ruFilename)
 }

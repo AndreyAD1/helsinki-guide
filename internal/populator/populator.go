@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/xuri/excelize/v2"
@@ -125,7 +126,6 @@ func (p *Populator) Run(ctx context.Context, sheetName, fiFilename, enFilename, 
 			NameFi:                getPointerStr(fiRow[nameIdx]),
 			NameEn:                getPointerStr(enRow[nameIdx]),
 			NameRu:                getPointerStr(ruRow[nameIdx]),
-			AuthorIDs:             authorIDs,
 			ConstructionStartYear: constructionYear,
 			CompletionYear:        completionYear,
 			ComplexFi:             getPointerStr(fiRow[complexIdx]),
@@ -163,6 +163,17 @@ func (p *Populator) Run(ctx context.Context, sheetName, fiFilename, enFilename, 
 			SpecialFeaturesRu:     getPointerStr(ruRow[specialFeaturesIdx]),
 			Latitude_ETRSGK25:     latitude,
 			Longitude_ERRSGK25:    longitude,
+			AuthorIDs:             authorIDs,
+			InitialUses: getUses(
+				fiRow[initialUseIdx],
+				enRow[initialUseIdx],
+				ruRow[initialUseIdx],
+			),
+			CurrentUses: getUses(
+				fiRow[currentUseIdx],
+				enRow[currentUseIdx],
+				ruRow[currentUseIdx],
+			),
 		}
 		_, err = p.buildingRepo.Add(ctx, building)
 		if err != nil {
@@ -230,4 +241,20 @@ func getYear(year string) (*int, error) {
 		return nil, nil
 	}
 	return &yearInt, nil
+}
+
+func getUses(usesFi, usesEn, usesRu string) []internal.UseType {
+	useFiList := strings.Split(usesFi, ",")
+	useEnList := strings.Split(usesEn, ",")
+	useRuList := strings.Split(usesRu, ",")
+
+	uses := []internal.UseType{}
+	for i, useFi := range useFiList {
+		useFi := strings.ToLower(strings.TrimSpace(useFi))
+		useEn := strings.ToLower(strings.TrimSpace(useEnList[i]))
+		useRu := strings.ToLower(strings.TrimSpace(useRuList[i]))
+		useType := internal.UseType{NameFi: useFi, NameEn: useEn, NameRu: useRu}
+		uses = append(uses, useType)
+	}
+	return uses
 }
