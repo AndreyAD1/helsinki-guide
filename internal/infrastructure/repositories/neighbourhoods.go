@@ -11,6 +11,7 @@ import (
 	"github.com/AndreyAD1/helsinki-guide/internal/logger"
 	l "github.com/AndreyAD1/helsinki-guide/internal/logger"
 	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -28,7 +29,7 @@ func (n *neighbourhoodStorage) Add(
 	neighbourhood i.Neighbourhood,
 ) (*i.Neighbourhood, error) {
 	selectQuery := `SELECT id, name, municipality, created_at, updated_at,
-	deleted_at FROM neighbourhoods WHERE name = $1 and municipality = $2;`
+	deleted_at FROM neighbourhoods WHERE name = $1 AND `
 	insertQuery := `INSERT INTO neighbourhoods (name, municipality)
 	VALUES ($1, $2) RETURNING id, name, municipality, created_at, updated_at,
 	deleted_at;`
@@ -70,12 +71,23 @@ func (n *neighbourhoodStorage) Add(
 		neighbourhood.Municipality,
 	)
 	slog.WarnContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
-	err = n.dbPool.QueryRow(
-		ctx,
-		selectQuery,
-		neighbourhood.Name,
-		neighbourhood.Municipality,
-	).Scan(
+	var row pgx.Row
+	if neighbourhood.Municipality == nil {
+		row = n.dbPool.QueryRow(
+			ctx,
+			selectQuery + "municipality is NULL;",
+			neighbourhood.Name,
+		)
+	} else {
+		row = n.dbPool.QueryRow(
+			ctx,
+			selectQuery + "municipality = $2;",
+			neighbourhood.Name,
+			neighbourhood.Municipality,
+		)
+	}
+
+	err = row.Scan(
 		&saved.ID,
 		&saved.Name,
 		&saved.Municipality,
@@ -98,6 +110,36 @@ func (n *neighbourhoodStorage) Update(ctx context.Context, neighbourhood i.Neigh
 	return nil, ErrNotImplemented
 }
 
-func (n *neighbourhoodStorage) Query(ctx context.Context, neighbourhood s.Specification) ([]i.Neighbourhood, error) {
-	return nil, ErrNotImplemented
+func (n *neighbourhoodStorage) Query(ctx context.Context, spec s.Specification) ([]i.Neighbourhood, error) {
+	query, queryArgs := spec.ToSQL()
+	slog.DebugContext(ctx, fmt.Sprintf("send the query %v: %v", query, queryArgs))
+	rows, err := n.dbPool.Query(ctx, query, pgx.NamedArgs(queryArgs))
+	if err != nil {
+		logMsg := fmt.Sprintf("a query error: '%v'", query)
+		slog.WarnContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
+		return nil, fmt.Errorf("%v: %w", logMsg, err)
+	}
+	defer rows.Close()
+	var neigbourhoods []i.Neighbourhood
+	for rows.Next() {
+		var neigbourhood i.Neighbourhood
+		if err := rows.Scan(
+			&neigbourhood.ID,
+			&neigbourhood.Name,
+			&neigbourhood.Municipality,
+			&neigbourhood.CreatedAt,
+			&neigbourhood.UpdatedAt,
+			&neigbourhood.DeletedAt,
+		); err != nil {
+			msg := fmt.Sprintf(
+				"can not scan an actor from a query result: %v: %v",
+				query,
+				queryArgs,
+			)
+			slog.ErrorContext(ctx, msg, slog.Any(logger.ErrorKey, err))
+			return nil, err
+		}
+		neigbourhoods = append(neigbourhoods, neigbourhood)
+	}
+	return neigbourhoods, nil
 }
