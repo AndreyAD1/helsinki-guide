@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strconv"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/xuri/excelize/v2"
@@ -13,14 +14,10 @@ import (
 	"github.com/AndreyAD1/helsinki-guide/internal/infrastructure/repositories"
 )
 
-var (
-	codeIdx = 1
-	nameIdx = 2
-)
-
 type Populator struct {
-	buildingRepo repositories.BuildingRepository
-	actorRepo    repositories.ActorRepository
+	buildingRepo      repositories.BuildingRepository
+	actorRepo         repositories.ActorRepository
+	neighbourhoodRepo repositories.NeighbourhoodRepository
 }
 
 func NewPopulator(ctx context.Context, config configuration.PopulatorConfig) (*Populator, error) {
@@ -48,6 +45,7 @@ func NewPopulator(ctx context.Context, config configuration.PopulatorConfig) (*P
 	populator := Populator{
 		repositories.NewBuildingRepo(dbpool),
 		repositories.NewActorRepo(dbpool),
+		repositories.NewNeighbourhoodRepo(dbpool),
 	}
 	return &populator, nil
 }
@@ -91,9 +89,25 @@ func (p *Populator) Run(ctx context.Context, sheetName, fiFilename, enFilename, 
 		enRow, err := enRows.Columns()
 		ruRow, err := ruRows.Columns()
 
-		address, err := getAddress(fiRow)
+		address, err := p.getAddress(fiRow)
 		if err != nil {
 			return err
+		}
+		constructionYear, err := getYear(fiRow[constructionYearIdx])
+		if err != nil {
+			return err
+		}
+		completionYear, err := getYear(fiRow[completionYearIdx])
+		if err != nil {
+			return err
+		}
+		latitude, err := getPointerFloat32(fiRow[latitudeIdx])
+		if err != nil {
+			return nil
+		}
+		longitude, err := getPointerFloat32(fiRow[longitudeIdx])
+		if err != nil {
+			return nil
 		}
 
 		authorIDs := []int64{}
@@ -106,12 +120,49 @@ func (p *Populator) Run(ctx context.Context, sheetName, fiFilename, enFilename, 
 		}
 
 		building := internal.Building{
-			Code: &fiRow[codeIdx],
-			Address: address,
-			NameFi: &fiRow[nameIdx],
-			NameEn: &enRow[nameIdx],
-			NameRu: &ruRow[nameIdx],
-			AuthorIDs: authorIDs,
+			Code:                  getPointerStr(fiRow[codeIdx]),
+			Address:               address,
+			NameFi:                getPointerStr(fiRow[nameIdx]),
+			NameEn:                getPointerStr(enRow[nameIdx]),
+			NameRu:                getPointerStr(ruRow[nameIdx]),
+			AuthorIDs:             authorIDs,
+			ConstructionStartYear: constructionYear,
+			CompletionYear:        completionYear,
+			ComplexFi:             getPointerStr(fiRow[complexIdx]),
+			ComplexEn:             getPointerStr(enRow[complexIdx]),
+			ComplexRu:             getPointerStr(ruRow[complexIdx]),
+			HistoryFi:             getPointerStr(fiRow[historyIdx]),
+			HistoryEn:             getPointerStr(enRow[historyIdx]),
+			HistoryRu:             getPointerStr(ruRow[historyIdx]),
+			ReasoningFi:           getPointerStr(fiRow[reasoningIdx]),
+			ReasoningEn:           getPointerStr(enRow[reasoningIdx]),
+			ReasoningRu:           getPointerStr(ruRow[reasoningIdx]),
+			ProtectionStatusFi:    getPointerStr(fiRow[protectionStatusIdx]),
+			ProtectionStatusEn:    getPointerStr(enRow[protectionStatusIdx]),
+			ProtectionStatusRu:    getPointerStr(ruRow[protectionStatusIdx]),
+			InfoSourceFi:          getPointerStr(fiRow[infoSourceIdx]),
+			InfoSourceEn:          getPointerStr(enRow[infoSourceIdx]),
+			InfoSourceRu:          getPointerStr(ruRow[infoSourceIdx]),
+			SurroundingsFi:        getPointerStr(fiRow[surroundingsIdx]),
+			SurroundingsEn:        getPointerStr(enRow[surroundingsIdx]),
+			SurroundingsRu:        getPointerStr(ruRow[surroundingsIdx]),
+			FoundationFi:          getPointerStr(fiRow[foundationIdx]),
+			FoundationEn:          getPointerStr(enRow[foundationIdx]),
+			FoundationRu:          getPointerStr(ruRow[foundationIdx]),
+			FrameFi:               getPointerStr(fiRow[frameIdx]),
+			FrameEn:               getPointerStr(enRow[frameIdx]),
+			FrameRu:               getPointerStr(ruRow[frameIdx]),
+			FloorDescriptionFi:    getPointerStr(fiRow[floorDescriptionIdx]),
+			FloorDescriptionEn:    getPointerStr(enRow[floorDescriptionIdx]),
+			FloorDescriptionRu:    getPointerStr(ruRow[floorDescriptionIdx]),
+			FacadesFi:             getPointerStr(fiRow[facadeIdx]),
+			FacadesEn:             getPointerStr(enRow[facadeIdx]),
+			FacadesRu:             getPointerStr(ruRow[facadeIdx]),
+			SpecialFeaturesFi:     getPointerStr(fiRow[specialFeaturesIdx]),
+			SpecialFeaturesEn:     getPointerStr(enRow[specialFeaturesIdx]),
+			SpecialFeaturesRu:     getPointerStr(ruRow[specialFeaturesIdx]),
+			Latitude_ETRSGK25:     latitude,
+			Longitude_ERRSGK25:    longitude,
 		}
 		_, err = p.buildingRepo.Add(ctx, building)
 		if err != nil {
@@ -121,11 +172,62 @@ func (p *Populator) Run(ctx context.Context, sheetName, fiFilename, enFilename, 
 	return nil
 }
 
-func getAddress(row []string) (internal.Address, error) {
-	
-	return internal.Address{}, nil
+func getPointerStr(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
+}
+
+func getPointerFloat32(s string) (*float32, error) {
+	if s == "" {
+		return nil, nil
+	}
+	f64, err := strconv.ParseFloat(s, 32)
+	if err != nil {
+		return nil, err
+	}
+	f32 := float32(f64)
+	return &f32, nil
+}
+
+func (p *Populator) getAddress(row []string) (internal.Address, error) {
+	municipality := &row[municipalityIdx]
+	if *municipality == "" {
+		municipality = nil
+	}
+	neighbourbourhood := internal.Neighbourhood{
+		Name:         row[neighbourhoodIdx],
+		Municipality: municipality,
+	}
+	saved, err := p.neighbourhoodRepo.Add(context.Background(), neighbourbourhood)
+	if err != nil {
+		log.Printf(
+			"can not save a neighbourhood: %v-%v",
+			neighbourbourhood.Name,
+			neighbourbourhood.Municipality,
+		)
+		return internal.Address{}, err
+	}
+	address := internal.Address{
+		StreetAddress:   row[streetIdx],
+		NeighbourhoodID: &saved.ID,
+	}
+	return address, nil
 }
 
 func getAuthors(fiRow, enRow, ruRow []string) []internal.Actor {
 	return []internal.Actor{}
+}
+
+func getYear(year string) (*int, error) {
+	yearInt, err := strconv.Atoi(year)
+	if err != nil {
+		log.Printf("can not get a year %v", year)
+		return nil, err
+	}
+	if yearInt == 9999 {
+		return nil, nil
+	}
+	return &yearInt, nil
 }

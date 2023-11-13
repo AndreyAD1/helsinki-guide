@@ -40,8 +40,8 @@ func (n *neighbourhoodStorage) Add(
 		neighbourhood.Name,
 		neighbourhood.Municipality,
 	).Scan(
-		&saved.ID, 
-		&saved.Name, 
+		&saved.ID,
+		&saved.Name,
 		&saved.Municipality,
 		&saved.CreatedAt,
 		&saved.UpdatedAt,
@@ -56,7 +56,7 @@ func (n *neighbourhoodStorage) Add(
 		return nil, err
 	}
 	unexpectedMsg := fmt.Sprintf(
-		"unexpected DB error for a neighbourhood '%v-%v'", 
+		"unexpected DB error for a neighbourhood '%v-%v'",
 		neighbourhood.Name,
 		neighbourhood.Municipality,
 	)
@@ -66,7 +66,7 @@ func (n *neighbourhoodStorage) Add(
 	}
 
 	logMsg := fmt.Sprintf(
-		"neigbourhood duplication: '%v-%v'", 
+		"neigbourhood duplication: '%v-%v'",
 		neighbourhood.Name,
 		neighbourhood.Municipality,
 	)
@@ -75,13 +75,13 @@ func (n *neighbourhoodStorage) Add(
 	if neighbourhood.Municipality == nil {
 		row = n.dbPool.QueryRow(
 			ctx,
-			selectQuery + "municipality is NULL;",
+			selectQuery+"municipality is NULL;",
 			neighbourhood.Name,
 		)
 	} else {
 		row = n.dbPool.QueryRow(
 			ctx,
-			selectQuery + "municipality = $2;",
+			selectQuery+"municipality = $2;",
 			neighbourhood.Name,
 			neighbourhood.Municipality,
 		)
