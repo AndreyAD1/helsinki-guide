@@ -154,4 +154,5 @@ var integrationTests = []integrationTest{
 	{"addBuilding", testAddNewBuilding},
 	{"addBuildingAddressError", testAddNewBuildingAddressError},
 	{"addBuildingAuthorError", testAddNewBuildingAuthorError},
+	{"runPopulator", testRunPopulator},
 }

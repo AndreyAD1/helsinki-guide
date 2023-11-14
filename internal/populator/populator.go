@@ -2,6 +2,7 @@ package populator
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -88,13 +89,18 @@ func (p *Populator) Run(
 	enRows.Next()
 	ruRows.Next()
 
-	for fiRows.Next() {
+	for i := 2; fiRows.Next(); i++ {
 		enRows.Next()
 		ruRows.Next()
 
 		fiRow, err := fiRows.Columns()
 		enRow, err := enRows.Columns()
 		ruRow, err := ruRows.Columns()
+
+		if len(fiRow) < longitudeIdx + 1 {
+			log.Printf("a final or unexpected row %v: %v", i, fiRow)
+			break
+		}
 
 		address, err := p.getAddress(fiRow)
 		if err != nil {
@@ -120,7 +126,7 @@ func (p *Populator) Run(
 		authorIDs := []int64{}
 		for _, author := range getAuthors(fiRow, enRow, ruRow) {
 			savedAuthor, err := p.actorRepo.Add(ctx, author)
-			if err != nil && err != repositories.ErrDuplicate {
+			if err != nil && !errors.Is(err, repositories.ErrDuplicate) {
 				return err
 			}
 			authorIDs = append(authorIDs, savedAuthor.ID)
@@ -218,11 +224,15 @@ func (p *Populator) getAddress(row []string) (internal.Address, error) {
 		Municipality: municipality,
 	}
 	saved, err := p.neighbourhoodRepo.Add(context.Background(), neighbourbourhood)
-	if err != nil {
+	if err != nil && !errors.Is(err, repositories.ErrDuplicate) {
+		municipalStr := ""
+		if neighbourbourhood.Municipality != nil {
+			municipalStr = *neighbourbourhood.Municipality
+		}
 		log.Printf(
 			"can not save a neighbourhood: %v-%v",
 			neighbourbourhood.Name,
-			neighbourbourhood.Municipality,
+			municipalStr,
 		)
 		return internal.Address{}, err
 	}
@@ -234,7 +244,23 @@ func (p *Populator) getAddress(row []string) (internal.Address, error) {
 }
 
 func getAuthors(fiRow, enRow, ruRow []string) []internal.Actor {
-	return []internal.Actor{}
+	authorNames := strings.Split(fiRow[authorIdx], " ja ")
+
+	authors := []internal.Actor{}
+	for _, useFi := range authorNames {
+		authorName := strings.TrimSpace(useFi)
+		titleFi := getPointerStr(fiRow[authorIdx])
+		titleEn := getPointerStr(enRow[authorIdx])
+		titleRu := getPointerStr(ruRow[authorIdx])
+		author := internal.Actor{
+			Name: authorName, 
+			TitleFi: titleFi, 
+			TitleEn: titleEn,
+			TitleRu: titleRu,
+		}
+		authors = append(authors, author)
+	}
+	return authors
 }
 
 func getYear(year string) (*int, error) {

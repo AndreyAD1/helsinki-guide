@@ -65,12 +65,16 @@ func (n *neighbourhoodStorage) Add(
 		return nil, err
 	}
 
+	municipality := ""
+	if neighbourhood.Municipality != nil {
+		municipality = *neighbourhood.Municipality
+	}
 	logMsg := fmt.Sprintf(
 		"neigbourhood duplication: '%v-%v'",
 		neighbourhood.Name,
-		neighbourhood.Municipality,
+		municipality,
 	)
-	slog.WarnContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
+	slog.DebugContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
 	var row pgx.Row
 	if neighbourhood.Municipality == nil {
 		row = n.dbPool.QueryRow(

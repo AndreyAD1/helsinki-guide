@@ -32,12 +32,12 @@ func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Buil
 	}
 	defer func() {
 		logMsg := fmt.Sprintf(
-			"rollback a transaction for a building '%v'",
+			"finish a transaction for a building '%v'",
 			building.Address.StreetAddress,
 		)
 		slog.DebugContext(ctx, logMsg)
 		err := transaction.Rollback(ctx)
-		if err != nil {
+		if err != nil && !errors.Is(err, pgx.ErrTxClosed) {
 			slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
 		}
 	}()
