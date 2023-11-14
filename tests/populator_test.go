@@ -10,6 +10,7 @@ import (
 	"github.com/AndreyAD1/helsinki-guide/internal/infrastructure/repositories"
 	s "github.com/AndreyAD1/helsinki-guide/internal/infrastructure/specifications"
 	"github.com/AndreyAD1/helsinki-guide/internal/populator"
+	u "github.com/AndreyAD1/helsinki-guide/internal/utils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -19,10 +20,9 @@ var (
 	enFilename = filepath.Join(".", "test_data", "test_en.xlsx")
 	ruFilename = filepath.Join(".", "test_data", "test_ru.xlsx")
 
-	helsinki = "Helsinki"
 	expectedNeighbourhoods = []internal.Neighbourhood{
-		{Name: "Lauttasaari", Municipality: &helsinki},
-		{Name: "Munkkiniemi", Municipality: &helsinki},
+		{Name: "Lauttasaari", Municipality: u.StrToPointer("Helsinki")},
+		{Name: "Munkkiniemi", Municipality: u.StrToPointer("Helsinki")},
 	}
 
 	architectFi = "Arkkitehti"
@@ -33,6 +33,26 @@ var (
 		{Name: "Kauko Kokko", TitleFi: &architectFi, TitleEn: &architectEn, TitleRu: &architectRu,},
 		{Name: "Niilo Kokko", TitleFi: &architectFi, TitleEn: &architectEn, TitleRu: &architectRu,},
 		{Name: "Rudolf Lanste"},
+	}
+	expectedBuildings = []internal.Building{
+		{
+			Code: u.StrToPointer("09103100030008001"),
+			NameFi: u.StrToPointer("As Oy Meripuistotie 5"),
+			NameEn: u.StrToPointer("As Oy Meripuistotie 5"),
+			NameRu: u.StrToPointer("As Oy Meripuistotie 5"),
+		},
+		{
+			Code: u.StrToPointer("09103100030009001"),
+			NameFi: u.StrToPointer("Gården Sjöallen 7"),
+			NameEn: u.StrToPointer("Gården Sjöallen 7"),
+			NameRu: u.StrToPointer("Gården Sjöallen 7"),
+		},
+		{
+			Code: u.StrToPointer("09103100030001001"),
+			NameFi: u.StrToPointer("As Oy Pohjoiskaari 8"),
+			NameEn: u.StrToPointer("As Oy Pohjoiskaari 8"),
+			NameRu: u.StrToPointer("As Oy Pohjoiskaari 8"),
+		},
 	}
 )
 
@@ -92,4 +112,16 @@ func testRunPopulator(t *testing.T) {
 		"unexpected building number: %v",
 		buildings,
 	)
+	for i, expected := range expectedBuildings {
+		require.Equal(t, expected.Code, buildings[i].Code)
+		if expected.NameFi == nil {
+			require.Nil(t, buildings[i].NameFi)
+			require.Nil(t, buildings[i].NameEn)
+			require.Nil(t, buildings[i].NameRu)
+		} else {
+			require.Equal(t, *expected.NameFi, *buildings[i].NameFi)
+			require.Equal(t, *expected.NameEn, *buildings[i].NameEn)
+			require.Equal(t, *expected.NameRu, *buildings[i].NameRu)
+		}
+	}
 }

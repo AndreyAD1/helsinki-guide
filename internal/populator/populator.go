@@ -133,7 +133,7 @@ func (p *Populator) Run(
 		}
 
 		building := internal.Building{
-			Code:                  getPointerStr(fiRow[codeIdx]),
+			Code:                  getPointerStr(strings.Trim(fiRow[codeIdx], "'")),
 			Address:               address,
 			NameFi:                getPointerStr(fiRow[nameIdx]),
 			NameEn:                getPointerStr(enRow[nameIdx]),
