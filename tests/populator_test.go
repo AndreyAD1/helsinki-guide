@@ -140,12 +140,89 @@ func testRunPopulator(t *testing.T) {
 		buildings,
 	)
 	for i, expected := range expectedBuildings {
+		actual := buildings[i]
+		require.Equal(t, expected.ID, actual.ID)
+		validatePointerField(t, expected.Code, actual.Code)
+		validatePointerField(t, expected.NameFi, actual.NameFi)
+		validatePointerField(t, expected.NameEn, actual.NameEn)
+		validatePointerField(t, expected.NameRu, actual.NameRu)
+		require.Equal(t, expected.Address.ID, actual.Address.ID)
+		require.Equal(t, expected.Address.StreetAddress, actual.Address.StreetAddress)
+		validatePointerField(t, expected.Address.NeighbourhoodID, actual.Address.NeighbourhoodID)
+		validatePointerField(t, expected.ConstructionStartYear, actual.ConstructionStartYear)
+		validatePointerField(t, expected.CompletionYear, actual.CompletionYear)
+		validatePointerField(t, expected.ComplexFi, actual.ComplexFi)
+		validatePointerField(t, expected.ComplexEn, actual.ComplexEn)
+		validatePointerField(t, expected.ComplexRu, actual.ComplexRu)
+		validatePointerField(t, expected.HistoryFi, actual.HistoryFi)
+		validatePointerField(t, expected.HistoryEn, actual.HistoryEn)
+		validatePointerField(t, expected.HistoryRu, actual.HistoryRu)
+		validatePointerField(t, expected.ReasoningFi, actual.ReasoningFi)
+		validatePointerField(t, expected.ReasoningEn, actual.ReasoningEn)
+		validatePointerField(t, expected.ReasoningRu, actual.ReasoningRu)
+		validatePointerField(t, expected.ProtectionStatusFi, actual.ProtectionStatusFi)
+		validatePointerField(t, expected.ProtectionStatusEn, actual.ProtectionStatusEn)
+		validatePointerField(t, expected.ProtectionStatusRu, actual.ProtectionStatusRu)
+		validatePointerField(t, expected.InfoSourceFi, actual.InfoSourceFi)
+		validatePointerField(t, expected.InfoSourceEn, actual.InfoSourceEn)
+		validatePointerField(t, expected.InfoSourceRu, actual.InfoSourceRu)
+		validatePointerField(t, expected.SurroundingsFi, actual.SurroundingsFi)
+		validatePointerField(t, expected.SurroundingsEn, actual.SurroundingsEn)
+		validatePointerField(t, expected.SurroundingsRu, actual.SurroundingsRu)
+		validatePointerField(t, expected.FoundationFi, actual.FoundationFi)
+		validatePointerField(t, expected.FoundationFi, actual.FoundationFi)
+		validatePointerField(t, expected.FoundationRu, actual.FoundationRu)
+		validatePointerField(t, expected.FrameFi, actual.FrameFi)
+		validatePointerField(t, expected.FrameEn, actual.FrameEn)
+		validatePointerField(t, expected.FrameRu, actual.FrameRu)
+		validatePointerField(t, expected.FloorDescriptionFi, actual.FloorDescriptionFi)
+		validatePointerField(t, expected.FloorDescriptionEn, actual.FloorDescriptionEn)
+		validatePointerField(t, expected.FloorDescriptionRu, actual.FloorDescriptionRu)
+		validatePointerField(t, expected.FacadesFi, actual.FacadesFi)
+		validatePointerField(t, expected.FacadesEn, actual.FacadesEn)
+		validatePointerField(t, expected.FacadesRu, actual.FacadesRu)
+		validatePointerField(t, expected.SpecialFeaturesFi, actual.SpecialFeaturesFi)
+		validatePointerField(t, expected.SpecialFeaturesEn, actual.SpecialFeaturesEn)
+		validatePointerField(t, expected.SpecialFeaturesRu, actual.SpecialFeaturesRu)
+		validatePointerField(t, expected.Latitude_ETRSGK25, actual.Latitude_ETRSGK25)
+		validatePointerField(t, expected.Longitude_ERRSGK25, actual.Longitude_ERRSGK25)
+		require.Equal(t, expected.AuthorIDs, actual.AuthorIDs)
+		require.Equal(t, len(expected.InitialUses), len(actual.InitialUses))
+		for i, expectedUse := range expected.InitialUses {
+			actualUse := actual.InitialUses[i]
+			require.Equal(t, expectedUse.ID, actualUse.ID)
+			require.Equal(t, expectedUse.NameFi, actualUse.NameFi)
+			require.Equal(t, expectedUse.NameEn, actualUse.NameEn)
+			require.Equal(t, expectedUse.NameRu, actualUse.NameRu)
+		}
+		require.Equal(t, len(expected.CurrentUses), len(actual.CurrentUses))
+		for i, expectedUse := range expected.CurrentUses {
+			actualUse := actual.CurrentUses[i]
+			require.Equal(t, expectedUse.ID, actualUse.ID)
+			require.Equal(t, expectedUse.NameFi, actualUse.NameFi)
+			require.Equal(t, expectedUse.NameEn, actualUse.NameEn)
+			require.Equal(t, expectedUse.NameRu, actualUse.NameRu)
+		}
+	}
+	for i, expected := range expectedBuildings {
 		validateBuildingStructs(
 			t,
 			reflect.ValueOf(expected),
 			reflect.ValueOf(buildings[i]),
 		)
 	}
+}
+
+func validatePointerField[P string|int|int64|float32](
+	t *testing.T,
+	expected, 
+	actual *P,
+) {
+	if expected == nil {
+		require.Nil(t, actual)
+		return
+	}
+	require.Equal(t, *expected, *actual)
 }
 
 func validateBuildingStructs(t *testing.T, expected, actual reflect.Value) {
