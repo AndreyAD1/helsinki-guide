@@ -3,6 +3,7 @@ package integrationtests
 import (
 	"context"
 	"path/filepath"
+	"reflect"
 	"testing"
 
 	"github.com/AndreyAD1/helsinki-guide/internal"
@@ -113,15 +114,60 @@ func testRunPopulator(t *testing.T) {
 		buildings,
 	)
 	for i, expected := range expectedBuildings {
-		require.Equal(t, expected.Code, buildings[i].Code)
-		if expected.NameFi == nil {
-			require.Nil(t, buildings[i].NameFi)
-			require.Nil(t, buildings[i].NameEn)
-			require.Nil(t, buildings[i].NameRu)
-		} else {
-			require.Equal(t, *expected.NameFi, *buildings[i].NameFi)
-			require.Equal(t, *expected.NameEn, *buildings[i].NameEn)
-			require.Equal(t, *expected.NameRu, *buildings[i].NameRu)
+		validateBuildingStructs(
+			t, 
+			reflect.ValueOf(expected), 
+			reflect.ValueOf(buildings[i]),
+		)
+	}
+}
+
+func validateBuildingStructs(t *testing.T, expected, actual reflect.Value) {
+	require.Equal(t, expected.Type().Name(), actual.Type().Name())
+Out:for i := 0; i < expected.NumField(); i++ {
+		expectedValue := expected.Field(i)
+		actualValue := actual.Field(i)
+		switch expectedValue.Type().Name() {
+		case "*string":
+			if expectedValue.IsNil() {
+				require.True(t, actualValue.IsNil())
+				continue Out
+			}
+			expectedStr := expectedValue.Elem().String()
+			require.Equal(t, expectedStr, actualValue.Elem().String())
+		case "*int":
+			if expectedValue.IsNil() {
+				require.True(t, actualValue.IsNil())
+				continue Out
+			}
+			expectedStr := expectedValue.Elem().Int()
+			require.Equal(t, expectedStr, actualValue.Elem().Int())
+		case "Address":
+			validateBuildingStructs(t, expectedValue, actualValue)
+		case "[]UseType":
+			for i := 0; i < expectedValue.Len(); i++ {
+				validateBuildingStructs(
+					t, 
+					expectedValue.Index(i), 
+					actualValue.Index(i),
+				)
+			}
+		case "*float32":
+			if expectedValue.IsNil() {
+				require.True(t, actualValue.IsNil())
+				continue Out
+			}
+			expectedStr := expectedValue.Elem().Float()
+			require.Equal(t, expectedStr, actualValue.Elem().Float())
+		case "[]int64":
+			for i := 0; i < expectedValue.Len(); i++ {
+				require.Equal(
+					t, 
+					expectedValue.Index(i).Int(), 
+					actualValue.Index(i).Int(),
+				)
+			}
+		default:
 		}
 	}
 }
