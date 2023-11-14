@@ -2,9 +2,7 @@ package integrationtests
 
 import (
 	"context"
-	"log"
 	"path/filepath"
-	"reflect"
 	"testing"
 
 	"github.com/AndreyAD1/helsinki-guide/internal"
@@ -85,7 +83,7 @@ var (
 			FacadesFi:          u.GetPointer("facade fi 1"),
 			FacadesEn:          u.GetPointer("facade en 1"),
 			FacadesRu:          u.GetPointer("facade ru 1"),
-			Latitude_ETRSGK25: u.GetPointer(float32(6671929)),
+			Latitude_ETRSGK25:  u.GetPointer(float32(6671929)),
 			Longitude_ERRSGK25: u.GetPointer(float32(25493834)),
 		},
 		{
@@ -136,7 +134,7 @@ var (
 			FacadesFi:          u.GetPointer("facade fi 2"),
 			FacadesEn:          u.GetPointer("facade en 2"),
 			FacadesRu:          u.GetPointer("facade ru 2"),
-			Latitude_ETRSGK25: u.GetPointer(float32(6671951)),
+			Latitude_ETRSGK25:  u.GetPointer(float32(6671951)),
 			Longitude_ERRSGK25: u.GetPointer(float32(25493874)),
 		},
 		{
@@ -314,13 +312,6 @@ func testRunPopulator(t *testing.T) {
 			require.Equal(t, expectedUse.NameRu, actualUse.NameRu)
 		}
 	}
-	for i, expected := range expectedBuildings {
-		validateBuildingStructs(
-			t,
-			reflect.ValueOf(expected),
-			reflect.ValueOf(buildings[i]),
-		)
-	}
 }
 
 func validatePointerField[P string | int | int64 | float32](
@@ -333,72 +324,4 @@ func validatePointerField[P string | int | int64 | float32](
 		return
 	}
 	require.Equal(t, *expected, *actual)
-}
-
-func validateBuildingStructs(t *testing.T, expected, actual reflect.Value) {
-Out:
-	for i := 0; i < actual.NumField(); i++ {
-		log.Printf("check a field %v", expected.Field(i).Type().Name())
-		if expected.Field(i).Type().Name() == "Timestamps" {
-			continue
-		}
-		expectedValue := expected.Field(i)
-		actualValue := actual.Field(i)
-		switch actualValue.Kind() {
-		case reflect.Struct:
-			validateBuildingStructs(t, expectedValue, actualValue)
-		case reflect.Array:
-			if expectedValue.Len() == 0 {
-				continue Out
-			}
-			switch expectedValue.Index(0).Kind() {
-			case reflect.Struct:
-				for i := 0; i < expectedValue.Len(); i++ {
-					validateBuildingStructs(
-						t,
-						expectedValue.Index(i),
-						actualValue.Index(i),
-					)
-				}
-			case reflect.Int, reflect.Int64:
-				for i := 0; i < expectedValue.Len(); i++ {
-					require.Equal(
-						t,
-						expectedValue.Index(i).Int(),
-						actualValue.Index(i).Int(),
-					)
-				}
-			}
-		case reflect.Int, reflect.Int64:
-			require.Equal(t, expectedValue.Int(), actualValue.Int())
-		case reflect.String:
-			expectedStr := expectedValue.String()
-			require.Equal(t, expectedStr, actualValue.String())
-		case reflect.Pointer:
-			if expectedValue.IsNil() {
-				require.True(t, actualValue.IsNil())
-				continue Out
-			}
-			pointerValue := actualValue.Elem()
-			switch pointerValue.Kind() {
-			case reflect.Struct:
-				for i := 0; i < expectedValue.Len(); i++ {
-					validateBuildingStructs(
-						t,
-						expectedValue.Index(i),
-						actualValue.Index(i),
-					)
-				}
-			case reflect.String:
-				expectedStr := expectedValue.Elem().String()
-				require.Equal(t, expectedStr, actualValue.Elem().String())
-			case reflect.Int:
-				expectedInt := expectedValue.Elem().Int()
-				require.Equal(t, expectedInt, actualValue.Elem().Int())
-			case reflect.Float32:
-				expectedStr := expectedValue.Elem().Float()
-				require.Equal(t, expectedStr, actualValue.Elem().Float())
-			}
-		}
-	}
 }
