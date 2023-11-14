@@ -1,9 +1,5 @@
 package utils
 
-func GetStrPointer(a string) *string {
+func GetPointer[T string | int | int64 | float32](a T) *T {
 	return &a
 }
-
-func GetIntPointer(i int) *int { return &i }
-
-func GetInt64Pointer(a int64) *int64 { return &a }
