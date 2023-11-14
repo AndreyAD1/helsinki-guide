@@ -51,7 +51,13 @@ func NewPopulator(ctx context.Context, config configuration.PopulatorConfig) (*P
 	return &populator, nil
 }
 
-func (p *Populator) Run(ctx context.Context, sheetName, fiFilename, enFilename, ruFilename string) error {
+func (p *Populator) Run(
+	ctx context.Context, 
+	sheetName, 
+	fiFilename, 
+	enFilename, 
+	ruFilename string,
+) error {
 	var rowSet []*excelize.Rows
 	for _, filename := range []string{fiFilename, enFilename, ruFilename} {
 		source, err := excelize.OpenFile(filename)

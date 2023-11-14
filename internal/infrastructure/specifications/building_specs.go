@@ -1,9 +1,5 @@
 package specifications
 
-type Specification interface {
-	ToSQL() (string, map[string]any)
-}
-
 type BuildingSpecificationByAlikeAddress struct {
 	addressPrefix string
 	limit         int
@@ -14,7 +10,7 @@ func NewBuildingSpecificationByAlikeAddress(
 	prefix string,
 	limit,
 	offset int,
-) *BuildingSpecificationByAlikeAddress {
+) Specification {
 	return &BuildingSpecificationByAlikeAddress{prefix, limit, offset}
 }
 
@@ -36,7 +32,7 @@ type BuildingSpecificationByAddress struct {
 	address string
 }
 
-func NewBuildingSpecificationByAddress(address string) *BuildingSpecificationByAddress {
+func NewBuildingSpecificationByAddress(address string) Specification {
 	return &BuildingSpecificationByAddress{address}
 }
 
