@@ -32,7 +32,7 @@ func (a *ActorSpecificationByName) ToSQL() (string, map[string]any) {
 }
 
 type ActorSpecificationAll struct {
-	limit int
+	limit  int
 	offset int
 }
 

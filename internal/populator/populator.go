@@ -53,10 +53,10 @@ func NewPopulator(ctx context.Context, config configuration.PopulatorConfig) (*P
 }
 
 func (p *Populator) Run(
-	ctx context.Context, 
-	sheetName, 
-	fiFilename, 
-	enFilename, 
+	ctx context.Context,
+	sheetName,
+	fiFilename,
+	enFilename,
 	ruFilename string,
 ) error {
 	var rowSet []*excelize.Rows
@@ -97,7 +97,7 @@ func (p *Populator) Run(
 		enRow, err := enRows.Columns()
 		ruRow, err := ruRows.Columns()
 
-		if len(fiRow) < longitudeIdx + 1 {
+		if len(fiRow) < longitudeIdx+1 {
 			log.Printf("a final or unexpected row %v: %v", i, fiRow)
 			break
 		}
@@ -253,8 +253,8 @@ func getAuthors(fiRow, enRow, ruRow []string) []internal.Actor {
 		titleEn := getPointerStr(enRow[authorTitleIdx])
 		titleRu := getPointerStr(ruRow[authorTitleIdx])
 		author := internal.Actor{
-			Name: authorName, 
-			TitleFi: titleFi, 
+			Name:    authorName,
+			TitleFi: titleFi,
 			TitleEn: titleEn,
 			TitleRu: titleRu,
 		}

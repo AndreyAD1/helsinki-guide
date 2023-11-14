@@ -1,9 +1,9 @@
 package utils
 
-func StrToPointer(a string) *string {
+func GetStrPointer(a string) *string {
 	return &a
 }
 
-func Int64ToPointer(a int64) *int64 {
-	return &a
-}
+func GetIntPointer(i int) *int { return &i }
+
+func GetInt64Pointer(a int64) *int64 { return &a }

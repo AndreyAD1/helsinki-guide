@@ -29,7 +29,7 @@ func testNeighbourhoodRepository(t *testing.T) {
 
 	municipality := "Helsinki"
 	neighbourhood = internal.Neighbourhood{
-		Name: "test", 
+		Name:         "test",
 		Municipality: &municipality,
 	}
 	saved, err = storage.Add(context.Background(), neighbourhood)

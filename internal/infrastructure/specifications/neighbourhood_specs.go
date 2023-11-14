@@ -27,7 +27,7 @@ func (a *NeighbourhoodSpecificationByName) ToSQL() (string, map[string]any) {
 }
 
 type NeighbourhoodSpecificationAll struct {
-	limit int
+	limit  int
 	offset int
 }
 
