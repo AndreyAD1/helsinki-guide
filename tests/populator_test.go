@@ -50,7 +50,18 @@ var (
 			},
 			ConstructionStartYear: u.GetIntPointer(1954),
 			CompletionYear: u.GetIntPointer(1955),
-
+			AuthorIDs: []int64{1},
+			InitialUses: []internal.UseType{
+				{
+					ID: 1,
+					NameFi: "kerrostalot",
+					NameEn: "apartment buildings",
+					NameRu: "многоквартирные дома", 
+				},
+			},
+			HistoryFi: u.GetStrPointer("Vuonna 1988 rakennuksen kellariin suunniteltiin taloyhtiölle saunaosasto (Arkkitehti Hannu Lehto). Vuonna 1994 rakennuksen parvekkeet suunniteltiin varustettaviksi sivuun siirrettävillä lasiseinillä (arkkitehti Tapani Virkkala)."),
+			HistoryEn: u.GetStrPointer("In 1988, a sauna section was planned for the housing association in the basement of the building (Architect Hannu Lehto). In 1994, the building's balconies were designed to be equipped with glass walls that can be moved to the side (architect Tapani Virkkala)."),
+			HistoryRu: u.GetStrPointer("В 1988 году для жилищного товарищества в подвале здания было спроектировано помещение сауны (архитектор Ханну Лехто). В 1994 году балконы здания было спроектировано оборудованными стеклянными стенами, которые можно сдвигать в сторону (архитектор Тапани Вирккала)."),
 		},
 		{
 			ID:     int64(2),
@@ -65,6 +76,21 @@ var (
 			},
 			ConstructionStartYear: nil,
 			CompletionYear: u.GetIntPointer(1978),
+			AuthorIDs: []int64{2},
+			InitialUses: []internal.UseType{
+				{
+					ID: 1,
+					NameFi: "kerrostalot",
+					NameEn: "apartment buildings",
+					NameRu: "многоквартирные дома", 
+				},
+				{
+					ID: 2,
+					NameFi: "päiväkodit",
+					NameEn: "kindergartens",
+					NameRu: "детские сады", 
+				},
+			},
 		},
 		{
 			ID:     int64(3),
@@ -79,6 +105,18 @@ var (
 			},
 			ConstructionStartYear: u.GetIntPointer(1952),
 			CompletionYear: u.GetIntPointer(1955),
+			AuthorIDs: []int64{3, 4},
+			InitialUses: []internal.UseType{
+				{
+					ID: 1,
+					NameFi: "kerrostalot",
+					NameEn: "apartment buildings",
+					NameRu: "многоквартирные дома", 
+				},
+			},
+			HistoryFi: u.GetStrPointer("Vuonna 1996 rakennuksen ikkunat ja parvekeovet uusittiin puu-alumiinirakenteisiksi (Fenestra Oy)."),
+			HistoryEn: u.GetStrPointer("In 1996, the building's windows and balcony doors were renewed with wood-aluminum structures (Fenestra Oy)."),
+			HistoryRu: u.GetStrPointer("В 1996 году окна и балконные двери здания были заменены дерево-алюминиевыми конструкциями (Fenestra Oy)."),
 		},
 	}
 )
