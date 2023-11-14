@@ -37,6 +37,7 @@ func NewNeighbourhoodSpecificationAll(limit, offset int) Specification {
 
 func (a *NeighbourhoodSpecificationAll) ToSQL() (string, map[string]any) {
 	query := `SELECT id, name, municipality, created_at, updated_at, 
-	deleted_at FROM neighbourhoods ORDER BY name LIMIT @limit OFFSET @offset;`
+	deleted_at FROM neighbourhoods ORDER BY municipality, name 
+	LIMIT @limit OFFSET @offset;`
 	return query, map[string]any{"limit": a.limit, "offset": a.offset}
 }

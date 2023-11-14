@@ -249,9 +249,9 @@ func getAuthors(fiRow, enRow, ruRow []string) []internal.Actor {
 	authors := []internal.Actor{}
 	for _, useFi := range authorNames {
 		authorName := strings.TrimSpace(useFi)
-		titleFi := getPointerStr(fiRow[authorIdx])
-		titleEn := getPointerStr(enRow[authorIdx])
-		titleRu := getPointerStr(ruRow[authorIdx])
+		titleFi := getPointerStr(fiRow[authorTitleIdx])
+		titleEn := getPointerStr(enRow[authorTitleIdx])
+		titleRu := getPointerStr(ruRow[authorTitleIdx])
 		author := internal.Actor{
 			Name: authorName, 
 			TitleFi: titleFi, 
