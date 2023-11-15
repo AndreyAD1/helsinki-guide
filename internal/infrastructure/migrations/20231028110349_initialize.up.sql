@@ -12,7 +12,7 @@ CREATE TABLE "users" (
 
 CREATE TABLE "buildings" (
   "id" SERIAL PRIMARY KEY,
-  "code" varchar,
+  "code" varchar UNIQUE,
   "name_fi" varchar,
   "name_en" varchar,
   "name_ru" varchar,
@@ -61,7 +61,7 @@ CREATE TABLE "buildings" (
 
 CREATE TABLE "addresses" (
   "id" SERIAL PRIMARY KEY,
-  "street_address" varchar UNIQUE NOT NULL,
+  "street_address" varchar CONSTRAINT address UNIQUE NOT NULL CHECK (street_address <> ''),
   "neighbourhood_id" integer,
   "created_at" timestamp with time zone NOT NULL DEFAULT now(),
   "updated_at" timestamp with time zone,
@@ -70,17 +70,17 @@ CREATE TABLE "addresses" (
 
 CREATE TABLE "neighbourhoods" (
   "id" SERIAL PRIMARY KEY,
-  "name" varchar NOT NULL,
+  "name" varchar CONSTRAINT neighbourhood_name NOT NULL CHECK (name <> ''),
   "municipality" varchar,
   "created_at" timestamp with time zone NOT NULL DEFAULT now(),
   "updated_at" timestamp with time zone,
   "deleted_at" timestamp with time zone,
-  UNIQUE NULLS NOT DISTINCT (name, municipality)
+  CONSTRAINT neighbourhood_name_municipality UNIQUE NULLS NOT DISTINCT (name, municipality)
 );
 
 CREATE TABLE "actors" (
   "id" SERIAL PRIMARY KEY,
-  "name" varchar NOT NULL UNIQUE,
+  "name" varchar NOT NULL UNIQUE CONSTRAINT actor_name CHECK (name <> ''),
   "title_fi" varchar,
   "title_en" varchar,
   "title_ru" varchar,
@@ -111,9 +111,9 @@ CREATE TABLE "building_contractors" (
 
 CREATE TABLE "use_types" (
   "id" SERIAL PRIMARY KEY,
-  "name_fi" varchar UNIQUE NOT NULL,
-  "name_en" varchar UNIQUE NOT NULL,
-  "name_ru" varchar UNIQUE NOT NULL,
+  "name_fi" varchar UNIQUE NOT NULL CONSTRAINT use_name_fi CHECK (name_fi <> ''),
+  "name_en" varchar UNIQUE NOT NULL CONSTRAINT use_name_en CHECK (name_en <> ''),
+  "name_ru" varchar UNIQUE NOT NULL CONSTRAINT use_name_ru CHECK (name_ru <> ''),
   "created_at" timestamp with time zone NOT NULL DEFAULT now(),
   "updated_at" timestamp with time zone,
   "deleted_at" timestamp with time zone

@@ -181,7 +181,7 @@ func (t Translator) translateRow(
 			translatedValues = append(translatedValues, "TRANSLATION ERROR")
 			continue
 		}
-		log.Printf("receive a translation %v", translation)
+		// log.Printf("receive a translation %v", translation)
 		translatedValues = append(translatedValues, translation)
 	}
 	log.Printf("update a row %v: %q\n", rowNumber, translatedValues)

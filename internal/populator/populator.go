@@ -102,6 +102,25 @@ func (p *Populator) Run(
 			break
 		}
 
+		initialUses, err := getUses(
+			fiRow[initialUseIdx],
+			enRow[initialUseIdx],
+			ruRow[initialUseIdx],
+		)
+		if err != nil {
+			log.Printf("initial uses error at the line %v: %v", i, err)
+			return fmt.Errorf("initial uses error at the line %v: %w", i, err)
+		}
+		currentuses, err := getUses(
+			fiRow[currentUseIdx],
+			enRow[currentUseIdx],
+			ruRow[currentUseIdx],
+		)
+		if err != nil {
+			log.Printf("current uses error at the line %v: %v", i, err)
+			return fmt.Errorf("current uses error at the line %v: %w", i, err)
+		}
+
 		address, err := p.getAddress(fiRow)
 		if err != nil {
 			return err
@@ -176,16 +195,8 @@ func (p *Populator) Run(
 			Latitude_ETRSGK25:     latitude,
 			Longitude_ERRSGK25:    longitude,
 			AuthorIDs:             authorIDs,
-			InitialUses: getUses(
-				fiRow[initialUseIdx],
-				enRow[initialUseIdx],
-				ruRow[initialUseIdx],
-			),
-			CurrentUses: getUses(
-				fiRow[currentUseIdx],
-				enRow[currentUseIdx],
-				ruRow[currentUseIdx],
-			),
+			InitialUses: initialUses,
+			CurrentUses: currentuses,
 		}
 		_, err = p.buildingRepo.Add(ctx, building)
 		if err != nil {
@@ -249,6 +260,9 @@ func getAuthors(fiRow, enRow, ruRow []string) []internal.Actor {
 	authors := []internal.Actor{}
 	for _, useFi := range authorNames {
 		authorName := strings.TrimSpace(useFi)
+		if authorName == "" {
+			continue
+		}
 		titleFi := getPointerStr(fiRow[authorTitleIdx])
 		titleEn := getPointerStr(enRow[authorTitleIdx])
 		titleRu := getPointerStr(ruRow[authorTitleIdx])
@@ -275,18 +289,29 @@ func getYear(year string) (*int, error) {
 	return &yearInt, nil
 }
 
-func getUses(usesFi, usesEn, usesRu string) []internal.UseType {
+func getUses(usesFi, usesEn, usesRu string) ([]internal.UseType, error) {
 	useFiList := strings.Split(usesFi, ",")
 	useEnList := strings.Split(usesEn, ",")
 	useRuList := strings.Split(usesRu, ",")
+	if len(useFiList) != len(useEnList) || len(useFiList) != len(useRuList) {
+		return nil, fmt.Errorf(
+			"unexpected en or ru uses: %v: %v: expect: %v",
+			useEnList,
+			useRuList,
+			useFiList,
+		)
+	}
 
 	uses := []internal.UseType{}
 	for i, useFi := range useFiList {
 		useFi := strings.ToLower(strings.TrimSpace(useFi))
+		if useFi == "" {
+			continue
+		}
 		useEn := strings.ToLower(strings.TrimSpace(useEnList[i]))
 		useRu := strings.ToLower(strings.TrimSpace(useRuList[i]))
 		useType := internal.UseType{NameFi: useFi, NameEn: useEn, NameRu: useRu}
 		uses = append(uses, useType)
 	}
-	return uses
+	return uses, nil
 }

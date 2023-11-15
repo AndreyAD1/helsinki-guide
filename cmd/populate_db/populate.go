@@ -3,6 +3,7 @@ package populate_db
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/configuration"
@@ -20,7 +21,7 @@ var (
 		Long:  "This command transfers data from xlsx files to a database",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return run(args[0], args[1], args[2], args[3])
+			return run(args[0], args[1], args[2])
 		},
 	}
 )
@@ -43,7 +44,7 @@ func init() {
 	PopulateCmd.MarkFlagRequired("sheet")
 }
 
-func run(sheetName, finFile, enFilename, ruFilename string) error {
+func run(finFile, enFilename, ruFilename string) error {
 	if dbURL != "" {
 		os.Setenv("DatabaseURL", dbURL)
 	}
@@ -57,5 +58,10 @@ func run(sheetName, finFile, enFilename, ruFilename string) error {
 	if err != nil {
 		return err
 	}
-	return populator.Run(ctx, sheetName, finFile, enFilename, ruFilename)
+	err = populator.Run(ctx, sheetName, finFile, enFilename, ruFilename)
+	if err != nil {
+		log.Printf("unexpected error: %v", err)
+		os.Exit(1)
+	}
+	return nil
 }
