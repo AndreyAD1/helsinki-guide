@@ -1,12 +1,22 @@
+all: test build migrate run
+
+test_unit:
+	go test ./... -v
+
+test_integration:
+	INTEGRATION=1 go test ./integration_tests/...
+
+test: test_unit test_integration
+
 build:
 	docker build --tag helsinki-guide:latest .
 
 migrate:
-	migrate -database ${DatabaseURL} -path internal/infrastructure/migrations up
+	migrate -database "${DatabaseURL}" -path internal/infrastructure/migrations up
 
 run:
-	docker run --env DatabaseURL="${DatabaseURL}" --env BotAPIToken="${BotAPIToken}" helsinki-guide
+	docker run --env DatabaseURL="${DatabaseURL}" --env BotAPIToken="${BotAPIToken}" --network host helsinki-guide
 
 .NOTPARALLEL:
 
-.PHONY: build migrate run
+.PHONY: test_unit test_integration test build migrate run
