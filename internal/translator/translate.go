@@ -21,6 +21,7 @@ type columnCoordinates struct {
 var (
 	url                    = "https://google-translate1.p.rapidapi.com/language/translate/v2"
 	firstColumnToTranslate = columnCoordinates{16, "Q"}
+	lastColumnToTranslate = columnCoordinates{29, "AD"}
 	concurrentRequestLimit = 10
 )
 
@@ -75,23 +76,23 @@ func (t Translator) translateExcelSheet(
 		}
 	}()
 	rows.Next()
-	firstRow, err := rows.Columns()
-	if err != nil {
-		return fmt.Errorf(
-			"can not read a first row of a sheet '%v': %w", sheetName, err)
-	}
-	column := columnCoordinates{0, "A"}
-	if err := t.translateRow(
-		ctx,
-		1,
-		column,
-		firstRow,
-		sheetName,
-		targetLanguage,
-		file,
-	); err != nil {
-		return fmt.Errorf("can't translate a first row: %v", err)
-	}
+	// firstRow, err := rows.Columns()
+	// if err != nil {
+	// 	return fmt.Errorf(
+	// 		"can not read a first row of a sheet '%v': %w", sheetName, err)
+	// }
+	// column := columnCoordinates{0, "A"}
+	// if err := t.translateRow(
+	// 	ctx,
+	// 	1,
+	// 	column,
+	// 	firstRow,
+	// 	sheetName,
+	// 	targetLanguage,
+	// 	file,
+	// ); err != nil {
+	// 	return fmt.Errorf("can't translate a first row: %v", err)
+	// }
 
 	limit := make(chan struct{}, concurrentRequestLimit)
 	var waitGroup sync.WaitGroup
@@ -119,6 +120,7 @@ func (t Translator) translateExcelSheet(
 				ctx,
 				rowNumber,
 				firstColumnToTranslate,
+				lastColumnToTranslate,
 				row,
 				sheetName,
 				targetLanguage,
@@ -136,16 +138,17 @@ func (t Translator) translateExcelSheet(
 func (t Translator) translateRow(
 	ctx context.Context,
 	rowNumber int,
-	startColumn columnCoordinates,
+	firstColumn columnCoordinates,
+	lastColumn columnCoordinates,
 	rowValues []string,
 	sheetName,
 	targetLanguage string,
 	file *excelize.File,
 ) error {
-	if len(rowValues) < startColumn.index {
+	if len(rowValues) < firstColumn.index {
 		return fmt.Errorf(
 			"wrong column index %v, expect less than %v",
-			startColumn.index,
+			firstColumn.index,
 			len(rowValues),
 		)
 	}
@@ -159,7 +162,7 @@ func (t Translator) translateRow(
 	file.SetCellStr(sheetName, cellName, nameTranslation)
 
 	translatedValues := []interface{}{}
-	for _, cellValue := range rowValues[startColumn.index:] {
+	for _, cellValue := range rowValues[firstColumn.index:lastColumn.index] {
 		if num, err := strconv.ParseFloat(cellValue, 32); err == nil {
 			translatedValues = append(translatedValues, num)
 			continue
@@ -182,7 +185,7 @@ func (t Translator) translateRow(
 		translatedValues = append(translatedValues, translation)
 	}
 	log.Printf("update a row %v: %q\n", rowNumber, translatedValues)
-	firstTranslatedCell := fmt.Sprintf("%v%v", startColumn.name, rowNumber)
+	firstTranslatedCell := fmt.Sprintf("%v%v", firstColumn.name, rowNumber)
 	if err := file.SetSheetRow(
 		sheetName,
 		firstTranslatedCell,
