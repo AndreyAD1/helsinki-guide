@@ -16,7 +16,7 @@ import (
 const (
 	unexpectedTextTmpl = "an unexpected message text for a button " +
 		"'next': %s: message_id: %v: chat id: %v"
-	defaultLimit = 2
+	defaultLimit = 10
 )
 
 func NewCommandContainer(
