@@ -1,21 +1,30 @@
 # helsinki-guide
-This repository contains the code for a Telegram bot designed to provide information about notable buildings in Helsinki. Please note that this project is still a work in progress.
+This repository contains the code for a Telegram bot designed to provide information about notable buildings in Helsinki. 
+The bot is working at [https://t.me/HelsinkiGuide_bot](https://t.me/HelsinkiGuide_bot).
+
+Please note that this project is still a work in progress.
 
 ## Motivation
-Helsinki boasts many fascinating buildings, but finding information about them can be challenging. This project's primary goal is to make such information more easily accessible. It relies on [a dataset provided by the Helsinki City Museum](https://hri.fi/data/en_GB/dataset/helsinkilaisten-rakennusten-historiatietoja).
+Helsinki boasts many fascinating buildings, but finding information about them 
+can be challenging. 
+This project's primary goal is to make such information more easily accessible. 
+The project relies on [a dataset provided by the Helsinki City Museum](https://hri.fi/data/en_GB/dataset/helsinkilaisten-rakennusten-historiatietoja).
 
 ## Project Goals
-1. Translate the dataset into English and Russian.
-2. Create a Telegram bot to deliver this dataset to bot users.
+1. Translate the dataset into English and Russian. *(pending)* ⏳
+2. Create a Telegram bot to deliver this dataset to bot users. ✅
+3. Allow a user to configurate his preferences. (TO DO) 🏡
+4. Allow a user to search per location. (TO DO) 🏡
+5. ...
 
 ## Getting Started
 The work is in progress...
 
 ## Development
 ### Prerequisites
-- Go v.1.20 or higher should be already installed.
-- A subscription to [the Google Translate API](https://rapidapi.com/googlecloud/api/google-translate1/) is required to automatically translate
-the source dataset into other languages.
+- Go v.1.21 or higher should be already installed.
+- A subscription to [the Google Translate API](https://rapidapi.com/googlecloud/api/google-translate1/) 
+is required to automatically translate the source dataset into other languages.
 
 ### Installation
 
