@@ -18,11 +18,24 @@ The project relies on [a dataset provided by the Helsinki City Museum](https://h
 5. ...
 
 ## Getting Started
-The work is in progress...
+- Get your bot API key from [@BotFather](https://t.me/BotFather) - `BotAPIKey`.
+- Create a new PostgreSQL database, get a `DatabaseURL`.
+- Populate the database with data (see "Prepare data" for details).
+- Install (Docker)[https://docs.docker.com/engine/].
+- Build a bot container: 
+```bash
+$ make build
+```
+- Set `BotAPIKey` and `DatabaseURL` as environment variables.
+- Run the bot:
+```bash
+$ make run
+```
 
 ## Development
 ### Prerequisites
 - Go v.1.21 or higher should be already installed.
+- Docker should be already installed.
 - A subscription to [the Google Translate API](https://rapidapi.com/googlecloud/api/google-translate1/) 
 is required to automatically translate the source dataset into other languages.
 
@@ -33,7 +46,7 @@ Open a project root directory in a console and install project dependencies:
 go mod tidy
 ```
 
-### Quick Start
+### Start
 
 Translate the source dataset into English:
 ```shell
