@@ -63,14 +63,14 @@ func (h HandlerContainer) SendMessage(ctx c.Context, chatId int64, msgText strin
 	if _, err := h.bot.Send(msg); err != nil {
 		slog.WarnContext(
 			ctx,
-			fmt.Sprintf("can no send a message to %v: %v", chatId, msgText),
+			fmt.Sprintf("can not send a message to %v: %v", chatId, msgText),
 			slog.Any(logger.ErrorKey, err),
 		)
 	}
 }
 
 func (h HandlerContainer) start(ctx c.Context, message *tgbotapi.Message) {
-	startMsg := "Hello! I'm a bot that helps you to understand Helsinki better."
+	startMsg := "Hello! I'm a bot that provides information about Helsinki buildings."
 	h.SendMessage(ctx, message.Chat.ID, startMsg)
 }
 
