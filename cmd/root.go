@@ -9,7 +9,7 @@ import (
 )
 
 var debug *bool
-var rootCmd = &cobra.Command{
+var RootCmd = &cobra.Command{
 	Use:   "helsinki-guide",
 	Short: "The 'HelsinkiGuide' telegram bot provides information about notable Helsinki buildings.",
 	Long: `This bot is designed to provide information about notable buildings in Helsinki.
@@ -20,12 +20,12 @@ https://hri.fi/data/en_GB/dataset/helsinkilaisten-rakennusten-historiatietoja`,
 }
 
 func Execute() error {
-	return rootCmd.Execute()
+	return RootCmd.Execute()
 }
 
 func init() {
-	rootCmd.AddCommand(translate.TranslateCmd)
-	rootCmd.AddCommand(bot.BotCmd)
-	rootCmd.AddCommand(populate_db.PopulateCmd)
-	debug = rootCmd.Flags().BoolP("debug", "d", false, "Run in a debug mode")
+	RootCmd.AddCommand(translate.TranslateCmd)
+	RootCmd.AddCommand(bot.BotCmd)
+	RootCmd.AddCommand(populate_db.PopulateCmd)
+	debug = RootCmd.Flags().BoolP("debug", "d", false, "Run in a debug mode")
 }
