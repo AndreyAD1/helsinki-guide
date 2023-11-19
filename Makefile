@@ -15,7 +15,13 @@ migrate:
 	migrate -database "${DatabaseURL}" -path internal/infrastructure/migrations up
 
 run:
-	docker run --env DatabaseURL="${DatabaseURL}" --env BotAPIToken="${BotAPIToken}" --network host helsinki-guide
+	docker run \
+	--env Debug=1 \
+	--env DatabaseURL="${DatabaseURL}" \
+	--env BotAPIToken="${BotAPIToken}" \
+	--network host \
+	--log-opt tag=hguide \
+	helsinki-guide
 
 .NOTPARALLEL:
 
