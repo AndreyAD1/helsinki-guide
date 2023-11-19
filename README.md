@@ -27,6 +27,10 @@ The project relies on [a dataset provided by the Helsinki City Museum](https://h
 make build
 ```
 - Set `BotAPIKey` and `DatabaseURL` as environment variables.
+- Apply database migratons:
+```shell
+make migrate
+```
 - Run the bot:
 ```shell
 make run
