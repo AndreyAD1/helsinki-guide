@@ -21,7 +21,7 @@ type columnCoordinates struct {
 var (
 	url                    = "https://google-translate1.p.rapidapi.com/language/translate/v2"
 	firstColumnToTranslate = columnCoordinates{16, "Q"}
-	lastColumnToTranslate = columnCoordinates{29, "AD"}
+	lastColumnToTranslate  = columnCoordinates{29, "AD"}
 	concurrentRequestLimit = 10
 )
 

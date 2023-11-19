@@ -195,8 +195,8 @@ func (p *Populator) Run(
 			Latitude_ETRSGK25:     latitude,
 			Longitude_ERRSGK25:    longitude,
 			AuthorIDs:             authorIDs,
-			InitialUses: initialUses,
-			CurrentUses: currentuses,
+			InitialUses:           initialUses,
+			CurrentUses:           currentuses,
 		}
 		_, err = p.buildingRepo.Add(ctx, building)
 		if err != nil {

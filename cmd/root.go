@@ -4,11 +4,11 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/AndreyAD1/helsinki-guide/cmd/bot"
+	"github.com/AndreyAD1/helsinki-guide/cmd/global_flags"
 	"github.com/AndreyAD1/helsinki-guide/cmd/populate_db"
 	"github.com/AndreyAD1/helsinki-guide/cmd/translate"
 )
 
-var debug *bool
 var RootCmd = &cobra.Command{
 	Use:   "helsinki-guide",
 	Short: "The 'HelsinkiGuide' telegram bot provides information about notable Helsinki buildings.",
@@ -24,8 +24,8 @@ func Execute() error {
 }
 
 func init() {
+	RootCmd.PersistentFlags().BoolVarP(&global_flags.Debug, "debug", "d", false, "Run in a debug mode")
 	RootCmd.AddCommand(translate.TranslateCmd)
 	RootCmd.AddCommand(bot.BotCmd)
 	RootCmd.AddCommand(populate_db.PopulateCmd)
-	debug = RootCmd.Flags().BoolP("debug", "d", false, "Run in a debug mode")
 }

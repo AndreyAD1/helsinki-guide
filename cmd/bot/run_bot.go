@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/AndreyAD1/helsinki-guide/cmd/global_flags"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/configuration"
 	"github.com/caarlos0/env/v9"
@@ -46,6 +47,9 @@ func run() error {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &handlerOptions))
 	slog.SetDefault(logger)
 
+	if global_flags.Debug {
+		os.Setenv("Debug", "true")
+	}
 	if botToken != "" {
 		os.Setenv("BotAPIToken", botToken)
 	}
