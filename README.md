@@ -20,51 +20,72 @@ The project relies on [a dataset provided by the Helsinki City Museum](https://h
 ## Getting Started
 - Get your bot API key from [@BotFather](https://t.me/BotFather) - `BotAPIKey`.
 - Create a new PostgreSQL database, get a `DatabaseURL`.
-- Populate the database with data (see "Prepare data" for details).
-- Install (Docker)[https://docs.docker.com/engine/].
+- Populate the database with data (see ["Prepare data"](#prepare-data) for details).
+- Install [Docker](https://docs.docker.com/engine/).
 - Build a bot container: 
-```bash
-$ make build
+```shell
+make build
 ```
 - Set `BotAPIKey` and `DatabaseURL` as environment variables.
 - Run the bot:
-```bash
-$ make run
+```shell
+make run
 ```
 
 ## Development
 ### Prerequisites
 - Go v.1.21 or higher should be already installed.
-- Docker should be already installed.
+- A bot API token from [@BotFather](https://t.me/BotFather).
+- [Docker](https://docs.docker.com/engine/) should be already installed.
+- An environment variable `DatabaseURL` to connect to an empty PostgreSQL database.
 - A subscription to [the Google Translate API](https://rapidapi.com/googlecloud/api/google-translate1/) 
 is required to automatically translate the source dataset into other languages.
 
 ### Installation
-
 Open a project root directory in a console and install project dependencies:
 ```shell
 go mod tidy
 ```
 
+Apply database migrations:
+```shell
+make migrate
+```
+
 ### Start
 
-Translate the source dataset into English:
+Run the bot:
 ```shell
-go run main.go translate --api-key <your Google Translate API key> --sheet Pohjois-Haaga input_dataset.xlsx translated.xlsx
+go run main.go
 ```
-This command will create a new file `translated.xlsx` where a `Pohjois-Haaga`
-sheet will be translated into English.
 
 Get more information about available commands and options:
 ```shell
 go run main.go --help
 ```
 
+### Prepare Data
+
+#### Translate [the source dataset](https://hri.fi/data/en_GB/dataset/helsinkilaisten-rakennusten-historiatietoja)
+
+This command will create a new file `translated.xlsx` where a `Lauttasaari`
+sheet will be partially translated into English.
+```shell
+go run main.go translate --api-key <your Google Translate API key> --sheet Lauttasaari input_dataset.xlsx translated.xlsx
+```
+
+#### Populate the database
+
+Transfer the data from `xlsx` files to the database:
+```shell
+go run main.go populate --dburl ${DatabaseURL} --sheet Lauttasaari fi.xlsx en.xlsx ru.xlsx
+```
+
 ### Tests
 
 Run the project tests: 
 ```shell
-go test ./...
+make test
 ```
 
 ## Acknowledgements

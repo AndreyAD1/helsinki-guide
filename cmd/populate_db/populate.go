@@ -30,7 +30,7 @@ func init() {
 	PopulateCmd.Flags().StringVarP(
 		&dbURL,
 		"dburl",
-		"d",
+		"u",
 		"",
 		"A database URL. You can also use an environment variable 'DatabaseURL'.",
 	)
