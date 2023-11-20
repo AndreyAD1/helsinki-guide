@@ -9,12 +9,13 @@ test_integration:
 test: test_unit test_integration
 
 build:
-	docker build --tag helsinki-guide:latest .
+	docker build --tag andreyad/helsinki-guide:latest .
 
 migrate:
 	migrate -database "${DatabaseURL}" -path internal/infrastructure/migrations up
 
 run:
+	docker pull andreyad/helsinki-guide
 	docker run \
 	--env Debug=1 \
 	--env DatabaseURL="${DatabaseURL}" \
