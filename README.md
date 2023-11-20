@@ -14,7 +14,7 @@ The project relies on [a dataset provided by the Helsinki City Museum](https://h
 1. Translate the dataset into English and Russian. *(pending)* ⏳
 2. Create a Telegram bot to deliver this dataset to bot users. ✅
 3. Allow a user to configurate his preferences. (TO DO) 🏡
-4. Allow a user to search per location. (TO DO) 🏡
+4. Allow a user to search buildings per location. (TO DO) 🏡
 5. ...
 
 ## Getting Started
@@ -27,7 +27,7 @@ The project relies on [a dataset provided by the Helsinki City Museum](https://h
 make build
 ```
 - Set `BotAPIKey` and `DatabaseURL` as environment variables.
-- Apply database migratons:
+- Apply database migrations:
 ```shell
 make migrate
 ```
@@ -39,7 +39,7 @@ make run
 ## Development
 ### Prerequisites
 - Go v.1.21 or higher should be already installed.
-- A bot API token from [@BotFather](https://t.me/BotFather).
+- A bot API token provided by [@BotFather](https://t.me/BotFather).
 - [Docker](https://docs.docker.com/engine/) should be already installed.
 - An environment variable `DatabaseURL` to connect to an empty PostgreSQL database.
 - A subscription to [the Google Translate API](https://rapidapi.com/googlecloud/api/google-translate1/) 
