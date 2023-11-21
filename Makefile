@@ -22,7 +22,8 @@ run:
 	--env BotAPIToken="${BotAPIToken}" \
 	--network host \
 	--log-opt tag=hguide \
-	helsinki-guide
+	--name helsinki-guide \
+	andreyad/helsinki-guide
 
 .NOTPARALLEL:
 
