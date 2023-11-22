@@ -8,6 +8,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     environment: production
+    env:
+      DB_URL: ${{ secrets.DatabaseURL}}
+      BOT_TOKEN: ${{ secrets.BotAPIToken}}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -31,5 +34,5 @@ jobs:
           user: ${{ secrets.USER}}
           pass: ${{ secrets.PASSWORD}}
           scp: ./deployments${{ vars.SCRIPT_PATH}} => ${{ secrets.ROOT_PATH}}
-          last_ssh: source .profile && source ${{ secrets.ROOT_PATH}}${{ vars.SCRIPT_PATH}} $DatabaseURL $BotAPIToken
+          last_ssh: source ${{ secrets.ROOT_PATH}}${{ vars.SCRIPT_PATH}} "$DB_URL" "$BOT_TOKEN"
   
