@@ -7,6 +7,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: production
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -14,7 +15,7 @@ jobs:
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build an image
@@ -23,12 +24,12 @@ jobs:
       - name: Push an image
         run: docker push andreyad/helsinki-guide
 
-      - name: Create an SSH key
-        run: touch .ssh/env_key && ${{ environment.KEY}} > .ssh/env_key
+      - name: Add an SSH key
+        run: touch .ssh/env_key && echo ${{ secrets.KEY}} > .ssh/env_key
 
       - name: Copy a run script
-        run: rsync deployments/run.sh ${{ environment.HOST}}:${{ environment.SCRIPT_PATH}}
+        run: rsync deployments/run.sh ${{ secrets.HOST}}:${{ secrets.ROOT_PATH}}${{ vars.RUN_SCRIPT_PATH}}
         
       - name: Run an updated service
-        run: ssh ${{ environment.HOST}} 'source .profile; ${{ environment.SCRIPT_PATH}}'
+        run: ssh ${{ secrets.HOST}} 'source .profile; ${{ vars.RUN_SCRIPT_PATH}}'
   
