@@ -17,19 +17,19 @@ jobs:
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-
+      
       - name: Build an image
         run: make build
 
       - name: Push an image
         run: docker push andreyad/helsinki-guide
 
-      - name: Add an SSH key
-        run: touch .ssh/env_key && echo ${{ secrets.KEY}} > .ssh/env_key
-
-      - name: Copy a run script
-        run: rsync deployments/run.sh ${{ secrets.HOST}}:${{ secrets.ROOT_PATH}}${{ vars.RUN_SCRIPT_PATH}}
-        
-      - name: Run an updated service
-        run: ssh ${{ secrets.HOST}} 'source .profile; ${{ vars.RUN_SCRIPT_PATH}}'
+      - name: Copy and run a script
+        uses: cross-the-world/ssh-scp-ssh-pipelines@v1.1.4
+        with:
+          host: ${{ secrets.HOST}}
+          user: ${{ secrets.USER}}
+          pass: ${{ secrets.PASSWORD}}
+          scp: ./deployments${{ vars.SCRIPT_PATH}} => ${{ secrets.ROOT_PATH}}
+          last_ssh: source .profile && source ${{ secrets.ROOT_PATH}}${{ vars.SCRIPT_PATH}} $DatabaseURL $BotAPIToken
   
