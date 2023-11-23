@@ -9,33 +9,22 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     env:
-      DB_URL: ${{ secrets.DatabaseURL}}
-      BOT_TOKEN: ${{ secrets.BotAPIToken}}
+      RUN_COMMAND: ${{ secrets.ROOT_PATH}}${{ vars.SCRIPT_PATH}} ${{ secrets.DatabaseURL}} ${{ secrets.BotAPIToken}}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # - name: Login to Docker Hub
-      #   uses: docker/login-action@v3
-      #   with:
-      #     username: ${{ vars.DOCKERHUB_USERNAME }}
-      #     password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
       
-      # - name: Build an image
-      #   run: make build
+      - name: Build an image
+        run: make build
 
-      # - name: Push an image
-      #   run: docker push andreyad/helsinki-guide
-
-      # - name: Copy and run a script
-      #   uses: cross-the-world/ssh-scp-ssh-pipelines@v1.1.4
-      #   with:
-      #     host: ${{ secrets.HOST}}
-      #     user: ${{ secrets.USER}}
-      #     pass: ${{ secrets.PASSWORD}}
-      #     # key: ${{ secrets.KEY}}
-      #     scp: ./deployments${{ vars.SCRIPT_PATH}} => ${{ secrets.ROOT_PATH}}
-      #     last_ssh: source ${{ secrets.ROOT_PATH}}${{ vars.SCRIPT_PATH}} "$DB_URL" "$BOT_TOKEN"
+      - name: Push an image
+        run: docker push andreyad/helsinki-guide
 
       - name: Add an SSH key
         run: touch ~/.ssh/env_key && echo '${{ secrets.KEY}}' > ~/.ssh/env_key && chmod 600 ~/.ssh/env_key
@@ -44,4 +33,4 @@ jobs:
         run: scp -o StrictHostKeyChecking=no -i ~/.ssh/env_key ./deployments${{ vars.SCRIPT_PATH}} ${{ secrets.USER}}@${{ secrets.HOST}}:${{ secrets.ROOT_PATH}}
 
       - name: Run the service
-        run: ssh -o StrictHostKeyChecking=no -i ~/.ssh/env_key ${{ secrets.USER}}@${{ secrets.HOST}} 'source ${{ secrets.ROOT_PATH}}${{ vars.SCRIPT_PATH}} "$DB_URL" "$BOT_TOKEN"'
+        run: ssh -o StrictHostKeyChecking=no -i ~/.ssh/env_key ${{ secrets.USER}}@${{ secrets.HOST}} "source $RUN_COMMAND"
