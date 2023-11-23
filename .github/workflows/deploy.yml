@@ -27,10 +27,10 @@ jobs:
         run: docker push ${{ vars.DOCKERHUB_USERNAME }}/helsinki-guide
 
       - name: Add an SSH key
-        run: touch ~/.ssh/env_key && echo '${{ secrets.KEY}}' > ~/.ssh/env_key && chmod 600 ~/.ssh/env_key
+        run: touch ~/env_key && echo '${{ secrets.KEY}}' > ~/env_key && chmod 600 ~/env_key
       
       - name: Copy a startup script
-        run: scp -o StrictHostKeyChecking=no -i ~/.ssh/env_key ./deployments${{ vars.SCRIPT_PATH}} ${{ secrets.USER}}@${{ secrets.HOST}}:${{ secrets.ROOT_PATH}}
+        run: scp -o StrictHostKeyChecking=no -i ~/env_key ./deployments${{ vars.SCRIPT_PATH}} ${{ secrets.USER}}@${{ secrets.HOST}}:${{ secrets.ROOT_PATH}}
 
       - name: Run the service
-        run: ssh -o StrictHostKeyChecking=no -i ~/.ssh/env_key ${{ secrets.USER}}@${{ secrets.HOST}} "source $RUN_COMMAND"
+        run: ssh -o StrictHostKeyChecking=no -i ~/env_key ${{ secrets.USER}}@${{ secrets.HOST}} "source $RUN_COMMAND"
