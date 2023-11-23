@@ -40,5 +40,8 @@ jobs:
       - name: Add an SSH key
         run: touch ~/.ssh/env_key && echo '${{ secrets.KEY}}' > ~/.ssh/env_key && chmod 600 ~/.ssh/env_key
       
-      - name: Copy script
+      - name: Copy a startup script
         run: scp -o StrictHostKeyChecking=no -i ~/.ssh/env_key ./deployments${{ vars.SCRIPT_PATH}} ${{ secrets.USER}}@${{ secrets.HOST}}:${{ secrets.ROOT_PATH}}
+
+      - name: Run the service
+        run: ssh -o StrictHostKeyChecking=no -i ~/.ssh/env_key ${{ secrets.USER}}@${{ secrets.HOST}} 'source ${{ secrets.ROOT_PATH}}${{ vars.SCRIPT_PATH}} "$DB_URL" "$BOT_TOKEN"'
