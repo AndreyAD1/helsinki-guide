@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     env:
-      RUN_COMMAND: ${{ secrets.ROOT_PATH}}${{ vars.SCRIPT_PATH}} ${{ secrets.DatabaseURL}} ${{ secrets.BotAPIToken}}
+      RUN_COMMAND: ${{ secrets.ROOT_PATH}}${{ vars.SCRIPT_PATH}} ${{ secrets.DATABASE_URL}} ${{ secrets.BOT_TOKEN}}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -24,7 +24,7 @@ jobs:
         run: make build
 
       - name: Push an image
-        run: docker push andreyad/helsinki-guide
+        run: docker push ${{ vars.DOCKERHUB_USERNAME }}/helsinki-guide
 
       - name: Add an SSH key
         run: touch ~/.ssh/env_key && echo '${{ secrets.KEY}}' > ~/.ssh/env_key && chmod 600 ~/.ssh/env_key
