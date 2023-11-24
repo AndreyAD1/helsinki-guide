@@ -4,9 +4,10 @@ set -xue
 
 database_url=$1
 bot_token=$2
+tag=$3
 
 container_name=helsinki-guide
-image_name=andreyad/helsinki-guide
+image_name=andreyad/helsinki-guide:$tag
 
 running_container=$(docker ps --all --filter name=$container_name -q)
 if [ -n "$running_container" ]

@@ -8,9 +8,6 @@ test_integration:
 
 test: test_unit test_integration
 
-build:
-	docker build --tag andreyad/helsinki-guide:latest .
-
 migrate:
 	migrate -database "${DatabaseURL}" -path internal/infrastructure/migrations up
 
@@ -27,4 +24,4 @@ run:
 
 .NOTPARALLEL:
 
-.PHONY: test_unit test_integration test build migrate run
+.PHONY: all test_unit test_integration test migrate run
