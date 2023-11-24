@@ -8,8 +8,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     environment: production
-    env:
-      RUN_COMMAND: ${{ secrets.ROOT_PATH}}${{ vars.SCRIPT_PATH}} '${{ secrets.DATABASE_URL}}' '${{ secrets.BOT_TOKEN}}' '${{ github.sha}}'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -33,4 +31,6 @@ jobs:
         run: scp -o StrictHostKeyChecking=no -i ~/env_key ./deployments${{ vars.SCRIPT_PATH}} ${{ secrets.USER}}@${{ secrets.HOST}}:${{ secrets.ROOT_PATH}}
 
       - name: Run the service
+        env:
+          RUN_COMMAND: ${{ secrets.ROOT_PATH}}${{ vars.SCRIPT_PATH}} '${{ secrets.DATABASE_URL}}' '${{ secrets.BOT_TOKEN}}' '${{ github.sha}}'
         run: ssh -o StrictHostKeyChecking=no -i ~/env_key ${{ secrets.USER}}@${{ secrets.HOST}} "source $RUN_COMMAND"
