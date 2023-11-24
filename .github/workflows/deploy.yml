@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     env:
-      RUN_COMMAND: ${{ secrets.ROOT_PATH}}${{ vars.SCRIPT_PATH}} ${{ secrets.DATABASE_URL}} ${{ secrets.BOT_TOKEN}} ${{ github.sha}}
+      RUN_COMMAND: ${{ secrets.ROOT_PATH}}${{ vars.SCRIPT_PATH}} '${{ secrets.DATABASE_URL}}' '${{ secrets.BOT_TOKEN}}' '${{ github.sha}}'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
