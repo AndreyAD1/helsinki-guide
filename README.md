@@ -18,30 +18,29 @@ The project relies on [a dataset provided by the Helsinki City Museum](https://h
 5. ...
 
 ## Getting Started
-- Get your bot API key from [@BotFather](https://t.me/BotFather) - `BotAPIKey`.
-- Create a new PostgreSQL database, get a `DatabaseURL`.
+- Get your bot API key from [@BotFather](https://t.me/BotFather) - `BOT_TOKEN`.
+- Create a new PostgreSQL database, get a `DATABASE_URL`.
 - Populate the database with data (see ["Prepare data"](#prepare-data) for details).
 - Install [Docker](https://docs.docker.com/engine/).
 - Build a bot container: 
 ```shell
-make build
+make USER=<dockerhub_username> TAG=anynewtag build
 ```
-- Set `BotAPIKey` and `DatabaseURL` as environment variables.
 - Apply database migrations:
 ```shell
-make migrate
+DATABASE_URL=<DATABASE_URL> make migrate
 ```
 - Run the bot:
 ```shell
-make run
+BOT_TOKEN=<BOT_TOKEN> DATABASE_URL=<DATABASE_URL> make run
 ```
 
 ## Development
 ### Prerequisites
 - Go v.1.21 or higher should be already installed.
-- A bot API token provided by [@BotFather](https://t.me/BotFather).
+- A bot API token `BOT_TOKEN` provided by [@BotFather](https://t.me/BotFather).
 - [Docker](https://docs.docker.com/engine/) should be already installed.
-- An environment variable `DatabaseURL` to connect to an empty PostgreSQL database.
+- An environment variable `DATABASE_URL` to connect to an empty PostgreSQL database.
 - A subscription to [the Google Translate API](https://rapidapi.com/googlecloud/api/google-translate1/) 
 is required to automatically translate the source dataset into other languages.
 
@@ -53,14 +52,14 @@ go mod tidy
 
 Apply database migrations:
 ```shell
-make migrate
+DATABASE_URL=<DATABASE_URL> make migrate
 ```
 
 ### Start
 
 Run the bot:
 ```shell
-go run main.go
+DATABASE_URL=<DATABASE_URL> go run main.go bot --token <BOT_TOKEN>
 ```
 
 Get more information about available commands and options:

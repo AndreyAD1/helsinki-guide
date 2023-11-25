@@ -109,6 +109,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestDBInteractions(t *testing.T) {
+	log.Println("run DB tests")
 	migrationPath := filepath.Join(
 		"..",
 		"internal",
