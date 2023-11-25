@@ -1,12 +1,12 @@
 package configuration
 
 type StartupConfig struct {
-	BotAPIToken     string `env:"BotAPIToken,required,notEmpty"`
-	DatabaseURL     string `env:"DatabaseURL,required,notEmpty"`
-	Debug           bool   `env:"Debug"`
+	BotAPIToken     string `env:"BOT_TOKEN,required,notEmpty"`
+	DatabaseURL     string `env:"DATABASE_URL,required,notEmpty"`
+	Debug           bool   `env:"DEBUG"`
 	TGUpdateTimeout int    `env:"UpdateTimeout" envDefault:"60"`
 }
 
 type PopulatorConfig struct {
-	DatabaseURL string `env:"DatabaseURL,required,notEmpty"`
+	DatabaseURL string `env:"DATABASE_URL,required,notEmpty"`
 }

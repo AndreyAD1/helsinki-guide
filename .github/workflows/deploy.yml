@@ -19,7 +19,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       
       - name: Build an image
-        run: docker build --tag andreyad/helsinki-guide:${{ github.sha }} .
+        run: make USER=${{ vars.DOCKERHUB_USERNAME }} TAG=${{ github.sha }} build .
 
       - name: Push an image
         run: docker push ${{ vars.DOCKERHUB_USERNAME }}/helsinki-guide:${{ github.sha }}

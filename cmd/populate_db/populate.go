@@ -18,7 +18,7 @@ var (
 	PopulateCmd = &cobra.Command{
 		Use:   "populate <finnish-file> <english-file> <russian-file>",
 		Short: "Populate a database",
-		Long:  "This command transfers data from xlsx files to a database",
+		Long:  "This BotAPIToken transfers data from xlsx files to a database",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return run(args[0], args[1], args[2])
@@ -32,7 +32,7 @@ func init() {
 		"dburl",
 		"u",
 		"",
-		"A database URL. You can also use an environment variable 'DatabaseURL'.",
+		"A database URL. You can also use an environment variable 'DATABASE_URL'.",
 	)
 	PopulateCmd.Flags().StringVarP(
 		&sheetName,
@@ -46,7 +46,7 @@ func init() {
 
 func run(finFile, enFilename, ruFilename string) error {
 	if dbURL != "" {
-		os.Setenv("DatabaseURL", dbURL)
+		os.Setenv("DATABASE_URL", dbURL)
 	}
 	config := configuration.PopulatorConfig{}
 	err := env.Parse(&config)

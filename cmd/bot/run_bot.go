@@ -48,10 +48,10 @@ func run() error {
 	slog.SetDefault(logger)
 
 	if global_flags.Debug {
-		os.Setenv("Debug", "true")
+		os.Setenv("DEBUG", "true")
 	}
 	if botToken != "" {
-		os.Setenv("BotAPIToken", botToken)
+		os.Setenv("BOT_TOKEN", botToken)
 	}
 
 	config := configuration.StartupConfig{}

@@ -19,8 +19,8 @@ fi
 docker pull $image_name
 docker run \
 --env Debug=1 \
---env DatabaseURL=$database_url \
---env BotAPIToken=$bot_token \
+--env DATABASE_URL=$database_url \
+--env BOT_TOKEN=$bot_token \
 --network host \
 --log-opt tag=hguide \
 --name $container_name \
