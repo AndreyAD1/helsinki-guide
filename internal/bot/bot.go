@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"log/slog"
+	"net/http"
 	"os"
 	"os/signal"
 	"sync"
@@ -80,33 +80,41 @@ func (s *Server) Shutdown(timeout time.Duration) {
 }
 
 func (s *Server) RunBot(ctx context.Context) error {
+	ctx, cancelCtx := context.WithCancel(ctx)
+	idleConnectionsClosed := make(chan struct{})
+
+	var metricsServer http.Server
+
+	go func() {
+		signalCh := make(chan os.Signal, 4)
+		signal.Notify(signalCh, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
+		sig := <-signalCh
+		slog.InfoContext(ctx, fmt.Sprintf("receive an OS signal '%v'", sig))
+
+		shutdownCtx, shutdownCtxCancel := context.WithTimeout(ctx, 5 * time.Second)
+		defer shutdownCtxCancel()
+		if err := metricsServer.Shutdown(shutdownCtx); err != nil {
+			slog.ErrorContext(ctx, "a metrics shutdown error", slog.Any(logger.ErrorKey, err))
+		}
+		close(idleConnectionsClosed)
+		cancelCtx()
+	}()
+
 	if err := s.setBotCommands(ctx); err != nil {
 		return fmt.Errorf("can not set bot commands: %w", err)
 	}
 
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = s.tgUpdateTimeout
-
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
 	updates := s.bot.GetUpdatesChan(u)
-
-	signalCh := make(chan os.Signal, 4)
-	signal.Notify(signalCh, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
-
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go s.receiveUpdates(ctx, updates, &wg)
-	log.Println("Start listening for updates")
+	slog.DebugContext(ctx, "start to listen for updates")
 
-	select {
-	case sig := <-signalCh:
-		slog.DebugContext(ctx, fmt.Sprintf("receive an OS signal '%v'", sig))
-	case <-ctx.Done():
-	}
-	cancel()
+	<-idleConnectionsClosed
 	wg.Wait()
-	slog.DebugContext(ctx, "stopped listening updates")
+	slog.DebugContext(ctx, "stopped listening for updates")
 	return nil
 }
 
