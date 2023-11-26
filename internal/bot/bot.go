@@ -19,6 +19,7 @@ import (
 	"github.com/AndreyAD1/helsinki-guide/internal/logger"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type Server struct {
@@ -26,6 +27,7 @@ type Server struct {
 	handlers        handlers.HandlerContainer
 	shutdownFuncs   []func()
 	tgUpdateTimeout int
+	httpServer      *http.Server
 }
 
 func NewServer(ctx context.Context, config configuration.StartupConfig) (*Server, error) {
@@ -54,11 +56,17 @@ func NewServer(ctx context.Context, config configuration.StartupConfig) (*Server
 	actorRepo := repositories.NewActorRepo(dbpool)
 	buildingService := services.NewBuildingService(buildingRepo, actorRepo)
 	handlerContainer := handlers.NewCommandContainer(bot, buildingService)
+
+	srvMux := http.NewServeMux()
+	srvMux.Handle("/metrics", promhttp.Handler())
+	httpServer := http.Server{Addr: ":2112", Handler: srvMux}
+
 	server := Server{
 		bot,
 		handlerContainer,
 		[]func(){dbpool.Close},
 		config.TGUpdateTimeout,
+		&httpServer,
 	}
 	return &server, nil
 }
@@ -83,20 +91,29 @@ func (s *Server) RunBot(ctx context.Context) error {
 	ctx, cancelCtx := context.WithCancel(ctx)
 	idleConnectionsClosed := make(chan struct{})
 
-	var metricsServer http.Server
-
 	go func() {
 		signalCh := make(chan os.Signal, 4)
 		signal.Notify(signalCh, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
-		sig := <-signalCh
-		slog.InfoContext(ctx, fmt.Sprintf("receive an OS signal '%v'", sig))
+		select {
+		case sig := <-signalCh:
+			slog.InfoContext(ctx, fmt.Sprintf("receive an OS signal '%v'", sig))
+		case <-ctx.Done():
+			slog.InfoContext(ctx, fmt.Sprintf("start shutdown because of context"))
+		}
 
-		shutdownCtx, shutdownCtxCancel := context.WithTimeout(ctx, 5 * time.Second)
+		shutdownCtx, shutdownCtxCancel := context.WithTimeout(ctx, 5*time.Second)
 		defer shutdownCtxCancel()
-		if err := metricsServer.Shutdown(shutdownCtx); err != nil {
+		if err := s.httpServer.Shutdown(shutdownCtx); err != nil {
 			slog.ErrorContext(ctx, "a metrics shutdown error", slog.Any(logger.ErrorKey, err))
 		}
 		close(idleConnectionsClosed)
+		cancelCtx()
+	}()
+
+	go func() {
+		if err := s.httpServer.ListenAndServe(); err != http.ErrServerClosed {
+			slog.ErrorContext(ctx, "can not start a server", slog.Any(logger.ErrorKey, err))
+		}
 		cancelCtx()
 	}()
 
