@@ -127,11 +127,11 @@ func (s *Server) RunBot(ctx context.Context) error {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go s.receiveUpdates(ctx, updates, &wg)
-	slog.DebugContext(ctx, "start to listen for updates")
+	slog.InfoContext(ctx, "start to listen for updates")
 
 	<-idleConnectionsClosed
 	wg.Wait()
-	slog.DebugContext(ctx, "stopped listening for updates")
+	slog.InfoContext(ctx, "stopped listening for updates")
 	return nil
 }
 
