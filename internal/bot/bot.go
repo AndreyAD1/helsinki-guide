@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"log/slog"
 	"net/http"
 	"os"
@@ -17,8 +18,11 @@ import (
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/services"
 	"github.com/AndreyAD1/helsinki-guide/internal/infrastructure/repositories"
 	"github.com/AndreyAD1/helsinki-guide/internal/logger"
+	"github.com/AndreyAD1/helsinki-guide/internal/metrics"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
@@ -28,6 +32,7 @@ type Server struct {
 	shutdownFuncs   []func()
 	tgUpdateTimeout int
 	httpServer      *http.Server
+	metrics         *metrics.Metrics
 }
 
 func NewServer(ctx context.Context, config configuration.StartupConfig) (*Server, error) {
@@ -57,8 +62,19 @@ func NewServer(ctx context.Context, config configuration.StartupConfig) (*Server
 	buildingService := services.NewBuildingService(buildingRepo, actorRepo)
 	handlerContainer := handlers.NewCommandContainer(bot, buildingService)
 
+	registry := prometheus.NewRegistry()
+	registry.MustRegister(
+		collectors.NewGoCollector(),
+		collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}),
+	)
+	registeredMetrics := metrics.NewMetrics(registry)
+	prometheusHandler := promhttp.HandlerFor(
+		registry,
+		promhttp.HandlerOpts{ErrorLog: log.Default()},
+	)
+
 	srvMux := http.NewServeMux()
-	srvMux.Handle("/metrics", promhttp.Handler())
+	srvMux.Handle("/metrics", prometheusHandler)
 	httpServer := http.Server{Addr: ":2112", Handler: srvMux}
 
 	server := Server{
@@ -67,6 +83,7 @@ func NewServer(ctx context.Context, config configuration.StartupConfig) (*Server
 		[]func(){dbpool.Close},
 		config.TGUpdateTimeout,
 		&httpServer,
+		registeredMetrics,
 	}
 	return &server, nil
 }
@@ -126,7 +143,7 @@ func (s *Server) RunBot(ctx context.Context) error {
 	updates := s.bot.GetUpdatesChan(u)
 	var wg sync.WaitGroup
 	wg.Add(1)
-	go s.receiveUpdates(ctx, updates, &wg)
+	go s.receiveUpdates(ctx, updates, &wg, s.metrics)
 	slog.InfoContext(ctx, "start to listen for updates")
 
 	<-idleConnectionsClosed
@@ -178,6 +195,7 @@ func (s *Server) receiveUpdates(
 	ctx context.Context,
 	updates tgbotapi.UpdatesChannel,
 	wg *sync.WaitGroup,
+	prometheusMetrics *metrics.Metrics,
 ) {
 	defer wg.Done()
 	for {
@@ -185,6 +203,7 @@ func (s *Server) receiveUpdates(
 		case <-ctx.Done():
 			return
 		case update := <-updates:
+			prometheusMetrics.ChatUpdates.Inc()
 			s.handleUpdate(ctx, update)
 		}
 	}
