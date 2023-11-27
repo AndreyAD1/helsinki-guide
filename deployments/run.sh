@@ -18,7 +18,7 @@ fi
 
 docker pull $image_name
 docker run \
---env Debug=1 \
+--env DEBUG=1 \
 --env DATABASE_URL=$database_url \
 --env BOT_TOKEN=$bot_token \
 --network host \
