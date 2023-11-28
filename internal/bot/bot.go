@@ -82,7 +82,7 @@ func NewServer(ctx context.Context, config configuration.StartupConfig) (*Server
 	srvMux := http.NewServeMux()
 	srvMux.Handle("/metrics", authMetricsHandler)
 	httpServer := http.Server{
-		Addr: ":" + strconv.Itoa(config.MetricsPort), 
+		Addr:    ":" + strconv.Itoa(config.MetricsPort),
 		Handler: srvMux,
 	}
 
