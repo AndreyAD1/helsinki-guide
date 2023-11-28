@@ -9,12 +9,14 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"sync"
 	"syscall"
 	"time"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/configuration"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/handlers"
+	"github.com/AndreyAD1/helsinki-guide/internal/bot/middlewares"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/services"
 	"github.com/AndreyAD1/helsinki-guide/internal/infrastructure/repositories"
 	"github.com/AndreyAD1/helsinki-guide/internal/logger"
@@ -64,7 +66,6 @@ func NewServer(ctx context.Context, config configuration.StartupConfig) (*Server
 
 	registry := prometheus.NewRegistry()
 	registry.MustRegister(
-		collectors.NewGoCollector(),
 		collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}),
 	)
 	registeredMetrics := metrics.NewMetrics(registry)
@@ -72,10 +73,18 @@ func NewServer(ctx context.Context, config configuration.StartupConfig) (*Server
 		registry,
 		promhttp.HandlerOpts{ErrorLog: log.Default()},
 	)
+	authMetricsHandler := middlewares.GetBasicAuthHandler(
+		prometheusHandler,
+		config.MetricsUser,
+		config.MetricsPassword,
+	)
 
 	srvMux := http.NewServeMux()
-	srvMux.Handle("/metrics", prometheusHandler)
-	httpServer := http.Server{Addr: ":2112", Handler: srvMux}
+	srvMux.Handle("/metrics", authMetricsHandler)
+	httpServer := http.Server{
+		Addr: ":" + strconv.Itoa(config.MetricsPort), 
+		Handler: srvMux,
+	}
 
 	server := Server{
 		bot,
