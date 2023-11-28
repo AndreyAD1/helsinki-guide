@@ -66,6 +66,7 @@ func NewServer(ctx context.Context, config configuration.StartupConfig) (*Server
 
 	registry := prometheus.NewRegistry()
 	registry.MustRegister(
+		collectors.NewGoCollector(),
 		collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}),
 	)
 	registeredMetrics := metrics.NewMetrics(registry)
