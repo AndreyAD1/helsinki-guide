@@ -53,9 +53,19 @@ func NewCommandContainer(
 	}
 }
 
-func (h HandlerContainer) GetHandler(command string) (CommandHandler, bool) {
+func (h HandlerContainer) GetCommandHandler(command string) (func(c.Context, *tgbotapi.Message), bool) {
 	handler, ok := h.HandlersPerCommand[command]
-	return handler, ok
+	if !ok {
+		return nil, false
+	}
+	metricWrapper := func(ctx c.Context, message *tgbotapi.Message) {
+		now := time.Now()
+		handler.Function(h, ctx, message)
+		h.metrics.CommandDuration.With(
+			prometheus.Labels{"command_name": command},
+		).Observe(time.Since(now).Seconds())
+	}
+	return metricWrapper, ok
 }
 
 func (h HandlerContainer) GetButtonHandler(buttonName string) (ButtonHandler, bool) {

@@ -62,7 +62,7 @@ func NewServer(ctx context.Context, config configuration.StartupConfig) (*Server
 	buildingRepo := repositories.NewBuildingRepo(dbpool)
 	actorRepo := repositories.NewActorRepo(dbpool)
 	buildingService := services.NewBuildingService(buildingRepo, actorRepo)
-	
+
 	registry := prom.NewRegistry()
 	registry.MustRegister(
 		collectors.NewGoCollector(),
@@ -87,8 +87,8 @@ func NewServer(ctx context.Context, config configuration.StartupConfig) (*Server
 	}
 
 	handlerContainer := handlers.NewCommandContainer(
-		bot, 
-		buildingService, 
+		bot,
+		buildingService,
 		registeredMetrics,
 	)
 	server := Server{
@@ -237,7 +237,7 @@ func (s *Server) handleMessage(ctx context.Context, message *tgbotapi.Message) {
 		s.metrics.UnexpectedUpdates.With(prom.Labels{"error": "no user"}).Inc()
 		return
 	}
-	handler, ok := s.handlers.GetHandler(message.Command())
+	handler, ok := s.handlers.GetCommandHandler(message.Command())
 	slog.DebugContext(ctx, "handle a command", slog.String("command", message.Command()))
 
 	if !ok {
@@ -257,7 +257,7 @@ func (s *Server) handleMessage(ctx context.Context, message *tgbotapi.Message) {
 		s.metrics.UnexpectedUpdates.With(prom.Labels{"error": "unexpected command"}).Inc()
 		return
 	}
-	handler.Function(s.handlers, ctx, message)
+	handler(ctx, message)
 }
 
 func (s *Server) handleButton(ctx context.Context, query *tgbotapi.CallbackQuery) {
