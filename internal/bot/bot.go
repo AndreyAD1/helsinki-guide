@@ -62,8 +62,7 @@ func NewServer(ctx context.Context, config configuration.StartupConfig) (*Server
 	buildingRepo := repositories.NewBuildingRepo(dbpool)
 	actorRepo := repositories.NewActorRepo(dbpool)
 	buildingService := services.NewBuildingService(buildingRepo, actorRepo)
-	handlerContainer := handlers.NewCommandContainer(bot, buildingService)
-
+	
 	registry := prom.NewRegistry()
 	registry.MustRegister(
 		collectors.NewGoCollector(),
@@ -87,6 +86,11 @@ func NewServer(ctx context.Context, config configuration.StartupConfig) (*Server
 		Handler: srvMux,
 	}
 
+	handlerContainer := handlers.NewCommandContainer(
+		bot, 
+		buildingService, 
+		registeredMetrics,
+	)
 	server := Server{
 		bot,
 		handlerContainer,
@@ -283,5 +287,5 @@ func (s *Server) handleButton(ctx context.Context, query *tgbotapi.CallbackQuery
 		).Inc()
 		return
 	}
-	handler(s.handlers, ctx, query)
+	handler(ctx, query)
 }

@@ -7,10 +7,13 @@ import (
 	"log/slog"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/services"
 	"github.com/AndreyAD1/helsinki-guide/internal/logger"
+	"github.com/AndreyAD1/helsinki-guide/internal/metrics"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 const (
@@ -22,6 +25,7 @@ const (
 func NewCommandContainer(
 	bot *tgbotapi.BotAPI,
 	service services.BuildingService,
+	metricsContainer *metrics.Metrics,
 ) HandlerContainer {
 	handlersPerCommand := map[string]CommandHandler{
 		"start":     {HandlerContainer.start, "Start the bot"},
@@ -30,7 +34,7 @@ func NewCommandContainer(
 		"addresses": {HandlerContainer.getAllAdresses, "Get all available addresses"},
 		"building":  {HandlerContainer.getBuilding, "Get building by address"},
 	}
-	handlersPerButton := map[string]ButtonHandler{
+	handlersPerButton := map[string]internalButtonHandler{
 		"next": HandlerContainer.next,
 	}
 	availableCommands := []string{}
@@ -45,6 +49,7 @@ func NewCommandContainer(
 		handlersPerCommand,
 		handlersPerButton,
 		commandsForHelp,
+		metricsContainer,
 	}
 }
 
@@ -55,7 +60,17 @@ func (h HandlerContainer) GetHandler(command string) (CommandHandler, bool) {
 
 func (h HandlerContainer) GetButtonHandler(buttonName string) (ButtonHandler, bool) {
 	handler, ok := h.handlersPerButton[buttonName]
-	return handler, ok
+	if !ok {
+		return nil, false
+	}
+	metricWrapper := func(ctx c.Context, query *tgbotapi.CallbackQuery) {
+		now := time.Now()
+		handler(h, ctx, query)
+		h.metrics.ButtonDuration.With(
+			prometheus.Labels{"button_name": buttonName},
+		).Observe(time.Since(now).Seconds())
+	}
+	return metricWrapper, ok
 }
 
 func (h HandlerContainer) SendMessage(ctx c.Context, chatId int64, msgText string) {
