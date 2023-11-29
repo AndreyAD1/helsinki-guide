@@ -23,7 +23,7 @@ import (
 	"github.com/AndreyAD1/helsinki-guide/internal/metrics"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/prometheus/client_golang/prometheus"
+	prom "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -64,7 +64,7 @@ func NewServer(ctx context.Context, config configuration.StartupConfig) (*Server
 	buildingService := services.NewBuildingService(buildingRepo, actorRepo)
 	handlerContainer := handlers.NewCommandContainer(bot, buildingService)
 
-	registry := prometheus.NewRegistry()
+	registry := prom.NewRegistry()
 	registry.MustRegister(
 		collectors.NewGoCollector(),
 		collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}),
@@ -153,7 +153,7 @@ func (s *Server) RunBot(ctx context.Context) error {
 	updates := s.bot.GetUpdatesChan(u)
 	var wg sync.WaitGroup
 	wg.Add(1)
-	go s.receiveUpdates(ctx, updates, &wg, s.metrics)
+	go s.receiveUpdates(ctx, updates, &wg)
 	slog.InfoContext(ctx, "start to listen for updates")
 
 	<-idleConnectionsClosed
@@ -205,7 +205,6 @@ func (s *Server) receiveUpdates(
 	ctx context.Context,
 	updates tgbotapi.UpdatesChannel,
 	wg *sync.WaitGroup,
-	prometheusMetrics *metrics.Metrics,
 ) {
 	defer wg.Done()
 	for {
@@ -213,7 +212,7 @@ func (s *Server) receiveUpdates(
 		case <-ctx.Done():
 			return
 		case update := <-updates:
-			prometheusMetrics.ChatUpdates.Inc()
+			s.metrics.ChatUpdates.Inc()
 			s.handleUpdate(ctx, update)
 		}
 	}
@@ -230,11 +229,13 @@ func (s *Server) handleUpdate(ctx context.Context, update tgbotapi.Update) {
 
 func (s *Server) handleMessage(ctx context.Context, message *tgbotapi.Message) {
 	user := message.From
-	handler, ok := s.handlers.GetHandler(message.Command())
-	slog.DebugContext(ctx, "handle a command", slog.String("command", message.Command()))
 	if user == nil {
+		s.metrics.UnexpectedUpdates.With(prom.Labels{"error": "no user"}).Inc()
 		return
 	}
+	handler, ok := s.handlers.GetHandler(message.Command())
+	slog.DebugContext(ctx, "handle a command", slog.String("command", message.Command()))
+
 	if !ok {
 		answer := fmt.Sprintf(
 			"Unfortunately, I don't understand this message: %s",
@@ -249,6 +250,7 @@ func (s *Server) handleMessage(ctx context.Context, message *tgbotapi.Message) {
 			)
 			slog.WarnContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
 		}
+		s.metrics.UnexpectedUpdates.With(prom.Labels{"error": "unexpected command"}).Inc()
 		return
 	}
 	handler.Function(s.handlers, ctx, message)
@@ -262,6 +264,9 @@ func (s *Server) handleButton(ctx context.Context, query *tgbotapi.CallbackQuery
 			fmt.Sprintf("unexpected callback data %v", query),
 			slog.Any(logger.ErrorKey, err),
 		)
+		s.metrics.UnexpectedUpdates.With(
+			prom.Labels{"error": "unexpected callback data"},
+		).Inc()
 		return
 	}
 	handler, ok := s.handlers.GetButtonHandler(queryData.Name)
@@ -273,6 +278,9 @@ func (s *Server) handleButton(ctx context.Context, query *tgbotapi.CallbackQuery
 			query.Message.MessageID,
 		)
 		slog.WarnContext(ctx, logMsg)
+		s.metrics.UnexpectedUpdates.With(
+			prom.Labels{"error": "unexpected button name"},
+		).Inc()
 		return
 	}
 	handler(s.handlers, ctx, query)
