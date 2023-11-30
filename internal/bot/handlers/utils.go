@@ -6,18 +6,25 @@ import (
 	"strings"
 )
 
-var tagPerLanguage = map[string]string{
-	"fi": "nameFi",
-	"en": "nameEn",
-	"ru": "nameRu",
+type outputLanguage string
+var (
+	Finnish = outputLanguage("fi")
+	English = outputLanguage("en")
+	Russian = outputLanguage("ru")
+)
+
+var tagPerLanguage = map[outputLanguage]string{
+	Finnish: "nameFi",
+	English: "nameEn",
+	Russian: "nameRu",
 }
-var noDataPerLanguages = map[string]string{
-	"fi": "no data",
-	"en": "no data",
-	"ru": "нет данных",
+var noDataPerLanguages = map[outputLanguage]string{
+	Finnish: "no data",
+	English: "no data",
+	Russian: "нет данных",
 }
 
-func SerializeIntoMessage(object any, outputLanguage string) (string, error) {
+func SerializeIntoMessage(object any, outputLanguage outputLanguage) (string, error) {
 	objectValue := reflect.ValueOf(object)
 	if objectValue.Kind() != reflect.Struct {
 		return "", fmt.Errorf("not a structure: %v", object)
@@ -30,7 +37,7 @@ func SerializeIntoMessage(object any, outputLanguage string) (string, error) {
 		if !ok {
 			return "", fmt.Errorf("no language tag in a field '%s'", field.Name)
 		}
-		if valueLanguage != outputLanguage && valueLanguage != "all" {
+		if valueLanguage != string(outputLanguage) && valueLanguage != "all" {
 			continue
 		}
 		featureName, ok := field.Tag.Lookup(tagPerLanguage[outputLanguage])

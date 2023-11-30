@@ -207,9 +207,14 @@ func (h HandlerContainer) getBuilding(ctx c.Context, message *tgbotapi.Message) 
 		h.SendMessage(ctx, message.Chat.ID, "Internal error.")
 		return
 	}
-	userLanguage := "en"
+	userLanguage := English
 	if user := message.From; user != nil {
-		userLanguage = user.LanguageCode
+		switch user.LanguageCode {
+		case "fi":
+			userLanguage = Finnish
+		case "ru":
+			userLanguage = Russian
+		}
 	}
 	items := make([]string, len(buildings))
 	for i, building := range buildings {
