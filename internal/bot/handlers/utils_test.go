@@ -102,6 +102,9 @@ func TestSerializeIntoMessage_negative(t *testing.T) {
 	type testTypeStruct struct {
 		field1 rune `valueLanguage:"all" nameEn:"field1"`
 	}
+	type testPointerTypeStruct struct {
+		field1 *rune `valueLanguage:"all" nameEn:"field1"`
+	}
 	type args struct {
 		object         any
 		outputLanguage outputLanguage
@@ -127,8 +130,13 @@ func TestSerializeIntoMessage_negative(t *testing.T) {
 			ErrNoNameTag,
 		},
 		{
-			"a structure with unexpected field tag",
+			"a structure with unexpected field type",
 			args{testTypeStruct{'A'}, English},
+			ErrUnexpectedFieldType,
+		},
+		{
+			"a structure with unexpected pointer field type",
+			args{testPointerTypeStruct{utils.GetPointer('T')}, English},
 			ErrUnexpectedFieldType,
 		},
 	}
