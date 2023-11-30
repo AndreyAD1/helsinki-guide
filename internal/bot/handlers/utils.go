@@ -86,6 +86,12 @@ func SerializeIntoMessage(object any, outputLanguage outputLanguage) (string, er
 						items = append(items, pointerValue.Index(i).String())
 					}
 					featureValue = strings.Join(items, ", ")
+				default:
+					return "", fmt.Errorf(
+						"unexpected type of the field '%s': %w", 
+						field.Name, 
+						ErrUnexpectedFieldType,
+					)
 				}
 			}
 		default:
