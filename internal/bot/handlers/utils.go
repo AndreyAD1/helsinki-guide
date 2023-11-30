@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -23,11 +24,15 @@ var noDataPerLanguages = map[outputLanguage]string{
 	English: "no data",
 	Russian: "нет данных",
 }
+var ErrUnexpectedType error = errors.New("unexpected input type")
+var ErrUnexpectedFieldType error = errors.New("unexpected field type")
+var ErrNoFieldTag error = errors.New("no expected field tag")
+var ErrNoNameTag error = errors.New("no name tag")
 
 func SerializeIntoMessage(object any, outputLanguage outputLanguage) (string, error) {
 	objectValue := reflect.ValueOf(object)
 	if objectValue.Kind() != reflect.Struct {
-		return "", fmt.Errorf("not a structure: %v", object)
+		return "", fmt.Errorf("not a structure: %v: %w", object, ErrUnexpectedType)
 	}
 
 	var result []string
@@ -35,14 +40,22 @@ func SerializeIntoMessage(object any, outputLanguage outputLanguage) (string, er
 	for _, field := range reflect.VisibleFields(t) {
 		valueLanguage, ok := field.Tag.Lookup("valueLanguage")
 		if !ok {
-			return "", fmt.Errorf("no language tag in a field '%s'", field.Name)
+			return "", fmt.Errorf(
+				"no language tag for the field '%s': %w", 
+				field.Name, 
+				ErrNoFieldTag,
+			)
 		}
 		if valueLanguage != string(outputLanguage) && valueLanguage != "all" {
 			continue
 		}
 		featureName, ok := field.Tag.Lookup(tagPerLanguage[outputLanguage])
 		if !ok {
-			return "", fmt.Errorf("no name tag in a field '%s'", field.Name)
+			return "", fmt.Errorf(
+				"no name tag for the field '%s': %w", 
+				field.Name, 
+				ErrNoNameTag,
+			)
 		}
 		fieldValue := objectValue.FieldByIndex(field.Index)
 		var featureValue string
@@ -76,7 +89,11 @@ func SerializeIntoMessage(object any, outputLanguage outputLanguage) (string, er
 				}
 			}
 		default:
-			return "", fmt.Errorf("unexpected type of the field %s", field.Name)
+			return "", fmt.Errorf(
+				"unexpected type of the field '%s': %w", 
+				field.Name, 
+				ErrUnexpectedFieldType,
+			)
 		}
 		cleanName := strings.ReplaceAll(featureName, "_", " ")
 		result = append(result, fmt.Sprintf("%s: %s", cleanName, featureValue))
