@@ -25,3 +25,48 @@ Rakennushistoria: no data`,
 	require.NoError(t, err)
 	require.Equal(t, expectedResult, result)
 }
+
+func TestSerializeIntoMessage(t *testing.T) {
+	type args struct {
+		object         any
+		outputLanguage outputLanguage
+	}
+	tests := []struct {
+		name    string
+		args    args
+		expected    string
+		expectedErr bool
+	}{
+		{
+			"dummy en",
+			args{services.BuildingDTO{Address: "osoite"}, Finnish},
+			`Nimi: no data
+Katuosoite: osoite
+Käyttöönottovuosi: no data
+Suunnittelijat: no data
+Rakennushistoria: no data`,
+			false,
+		},
+		{
+			"dummy en",
+			args{services.BuildingDTO{Address: "osoite"}, English},
+			`Name: no data
+Address: osoite
+Completion year: no data
+Authors: no data
+Building history: no data`,
+			false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := SerializeIntoMessage(tt.args.object, tt.args.outputLanguage)
+			if tt.expectedErr {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, tt.expected, got)
+		})
+	}
+}
