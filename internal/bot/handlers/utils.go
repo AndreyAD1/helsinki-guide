@@ -8,6 +8,7 @@ import (
 )
 
 type outputLanguage string
+
 var (
 	Finnish = outputLanguage("fi")
 	English = outputLanguage("en")
@@ -41,8 +42,8 @@ func SerializeIntoMessage(object any, outputLanguage outputLanguage) (string, er
 		valueLanguage, ok := field.Tag.Lookup("valueLanguage")
 		if !ok {
 			return "", fmt.Errorf(
-				"no language tag for the field '%s': %w", 
-				field.Name, 
+				"no language tag for the field '%s': %w",
+				field.Name,
 				ErrNoFieldTag,
 			)
 		}
@@ -52,8 +53,8 @@ func SerializeIntoMessage(object any, outputLanguage outputLanguage) (string, er
 		featureName, ok := field.Tag.Lookup(tagPerLanguage[outputLanguage])
 		if !ok {
 			return "", fmt.Errorf(
-				"no name tag for the field '%s': %w", 
-				field.Name, 
+				"no name tag for the field '%s': %w",
+				field.Name,
 				ErrNoNameTag,
 			)
 		}
@@ -88,16 +89,16 @@ func SerializeIntoMessage(object any, outputLanguage outputLanguage) (string, er
 					featureValue = strings.Join(items, ", ")
 				default:
 					return "", fmt.Errorf(
-						"unexpected type of the field '%s': %w", 
-						field.Name, 
+						"unexpected type of the field '%s': %w",
+						field.Name,
 						ErrUnexpectedFieldType,
 					)
 				}
 			}
 		default:
 			return "", fmt.Errorf(
-				"unexpected type of the field '%s': %w", 
-				field.Name, 
+				"unexpected type of the field '%s': %w",
+				field.Name,
 				ErrUnexpectedFieldType,
 			)
 		}
