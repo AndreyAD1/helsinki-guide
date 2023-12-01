@@ -25,17 +25,17 @@ func NewMetrics(registerer prometheus.Registerer) *Metrics {
 			Namespace: "helsinki_guide",
 			Name:      "command_duration",
 			Help:      "Duration of the command processing.",
-			Buckets: []float64{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1},
+			Buckets:   []float64{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1},
 		}, []string{"command_name"}),
 		prometheus.NewHistogramVec(prometheus.HistogramOpts{
 			Namespace: "helsinki_guide",
 			Name:      "button_duration",
 			Help:      "Duration of the button processing.",
-			Buckets: []float64{0.1, 0.3, 0.5, 0.6, 0.7, 0.8, 0.9, 1},
+			Buckets:   []float64{0.1, 0.3, 0.5, 0.6, 0.7, 0.8, 0.9, 1},
 		}, []string{"button_name"}),
 	}
 	registerer.MustRegister(
-		metrics.ChatUpdates, 
+		metrics.ChatUpdates,
 		metrics.UnexpectedUpdates,
 		metrics.CommandDuration,
 		metrics.ButtonDuration,

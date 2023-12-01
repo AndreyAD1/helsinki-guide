@@ -9,15 +9,15 @@ import (
 )
 
 var extendedBuilding = services.BuildingDTO{
-	NameFi: utils.GetPointer("name fi"),
-	NameEn: utils.GetPointer("name en"),
-	NameRu: utils.GetPointer("name ru"),
-	Address: "test address",
+	NameFi:         utils.GetPointer("name fi"),
+	NameEn:         utils.GetPointer("name en"),
+	NameRu:         utils.GetPointer("name ru"),
+	Address:        "test address",
 	CompletionYear: utils.GetPointer(2023),
-	Authors: &[]string{"Author 1", "Author2"},
-	HistoryFi: utils.GetPointer("history fi"),
-	HistoryEn: utils.GetPointer("history en"),
-	HistoryRu: utils.GetPointer("history ru"),
+	Authors:        &[]string{"Author 1", "Author2"},
+	HistoryFi:      utils.GetPointer("history fi"),
+	HistoryEn:      utils.GetPointer("history en"),
+	HistoryRu:      utils.GetPointer("history ru"),
 }
 
 func TestSerializeIntoMessage_positive(t *testing.T) {
@@ -27,9 +27,9 @@ func TestSerializeIntoMessage_positive(t *testing.T) {
 		outputLanguage outputLanguage
 	}
 	tests := []struct {
-		name    string
-		args    args
-		expected    string
+		name     string
+		args     args
+		expected string
 	}{
 		{
 			"dummy fi",
@@ -110,9 +110,9 @@ func TestSerializeIntoMessage_negative(t *testing.T) {
 		outputLanguage outputLanguage
 	}
 	tests := []struct {
-		name    string
-		args    args
-		expectedError    error
+		name          string
+		args          args
+		expectedError error
 	}{
 		{
 			"not a structure",
@@ -130,12 +130,12 @@ func TestSerializeIntoMessage_negative(t *testing.T) {
 			ErrNoNameTag,
 		},
 		{
-			"a structure with unexpected field type",
+			"a structure with an unexpected field type",
 			args{testTypeStruct{'A'}, English},
 			ErrUnexpectedFieldType,
 		},
 		{
-			"a structure with unexpected pointer field type",
+			"a structure with an unexpected pointer field type",
 			args{testPointerTypeStruct{utils.GetPointer('T')}, English},
 			ErrUnexpectedFieldType,
 		},
