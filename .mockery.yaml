@@ -1,6 +1,5 @@
 with-expecter: true
 inpackage: true
-# dir: "{{.PackagePath}}"
 mockname: "{{.InterfaceName}}_mock"
 recursive: true
 packages:

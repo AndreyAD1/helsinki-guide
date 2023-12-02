@@ -2,12 +2,13 @@ package services
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"testing"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories"
 	spec "github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/specifications"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/types"
+	"github.com/AndreyAD1/helsinki-guide/internal/utils"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -61,8 +62,47 @@ func TestBuildingService_GetBuildingPreviews(t *testing.T) {
 			},
 			args{},
 			[]types.Building{},
-			fmt.Errorf("test error"),
+			errors.New("test error"),
 			[]BuildingPreview{},
+		},
+		{
+			"one preview",
+			fields{
+				repositories.NewBuildingRepository_mock(t),
+				repositories.NewActorRepository_mock(t),
+			},
+			args{context.Background(), "test", 5, 10},
+			[]types.Building{
+				{
+					NameFi: utils.GetPointer("test name"), 
+					Address: types.Address{StreetAddress: "test address"},
+				},
+			},
+			nil,
+			[]BuildingPreview{{"test address", "test name"}},
+		},
+		{
+			"two previews",
+			fields{
+				repositories.NewBuildingRepository_mock(t),
+				repositories.NewActorRepository_mock(t),
+			},
+			args{context.Background(), "test", 5, 10},
+			[]types.Building{
+				{
+					NameFi: utils.GetPointer("test name 1"), 
+					Address: types.Address{StreetAddress: "test address 1"},
+				},
+				{
+					NameFi: utils.GetPointer("test name 2"), 
+					Address: types.Address{StreetAddress: "test address 2"},
+				},
+			},
+			nil,
+			[]BuildingPreview{
+				{"test address 1", "test name 1"}, 
+				{"test address 2", "test name 2"},
+			},
 		},
 	}
 	for _, tt := range tests {
