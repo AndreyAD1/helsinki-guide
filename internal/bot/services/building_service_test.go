@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories"
@@ -135,6 +136,79 @@ func TestBuildingService_GetBuildingPreviews(t *testing.T) {
 				require.Nil(t, got)
 			}
 			
+		})
+	}
+}
+
+func TestBuildingService_GetBuildingsByAddress(t *testing.T) {
+	type fields struct {
+		buildingCollection *repositories.BuildingRepository_mock
+		actorCollection    *repositories.ActorRepository_mock
+	}
+	type args struct {
+		ctx           context.Context
+		address string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		foundBuildings []types.Building
+		foundAuthors []types.Actor
+		repositoryBuildingError error
+		repositoryActorError error
+		want    []BuildingDTO
+	}{
+		{
+			"no address",
+			fields{
+				repositories.NewBuildingRepository_mock(t),
+				repositories.NewActorRepository_mock(t),
+			},
+			args{},
+			[]types.Building{},
+			[]types.Actor{},
+			nil,
+			nil,
+			[]BuildingDTO{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			buildingSpec := func(s *spec.BuildingSpecificationByAddress) bool {
+				return s.Address == tt.args.address
+			}
+
+			tt.fields.buildingCollection.EXPECT().Query(
+				tt.args.ctx, 
+				mock.MatchedBy(buildingSpec),
+			).Return(tt.foundBuildings, tt.repositoryBuildingError)
+			for _, building := range tt.foundBuildings {
+				authorSpec := func(s spec.ActorSpecificationByBuilding) bool {
+					return s.BuildingID == building.ID
+				}
+				tt.fields.actorCollection.EXPECT().Query(
+					tt.args.ctx,
+					authorSpec,
+				).Return(tt.foundAuthors, tt.repositoryActorError)
+			}
+
+			bs := BuildingService{
+				buildingCollection: tt.fields.buildingCollection,
+				actorCollection:    tt.fields.actorCollection,
+			}
+			got, err := bs.GetBuildingsByAddress(tt.args.ctx, tt.args.address)
+			if tt.repositoryBuildingError != nil {
+				require.Error(t, err)
+				return
+			}
+			if tt.repositoryActorError != nil {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			fmt.Println(tt.want, got)
+			require.Equal(t, tt.want, got)
 		})
 	}
 }
