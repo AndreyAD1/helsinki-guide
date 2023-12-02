@@ -16,6 +16,7 @@ func TestMigrations(t *testing.T) {
 	migrationPath := filepath.Join(
 		"..",
 		"internal",
+		"bot",
 		"infrastructure",
 		"migrations",
 	)
