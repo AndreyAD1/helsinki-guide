@@ -223,27 +223,40 @@ func TestBuildingService_GetBuildingsByAddress(t *testing.T) {
 			nil,
 			[]BuildingDTO{{Address: "test address", Authors: &[]string{"author 1"}}},
 		},
+		{
+			"one building - two authors",
+			fields{
+				repositories.NewBuildingRepository_mock(t),
+				repositories.NewActorRepository_mock(t),
+			},
+			args{context.Background(), "test address"},
+			[]types.Building{{ID: 1}},
+			[]types.Actor{{Name: "author 1"}, {Name: "author 2"}},
+			nil,
+			nil,
+			[]BuildingDTO{{Address: "test address", Authors: &[]string{"author 1", "author 2"}}},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			buildingSpec := func(s *spec.BuildingSpecificationByAddress) bool {
 				return s.Address == tt.args.address
 			}
-
 			tt.fields.buildingCollection.EXPECT().Query(
 				tt.args.ctx, 
 				mock.MatchedBy(buildingSpec),
 			).Return(tt.foundBuildings, tt.repositoryBuildingError)
-			for _, building := range tt.foundBuildings {
+			
+			if len(tt.foundBuildings) > 0 {
 				authorSpec := func(s *spec.ActorSpecificationByBuilding) bool {
-					return s.BuildingID == building.ID
+					return s.BuildingID == tt.foundBuildings[0].ID
 				}
-				tt.fields.actorCollection.EXPECT().Query(
+				tt.fields.actorCollection.On(
+					"Query",
 					tt.args.ctx,
 					mock.MatchedBy(authorSpec),
 				).Return(tt.foundAuthors, tt.repositoryActorError)
 			}
-
 			bs := BuildingService{
 				buildingCollection: tt.fields.buildingCollection,
 				actorCollection:    tt.fields.actorCollection,
@@ -257,6 +270,83 @@ func TestBuildingService_GetBuildingsByAddress(t *testing.T) {
 				require.ErrorIs(t, err, tt.repositoryActorError)
 				return
 			}
+			require.NoError(t, err)
+			require.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestBuildingService_GetBuildingsByAddress_ManyBuildings(t *testing.T) {
+	type fields struct {
+		buildingCollection *repositories.BuildingRepository_mock
+		actorCollection    *repositories.ActorRepository_mock
+	}
+	type args struct {
+		ctx           context.Context
+		address string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		foundBuildings []types.Building
+		foundAuthors []types.Actor
+		want    []BuildingDTO
+	}{
+		{
+			"two buildings - same authors",
+			fields{
+				repositories.NewBuildingRepository_mock(t),
+				repositories.NewActorRepository_mock(t),
+			},
+			args{context.Background(), "test address"},
+			[]types.Building{
+				{ID: 1, NameFi: utils.GetPointer("test 1")}, 
+				{ID: 2, NameFi: utils.GetPointer("test 2")},
+			},
+			[]types.Actor{{Name: "author 1"}, {Name: "author 2"}},
+			[]BuildingDTO{
+				{
+					NameFi: utils.GetPointer("test 1"), 
+					Address: "test address", 
+					Authors: &[]string{"author 1", "author 2"},
+				},
+				{
+					NameFi: utils.GetPointer("test 2"), 
+					Address: "test address", 
+					Authors: &[]string{"author 1", "author 2"},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			buildingSpec := func(s *spec.BuildingSpecificationByAddress) bool {
+				return s.Address == tt.args.address
+			}
+			tt.fields.buildingCollection.EXPECT().Query(
+				tt.args.ctx, 
+				mock.MatchedBy(buildingSpec),
+			).Return(tt.foundBuildings, nil)
+			
+			authorSpec0 := func(s *spec.ActorSpecificationByBuilding) bool {
+				return s.BuildingID == tt.foundBuildings[0].ID
+			}
+			authorSpec1 := func(s *spec.ActorSpecificationByBuilding) bool {
+				return s.BuildingID == tt.foundBuildings[1].ID
+			}
+			tt.fields.actorCollection.EXPECT().Query(
+				tt.args.ctx,
+				mock.MatchedBy(authorSpec0),
+			).Return(tt.foundAuthors, nil).
+			On("Query", tt.args.ctx, mock.MatchedBy(authorSpec1)).
+			Return(tt.foundAuthors, nil)
+			
+			bs := BuildingService{
+				buildingCollection: tt.fields.buildingCollection,
+				actorCollection:    tt.fields.actorCollection,
+			}
+			got, err := bs.GetBuildingsByAddress(tt.args.ctx, tt.args.address)
 			require.NoError(t, err)
 			require.Equal(t, tt.want, got)
 		})

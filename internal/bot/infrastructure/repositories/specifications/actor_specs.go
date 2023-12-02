@@ -6,7 +6,7 @@ type ActorSpecificationByBuilding struct {
 	BuildingID int64
 }
 
-func NewActorSpecificationByBuilding(buildingID int64) Specification {
+func NewActorSpecificationByBuilding(buildingID int64) *ActorSpecificationByBuilding {
 	return &ActorSpecificationByBuilding{buildingID}
 }
 
