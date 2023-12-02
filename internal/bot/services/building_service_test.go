@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories"
@@ -172,6 +171,58 @@ func TestBuildingService_GetBuildingsByAddress(t *testing.T) {
 			nil,
 			[]BuildingDTO{},
 		},
+		{
+			"building error",
+			fields{
+				repositories.NewBuildingRepository_mock(t),
+				repositories.NewActorRepository_mock(t),
+			},
+			args{},
+			[]types.Building{},
+			[]types.Actor{},
+			errors.New("building error"),
+			errors.New("actor error"),
+			[]BuildingDTO{},
+		},
+		{
+			"actor error",
+			fields{
+				repositories.NewBuildingRepository_mock(t),
+				repositories.NewActorRepository_mock(t),
+			},
+			args{},
+			[]types.Building{{ID: 1}},
+			[]types.Actor{},
+			nil,
+			errors.New("actor error"),
+			[]BuildingDTO{},
+		},
+		{
+			"one building - no authors",
+			fields{
+				repositories.NewBuildingRepository_mock(t),
+				repositories.NewActorRepository_mock(t),
+			},
+			args{context.Background(), "test address"},
+			[]types.Building{{ID: 1}},
+			[]types.Actor{},
+			nil,
+			nil,
+			[]BuildingDTO{{Address: "test address"}},
+		},
+		{
+			"one building - one author",
+			fields{
+				repositories.NewBuildingRepository_mock(t),
+				repositories.NewActorRepository_mock(t),
+			},
+			args{context.Background(), "test address"},
+			[]types.Building{{ID: 1}},
+			[]types.Actor{{Name: "author 1"}},
+			nil,
+			nil,
+			[]BuildingDTO{{Address: "test address", Authors: &[]string{"author 1"}}},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -184,12 +235,12 @@ func TestBuildingService_GetBuildingsByAddress(t *testing.T) {
 				mock.MatchedBy(buildingSpec),
 			).Return(tt.foundBuildings, tt.repositoryBuildingError)
 			for _, building := range tt.foundBuildings {
-				authorSpec := func(s spec.ActorSpecificationByBuilding) bool {
+				authorSpec := func(s *spec.ActorSpecificationByBuilding) bool {
 					return s.BuildingID == building.ID
 				}
 				tt.fields.actorCollection.EXPECT().Query(
 					tt.args.ctx,
-					authorSpec,
+					mock.MatchedBy(authorSpec),
 				).Return(tt.foundAuthors, tt.repositoryActorError)
 			}
 
@@ -199,15 +250,14 @@ func TestBuildingService_GetBuildingsByAddress(t *testing.T) {
 			}
 			got, err := bs.GetBuildingsByAddress(tt.args.ctx, tt.args.address)
 			if tt.repositoryBuildingError != nil {
-				require.Error(t, err)
+				require.ErrorIs(t, err, tt.repositoryBuildingError)
 				return
 			}
 			if tt.repositoryActorError != nil {
-				require.Error(t, err)
+				require.ErrorIs(t, err, tt.repositoryActorError)
 				return
 			}
 			require.NoError(t, err)
-			fmt.Println(tt.want, got)
 			require.Equal(t, tt.want, got)
 		})
 	}
