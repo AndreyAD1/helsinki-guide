@@ -16,9 +16,9 @@ import (
 
 var (
 	testSheet  = "test"
-	fiFilename = filepath.Join(".", "test_data", "test_fi.xlsx")
-	enFilename = filepath.Join(".", "test_data", "test_en.xlsx")
-	ruFilename = filepath.Join(".", "test_data", "test_ru.xlsx")
+	fiFilename = filepath.Join(".", "testdata", "test_fi.xlsx")
+	enFilename = filepath.Join(".", "testdata", "test_en.xlsx")
+	ruFilename = filepath.Join(".", "testdata", "test_ru.xlsx")
 
 	expectedNeighbourhoods = []types.Neighbourhood{
 		{Name: "Lauttasaari", Municipality: u.GetPointer("Helsinki")},
