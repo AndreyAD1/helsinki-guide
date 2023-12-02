@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories"
@@ -26,18 +27,20 @@ func TestBuildingService_GetBuildingPreviews(t *testing.T) {
 		name    string
 		fields  fields
 		args    args
+		foundBuildings []types.Building
+		repositoryError error
 		want    []BuildingPreview
-		wantErr bool
 	}{
 		{
-			"no previews",
+			"no previews - no arguments",
 			fields{
 				repositories.NewBuildingRepository_mock(t),
 				repositories.NewActorRepository_mock(t),
 			},
 			args{},
+			[]types.Building{},
+			nil,
 			[]BuildingPreview{},
-			false,
 		},
 		{
 			"no previews",
@@ -46,8 +49,20 @@ func TestBuildingService_GetBuildingPreviews(t *testing.T) {
 				repositories.NewActorRepository_mock(t),
 			},
 			args{context.Background(), "test", 5, 10},
+			[]types.Building{},
+			nil,
 			[]BuildingPreview{},
-			false,
+		},
+		{
+			"repository error",
+			fields{
+				repositories.NewBuildingRepository_mock(t),
+				repositories.NewActorRepository_mock(t),
+			},
+			args{},
+			[]types.Building{},
+			fmt.Errorf("test error"),
+			[]BuildingPreview{},
 		},
 	}
 	for _, tt := range tests {
@@ -61,7 +76,7 @@ func TestBuildingService_GetBuildingPreviews(t *testing.T) {
 			tt.fields.buildingCollection.EXPECT().Query(
 				tt.args.ctx, 
 				mock.MatchedBy(matchSpec),
-			).Return([]types.Building{}, nil)
+			).Return(tt.foundBuildings, tt.repositoryError)
 			bs := BuildingService{
 				buildingCollection: tt.fields.buildingCollection,
 				actorCollection:    tt.fields.actorCollection,
@@ -72,12 +87,14 @@ func TestBuildingService_GetBuildingPreviews(t *testing.T) {
 				tt.args.limit, 
 				tt.args.offset,
 			)
-			if tt.wantErr {
-				require.Error(t, err)
-			} else {
+			if tt.repositoryError == nil {
 				require.NoError(t, err)
+				require.Equal(t, tt.want, got)
+			} else {
+				require.ErrorIs(t, err, tt.repositoryError)
+				require.Nil(t, got)
 			}
-			require.Equal(t, tt.want, got)
+			
 		})
 	}
 }
