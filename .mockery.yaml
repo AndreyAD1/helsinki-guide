@@ -1,0 +1,11 @@
+with-expecter: true
+inpackage: true
+# dir: "{{.PackagePath}}"
+mockname: "{{.InterfaceName}}_mock"
+recursive: true
+packages:
+  github.com/AndreyAD1/helsinki-guide/internal/infrastructure/repositories:
+    interfaces:
+      BuildingRepository:
+      NeighbourhoodRepository:
+      ActorRepository:

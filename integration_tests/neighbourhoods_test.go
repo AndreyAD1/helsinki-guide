@@ -4,15 +4,15 @@ import (
 	"context"
 	"testing"
 
-	"github.com/AndreyAD1/helsinki-guide/internal"
 	"github.com/AndreyAD1/helsinki-guide/internal/infrastructure/repositories"
-	s "github.com/AndreyAD1/helsinki-guide/internal/infrastructure/specifications"
+	s "github.com/AndreyAD1/helsinki-guide/internal/infrastructure/repositories/specifications"
+	"github.com/AndreyAD1/helsinki-guide/internal/infrastructure/repositories/types"
 	"github.com/stretchr/testify/require"
 )
 
 func testNeighbourhoodRepository(t *testing.T) {
 	storage := repositories.NewNeighbourhoodRepo(dbpool)
-	neighbourhood := internal.Neighbourhood{Name: "test"}
+	neighbourhood := types.Neighbourhood{Name: "test"}
 	saved, err := storage.Add(context.Background(), neighbourhood)
 	require.NoError(t, err)
 	require.NotEqualValues(t, 0, saved.ID)
@@ -28,7 +28,7 @@ func testNeighbourhoodRepository(t *testing.T) {
 	require.Equal(t, saved, saved2)
 
 	municipality := "Helsinki"
-	neighbourhood = internal.Neighbourhood{
+	neighbourhood = types.Neighbourhood{
 		Name:         "test",
 		Municipality: &municipality,
 	}

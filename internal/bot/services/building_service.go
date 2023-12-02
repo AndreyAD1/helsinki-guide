@@ -6,9 +6,9 @@ import (
 	"log/slog"
 	"strings"
 
-	i "github.com/AndreyAD1/helsinki-guide/internal/infrastructure/repositories/types"
 	"github.com/AndreyAD1/helsinki-guide/internal/infrastructure/repositories"
 	s "github.com/AndreyAD1/helsinki-guide/internal/infrastructure/repositories/specifications"
+	i "github.com/AndreyAD1/helsinki-guide/internal/infrastructure/repositories/types"
 )
 
 type BuildingService struct {

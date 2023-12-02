@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	i "github.com/AndreyAD1/helsinki-guide/internal"
 	"github.com/AndreyAD1/helsinki-guide/internal/infrastructure/repositories"
-	s "github.com/AndreyAD1/helsinki-guide/internal/infrastructure/specifications"
+	s "github.com/AndreyAD1/helsinki-guide/internal/infrastructure/repositories/specifications"
+	i "github.com/AndreyAD1/helsinki-guide/internal/infrastructure/repositories/types"
 	"github.com/stretchr/testify/require"
 )
 

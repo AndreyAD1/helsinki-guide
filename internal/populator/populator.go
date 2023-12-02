@@ -11,9 +11,9 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/xuri/excelize/v2"
 
-	"github.com/AndreyAD1/helsinki-guide/internal/infrastructure/repositories/types"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/configuration"
 	"github.com/AndreyAD1/helsinki-guide/internal/infrastructure/repositories"
+	"github.com/AndreyAD1/helsinki-guide/internal/infrastructure/repositories/types"
 )
 
 type Populator struct {
