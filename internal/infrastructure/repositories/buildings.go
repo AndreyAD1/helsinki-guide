@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"log/slog"
 
-	i "github.com/AndreyAD1/helsinki-guide/internal"
-	s "github.com/AndreyAD1/helsinki-guide/internal/infrastructure/specifications"
+	i "github.com/AndreyAD1/helsinki-guide/internal/infrastructure/repositories/types"
+	s "github.com/AndreyAD1/helsinki-guide/internal/infrastructure/repositories/specifications"
 	"github.com/AndreyAD1/helsinki-guide/internal/logger"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"

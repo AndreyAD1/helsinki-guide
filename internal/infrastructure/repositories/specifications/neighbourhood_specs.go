@@ -1,12 +1,12 @@
 package specifications
 
-import i "github.com/AndreyAD1/helsinki-guide/internal"
+import "github.com/AndreyAD1/helsinki-guide/internal/infrastructure/repositories/types"
 
 type NeighbourhoodSpecificationByName struct {
-	neigbourhood i.Neighbourhood
+	neigbourhood types.Neighbourhood
 }
 
-func NewNeighbourhoodSpecificationByName(n i.Neighbourhood) Specification {
+func NewNeighbourhoodSpecificationByName(n types.Neighbourhood) Specification {
 	return &NeighbourhoodSpecificationByName{n}
 }
 

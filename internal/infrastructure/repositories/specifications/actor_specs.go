@@ -1,6 +1,6 @@
 package specifications
 
-import "github.com/AndreyAD1/helsinki-guide/internal"
+import "github.com/AndreyAD1/helsinki-guide/internal/infrastructure/repositories/types"
 
 type ActorSpecificationByBuilding struct {
 	buildingID int64
@@ -18,10 +18,10 @@ func (a *ActorSpecificationByBuilding) ToSQL() (string, map[string]any) {
 }
 
 type ActorSpecificationByName struct {
-	actor internal.Actor
+	actor types.Actor
 }
 
-func NewActorSpecificationByName(a internal.Actor) Specification {
+func NewActorSpecificationByName(a types.Actor) Specification {
 	return &ActorSpecificationByName{a}
 }
 
