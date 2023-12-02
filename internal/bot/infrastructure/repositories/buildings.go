@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"log/slog"
 
-	s "github.com/AndreyAD1/helsinki-guide/internal/infrastructure/repositories/specifications"
-	i "github.com/AndreyAD1/helsinki-guide/internal/infrastructure/repositories/types"
-	"github.com/AndreyAD1/helsinki-guide/internal/logger"
+	s "github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/specifications"
+	i "github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/types"
+	"github.com/AndreyAD1/helsinki-guide/internal/bot/logger"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"

@@ -1,6 +1,6 @@
 package specifications
 
-import "github.com/AndreyAD1/helsinki-guide/internal/infrastructure/repositories/types"
+import "github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/types"
 
 type ActorSpecificationByBuilding struct {
 	buildingID int64

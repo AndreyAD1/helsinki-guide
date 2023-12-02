@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/configuration"
-	"github.com/AndreyAD1/helsinki-guide/internal/infrastructure/repositories"
-	s "github.com/AndreyAD1/helsinki-guide/internal/infrastructure/repositories/specifications"
-	"github.com/AndreyAD1/helsinki-guide/internal/infrastructure/repositories/types"
+	"github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories"
+	s "github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/specifications"
+	"github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/types"
 	"github.com/AndreyAD1/helsinki-guide/internal/populator"
 	u "github.com/AndreyAD1/helsinki-guide/internal/utils"
 	"github.com/stretchr/testify/require"

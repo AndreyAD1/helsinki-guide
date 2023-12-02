@@ -3,8 +3,8 @@ package handlers
 import (
 	c "context"
 
+	"github.com/AndreyAD1/helsinki-guide/internal/bot/metrics"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/services"
-	"github.com/AndreyAD1/helsinki-guide/internal/metrics"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 

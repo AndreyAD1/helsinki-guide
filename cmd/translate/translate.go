@@ -7,7 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/AndreyAD1/helsinki-guide/internal/infrastructure/clients"
+	"github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/clients"
 	ts "github.com/AndreyAD1/helsinki-guide/internal/translator"
 )
 

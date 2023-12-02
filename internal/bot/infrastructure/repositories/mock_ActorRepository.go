@@ -5,8 +5,8 @@ package repositories
 import (
 	context "context"
 
-	specifications "github.com/AndreyAD1/helsinki-guide/internal/infrastructure/repositories/specifications"
-	types "github.com/AndreyAD1/helsinki-guide/internal/infrastructure/repositories/types"
+	specifications "github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/specifications"
+	types "github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/types"
 	mock "github.com/stretchr/testify/mock"
 )
 
