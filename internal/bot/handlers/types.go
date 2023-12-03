@@ -18,7 +18,7 @@ type ButtonHandler func(c.Context, *tgbotapi.CallbackQuery)
 
 type HandlerContainer struct {
 	buildingService    services.BuildingService
-	bot                *tgbotapi.BotAPI
+	bot                internalBot
 	HandlersPerCommand map[string]CommandHandler
 	handlersPerButton  map[string]internalButtonHandler
 	commandsForHelp    string
@@ -30,4 +30,9 @@ type Button struct {
 	Name   string `json:"name"`
 	Limit  int    `json:"limit,omitempty"`
 	Offset int    `json:"offset,omitempty"`
+}
+
+type internalBot interface {
+	Request(tgbotapi.Chattable) (*tgbotapi.APIResponse, error)
+	Send(tgbotapi.Chattable) (tgbotapi.Message, error)
 }
