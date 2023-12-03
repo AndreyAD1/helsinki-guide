@@ -23,9 +23,9 @@ import (
 )
 
 var (
-	dbpool      *pgxpool.Pool
-	databaseUrl string
-	logLevel    = new(slog.LevelVar)
+	dbpool         *pgxpool.Pool
+	databaseUrl    string
+	logLevel       = new(slog.LevelVar)
 	MIGRATION_PATH = filepath.Join(
 		"..",
 		"internal",

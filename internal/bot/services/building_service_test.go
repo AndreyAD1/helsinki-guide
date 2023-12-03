@@ -25,12 +25,12 @@ func TestBuildingService_GetBuildingPreviews(t *testing.T) {
 		offset        int
 	}
 	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		foundBuildings []types.Building
+		name            string
+		fields          fields
+		args            args
+		foundBuildings  []types.Building
 		repositoryError error
-		want    []BuildingPreview
+		want            []BuildingPreview
 	}{
 		{
 			"no previews - no arguments",
@@ -74,7 +74,7 @@ func TestBuildingService_GetBuildingPreviews(t *testing.T) {
 			args{context.Background(), "test", 5, 10},
 			[]types.Building{
 				{
-					NameFi: utils.GetPointer("test name"), 
+					NameFi:  utils.GetPointer("test name"),
 					Address: types.Address{StreetAddress: "test address"},
 				},
 			},
@@ -90,17 +90,17 @@ func TestBuildingService_GetBuildingPreviews(t *testing.T) {
 			args{context.Background(), "test", 5, 10},
 			[]types.Building{
 				{
-					NameFi: utils.GetPointer("test name 1"), 
+					NameFi:  utils.GetPointer("test name 1"),
 					Address: types.Address{StreetAddress: "test address 1"},
 				},
 				{
-					NameFi: utils.GetPointer("test name 2"), 
+					NameFi:  utils.GetPointer("test name 2"),
 					Address: types.Address{StreetAddress: "test address 2"},
 				},
 			},
 			nil,
 			[]BuildingPreview{
-				{"test address 1", "test name 1"}, 
+				{"test address 1", "test name 1"},
 				{"test address 2", "test name 2"},
 			},
 		},
@@ -114,7 +114,7 @@ func TestBuildingService_GetBuildingPreviews(t *testing.T) {
 				return addressMatch && limitMatch && offsetMatch
 			}
 			tt.fields.buildingCollection.EXPECT().Query(
-				tt.args.ctx, 
+				tt.args.ctx,
 				mock.MatchedBy(matchSpec),
 			).Return(tt.foundBuildings, tt.repositoryError)
 			bs := BuildingService{
@@ -122,9 +122,9 @@ func TestBuildingService_GetBuildingPreviews(t *testing.T) {
 				actorCollection:    tt.fields.actorCollection,
 			}
 			got, err := bs.GetBuildingPreviews(
-				tt.args.ctx, 
-				tt.args.addressPrefix, 
-				tt.args.limit, 
+				tt.args.ctx,
+				tt.args.addressPrefix,
+				tt.args.limit,
 				tt.args.offset,
 			)
 			if tt.repositoryError == nil {
@@ -134,7 +134,7 @@ func TestBuildingService_GetBuildingPreviews(t *testing.T) {
 				require.ErrorIs(t, err, tt.repositoryError)
 				require.Nil(t, got)
 			}
-			
+
 		})
 	}
 }
@@ -145,18 +145,18 @@ func TestBuildingService_GetBuildingsByAddress(t *testing.T) {
 		actorCollection    *repositories.ActorRepository_mock
 	}
 	type args struct {
-		ctx           context.Context
+		ctx     context.Context
 		address string
 	}
 	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		foundBuildings []types.Building
-		foundAuthors []types.Actor
+		name                    string
+		fields                  fields
+		args                    args
+		foundBuildings          []types.Building
+		foundAuthors            []types.Actor
 		repositoryBuildingError error
-		repositoryActorError error
-		want    []BuildingDTO
+		repositoryActorError    error
+		want                    []BuildingDTO
 	}{
 		{
 			"no address",
@@ -243,10 +243,10 @@ func TestBuildingService_GetBuildingsByAddress(t *testing.T) {
 				return s.Address == tt.args.address
 			}
 			tt.fields.buildingCollection.EXPECT().Query(
-				tt.args.ctx, 
+				tt.args.ctx,
 				mock.MatchedBy(buildingSpec),
 			).Return(tt.foundBuildings, tt.repositoryBuildingError)
-			
+
 			if len(tt.foundBuildings) > 0 {
 				authorSpec := func(s *spec.ActorSpecificationByBuilding) bool {
 					return s.BuildingID == tt.foundBuildings[0].ID
@@ -282,16 +282,16 @@ func TestBuildingService_GetBuildingsByAddress_ManyBuildings(t *testing.T) {
 		actorCollection    *repositories.ActorRepository_mock
 	}
 	type args struct {
-		ctx           context.Context
+		ctx     context.Context
 		address string
 	}
 	tests := []struct {
-		name    string
-		fields  fields
-		args    args
+		name           string
+		fields         fields
+		args           args
 		foundBuildings []types.Building
-		foundAuthors []types.Actor
-		want    []BuildingDTO
+		foundAuthors   []types.Actor
+		want           []BuildingDTO
 	}{
 		{
 			"two buildings - same authors",
@@ -301,19 +301,19 @@ func TestBuildingService_GetBuildingsByAddress_ManyBuildings(t *testing.T) {
 			},
 			args{context.Background(), "test address"},
 			[]types.Building{
-				{ID: 1, NameFi: utils.GetPointer("test 1")}, 
+				{ID: 1, NameFi: utils.GetPointer("test 1")},
 				{ID: 2, NameFi: utils.GetPointer("test 2")},
 			},
 			[]types.Actor{{Name: "author 1"}, {Name: "author 2"}},
 			[]BuildingDTO{
 				{
-					NameFi: utils.GetPointer("test 1"), 
-					Address: "test address", 
+					NameFi:  utils.GetPointer("test 1"),
+					Address: "test address",
 					Authors: &[]string{"author 1", "author 2"},
 				},
 				{
-					NameFi: utils.GetPointer("test 2"), 
-					Address: "test address", 
+					NameFi:  utils.GetPointer("test 2"),
+					Address: "test address",
 					Authors: &[]string{"author 1", "author 2"},
 				},
 			},
@@ -325,10 +325,10 @@ func TestBuildingService_GetBuildingsByAddress_ManyBuildings(t *testing.T) {
 				return s.Address == tt.args.address
 			}
 			tt.fields.buildingCollection.EXPECT().Query(
-				tt.args.ctx, 
+				tt.args.ctx,
 				mock.MatchedBy(buildingSpec),
 			).Return(tt.foundBuildings, nil)
-			
+
 			authorSpec0 := func(s *spec.ActorSpecificationByBuilding) bool {
 				return s.BuildingID == tt.foundBuildings[0].ID
 			}
@@ -339,9 +339,9 @@ func TestBuildingService_GetBuildingsByAddress_ManyBuildings(t *testing.T) {
 				tt.args.ctx,
 				mock.MatchedBy(authorSpec0),
 			).Return(tt.foundAuthors, nil).
-			On("Query", tt.args.ctx, mock.MatchedBy(authorSpec1)).
-			Return(tt.foundAuthors, nil)
-			
+				On("Query", tt.args.ctx, mock.MatchedBy(authorSpec1)).
+				Return(tt.foundAuthors, nil)
+
 			bs := BuildingService{
 				buildingCollection: tt.fields.buildingCollection,
 				actorCollection:    tt.fields.actorCollection,
