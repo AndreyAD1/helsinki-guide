@@ -114,7 +114,10 @@ func (h HandlerContainer) getAllAdresses(ctx c.Context, message *tgbotapi.Messag
 	h.returnAddresses(ctx, message.Chat.ID, address, defaultLimit, 0)
 }
 
-var prefixTemplate = "Search address: %s\nAvailable building addresses and names:"
+var (
+	headerTemplate = "Search address: %s\nAvailable building addresses and names:"
+	lineTemplate = "%v. %s - %s"
+)
 
 func (h HandlerContainer) returnAddresses(
 	ctx c.Context,
@@ -134,11 +137,10 @@ func (h HandlerContainer) returnAddresses(
 		return
 	}
 	items := make([]string, len(buildings)+1)
-	items[0] = fmt.Sprintf(prefixTemplate, address)
-	template := "%v. %s - %s"
+	items[0] = fmt.Sprintf(headerTemplate, address)
 	for i, building := range buildings {
 		items[i+1] = fmt.Sprintf(
-			template,
+			lineTemplate,
 			offset+i+1,
 			building.Address,
 			building.Name,
