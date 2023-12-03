@@ -10,7 +10,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-func TestHandlerContainer_returnAddresses_noButton(t *testing.T) {
+func TestHandlerContainer_returnAddresses(t *testing.T) {
 	type fields struct {
 		buildingService    *services.Buildings_mock
 		bot                *internalBot_mock
@@ -67,7 +67,7 @@ Available building addresses and names:
 End`),
 		},
 		{
-			"some final buildings and address, offset",
+			"several buildings and address, no offset",
 			fields{
 				services.NewBuildings_mock(t),
 				newInternalBot_mock(t),
@@ -89,7 +89,7 @@ Available building addresses and names:
 End`),
 		},
 		{
-			"some final buildings and address, offset",
+			"several buildings and address, offset",
 			fields{
 				services.NewBuildings_mock(t),
 				newInternalBot_mock(t),
@@ -109,6 +109,40 @@ Available building addresses and names:
 2. test 1 - test name 1
 3. test 2 - test name 2
 End`),
+		},
+		{
+			"several buildings and address, offset, button",
+			fields{
+				services.NewBuildings_mock(t),
+				newInternalBot_mock(t),
+				map[string]CommandHandler{},
+				map[string]internalButtonHandler{},
+				"",
+				nil,
+			},
+			args{chatID: 123, limit: 2, offset: 1, address: "test"},
+			[]services.BuildingPreview{
+				{Address: "test 1", Name: "test name 1"},
+				{Address: "test 2", Name: "test name 2"},
+			},
+			nil,
+			tgbotapi.MessageConfig{
+				BaseChat: tgbotapi.BaseChat{
+					ChatID: 123,
+					ReplyMarkup: tgbotapi.NewInlineKeyboardMarkup(
+						tgbotapi.NewInlineKeyboardRow(
+							tgbotapi.NewInlineKeyboardButtonData(
+								"Next 2 buildings",
+								`{"name":"next","limit":2,"offset":3}`,
+							),
+						),
+					),
+				},
+				Text: `Search address: test
+Available building addresses and names:
+2. test 1 - test name 1
+3. test 2 - test name 2`,
+			},
 		},
 	}
 	for _, tt := range tests {
