@@ -10,7 +10,7 @@ import (
 
 	"github.com/xuri/excelize/v2"
 
-	"github.com/AndreyAD1/helsinki-guide/internal/infrastructure/clients"
+	"github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/clients"
 )
 
 type columnCoordinates struct {

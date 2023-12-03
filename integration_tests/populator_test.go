@@ -5,10 +5,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/AndreyAD1/helsinki-guide/internal"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/configuration"
-	"github.com/AndreyAD1/helsinki-guide/internal/infrastructure/repositories"
-	s "github.com/AndreyAD1/helsinki-guide/internal/infrastructure/specifications"
+	"github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories"
+	s "github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/specifications"
+	"github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/types"
 	"github.com/AndreyAD1/helsinki-guide/internal/populator"
 	u "github.com/AndreyAD1/helsinki-guide/internal/utils"
 	"github.com/stretchr/testify/require"
@@ -16,11 +16,11 @@ import (
 
 var (
 	testSheet  = "test"
-	fiFilename = filepath.Join(".", "test_data", "test_fi.xlsx")
-	enFilename = filepath.Join(".", "test_data", "test_en.xlsx")
-	ruFilename = filepath.Join(".", "test_data", "test_ru.xlsx")
+	fiFilename = filepath.Join(".", "testdata", "test_fi.xlsx")
+	enFilename = filepath.Join(".", "testdata", "test_en.xlsx")
+	ruFilename = filepath.Join(".", "testdata", "test_ru.xlsx")
 
-	expectedNeighbourhoods = []internal.Neighbourhood{
+	expectedNeighbourhoods = []types.Neighbourhood{
 		{Name: "Lauttasaari", Municipality: u.GetPointer("Helsinki")},
 		{Name: "Munkkiniemi", Municipality: u.GetPointer("Helsinki")},
 	}
@@ -28,20 +28,20 @@ var (
 	architectFi     = "Arkkitehti"
 	architectEn     = "Architect"
 	architectRu     = "Архитектор"
-	expectedAuthors = []internal.Actor{
+	expectedAuthors = []types.Actor{
 		{Name: "Claus Tandefelt", TitleFi: &architectFi, TitleEn: &architectEn, TitleRu: &architectRu},
 		{Name: "Kauko Kokko", TitleFi: &architectFi, TitleEn: &architectEn, TitleRu: &architectRu},
 		{Name: "Niilo Kokko", TitleFi: &architectFi, TitleEn: &architectEn, TitleRu: &architectRu},
 		{Name: "Rudolf Lanste"},
 	}
-	expectedBuildings = []internal.Building{
+	expectedBuildings = []types.Building{
 		{
 			ID:     int64(1),
 			Code:   u.GetPointer("09103100030008001"),
 			NameFi: u.GetPointer("As Oy Meripuistotie 5"),
 			NameEn: u.GetPointer("As Oy Meripuistotie 5"),
 			NameRu: u.GetPointer("As Oy Meripuistotie 5"),
-			Address: internal.Address{
+			Address: types.Address{
 				ID:              int64(1),
 				StreetAddress:   "Meripuistotie 5",
 				NeighbourhoodID: u.GetPointer(int64(1)),
@@ -49,7 +49,7 @@ var (
 			ConstructionStartYear: u.GetPointer(1954),
 			CompletionYear:        u.GetPointer(1955),
 			AuthorIDs:             []int64{1},
-			InitialUses: []internal.UseType{
+			InitialUses: []types.UseType{
 				{
 					ID:     1,
 					NameFi: "kerrostalot",
@@ -57,7 +57,7 @@ var (
 					NameRu: "многоквартирные дома",
 				},
 			},
-			CurrentUses: []internal.UseType{
+			CurrentUses: []types.UseType{
 				{
 					ID:     1,
 					NameFi: "kerrostalot",
@@ -92,7 +92,7 @@ var (
 			NameFi: u.GetPointer("Gården Sjöallen 7"),
 			NameEn: u.GetPointer("Gården Sjöallen 7"),
 			NameRu: u.GetPointer("Gården Sjöallen 7"),
-			Address: internal.Address{
+			Address: types.Address{
 				ID:              int64(2),
 				StreetAddress:   "Meripuistotie 7",
 				NeighbourhoodID: u.GetPointer(int64(2)),
@@ -100,7 +100,7 @@ var (
 			ConstructionStartYear: nil,
 			CompletionYear:        u.GetPointer(1978),
 			AuthorIDs:             []int64{2},
-			InitialUses: []internal.UseType{
+			InitialUses: []types.UseType{
 				{
 					ID:     1,
 					NameFi: "kerrostalot",
@@ -114,7 +114,7 @@ var (
 					NameRu: "детские сады",
 				},
 			},
-			CurrentUses: []internal.UseType{
+			CurrentUses: []types.UseType{
 				{
 					ID:     2,
 					NameFi: "päiväkodit",
@@ -143,7 +143,7 @@ var (
 			NameFi: u.GetPointer("As Oy Pohjoiskaari 8"),
 			NameEn: u.GetPointer("As Oy Pohjoiskaari 8"),
 			NameRu: u.GetPointer("As Oy Pohjoiskaari 8"),
-			Address: internal.Address{
+			Address: types.Address{
 				ID:              int64(3),
 				StreetAddress:   "Pohjoiskaari 8",
 				NeighbourhoodID: u.GetPointer(int64(1)),
@@ -151,7 +151,7 @@ var (
 			ConstructionStartYear: u.GetPointer(1952),
 			CompletionYear:        u.GetPointer(1955),
 			AuthorIDs:             []int64{3, 4},
-			InitialUses: []internal.UseType{
+			InitialUses: []types.UseType{
 				{
 					ID:     1,
 					NameFi: "kerrostalot",
@@ -159,7 +159,7 @@ var (
 					NameRu: "многоквартирные дома",
 				},
 			},
-			CurrentUses: []internal.UseType{
+			CurrentUses: []types.UseType{
 				{
 					ID:     1,
 					NameFi: "kerrostalot",

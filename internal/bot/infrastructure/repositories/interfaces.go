@@ -3,8 +3,8 @@ package repositories
 import (
 	"context"
 
-	i "github.com/AndreyAD1/helsinki-guide/internal"
-	s "github.com/AndreyAD1/helsinki-guide/internal/infrastructure/specifications"
+	s "github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/specifications"
+	i "github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/types"
 )
 
 type BuildingRepository interface {

@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/AndreyAD1/helsinki-guide/internal/bot/logger"
+	"github.com/AndreyAD1/helsinki-guide/internal/bot/metrics"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/services"
-	"github.com/AndreyAD1/helsinki-guide/internal/logger"
-	"github.com/AndreyAD1/helsinki-guide/internal/metrics"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/prometheus/client_golang/prometheus"
 )

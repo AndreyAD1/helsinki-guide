@@ -23,9 +23,16 @@ import (
 )
 
 var (
-	dbpool      *pgxpool.Pool
-	databaseUrl string
-	logLevel    = new(slog.LevelVar)
+	dbpool         *pgxpool.Pool
+	databaseUrl    string
+	logLevel       = new(slog.LevelVar)
+	MIGRATION_PATH = filepath.Join(
+		"..",
+		"internal",
+		"bot",
+		"infrastructure",
+		"migrations",
+	)
 )
 
 func TestMain(m *testing.M) {
@@ -110,18 +117,12 @@ func TestMain(m *testing.M) {
 
 func TestDBInteractions(t *testing.T) {
 	log.Println("run DB tests")
-	migrationPath := filepath.Join(
-		"..",
-		"internal",
-		"infrastructure",
-		"migrations",
-	)
-	m, err := migrate.New("file:"+migrationPath, databaseUrl)
+	m, err := migrate.New("file:"+MIGRATION_PATH, databaseUrl)
 	require.NoErrorf(
 		t,
 		err,
 		"can not instantiate a migration tool '%s' for '%s': %v",
-		migrationPath,
+		MIGRATION_PATH,
 		databaseUrl,
 		err,
 	)
