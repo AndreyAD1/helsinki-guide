@@ -11,3 +11,6 @@ packages:
   github.com/AndreyAD1/helsinki-guide/internal/bot/handlers:
     interfaces:
       internalBot:
+  github.com/AndreyAD1/helsinki-guide/internal/bot/services:
+    interfaces:
+      Buildings:

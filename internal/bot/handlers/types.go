@@ -17,7 +17,7 @@ type internalButtonHandler func(HandlerContainer, c.Context, *tgbotapi.CallbackQ
 type ButtonHandler func(c.Context, *tgbotapi.CallbackQuery)
 
 type HandlerContainer struct {
-	buildingService    services.BuildingService
+	buildingService    services.Buildings
 	bot                internalBot
 	HandlersPerCommand map[string]CommandHandler
 	handlersPerButton  map[string]internalButtonHandler
