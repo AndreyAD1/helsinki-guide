@@ -4,6 +4,7 @@ import (
 	c "context"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/metrics"
+	"github.com/AndreyAD1/helsinki-guide/internal/bot/middlewares"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/services"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -36,4 +37,36 @@ type InternalBot interface {
 	Request(tgbotapi.Chattable) (*tgbotapi.APIResponse, error)
 	Send(tgbotapi.Chattable) (tgbotapi.Message, error)
 	GetUpdatesChan(tgbotapi.UpdateConfig) tgbotapi.UpdatesChannel
+}
+
+type BotWithMetrics struct {
+	clientName string
+	*tgbotapi.BotAPI
+	m *metrics.Metrics
+}
+
+func NewBotWithMetrics(bot *tgbotapi.BotAPI, m *metrics.Metrics) *BotWithMetrics {
+	return &BotWithMetrics{"Telegram", bot, m}
+}
+
+func (b *BotWithMetrics) Send(c tgbotapi.Chattable) (tgbotapi.Message, error) {
+	result, err := middlewares.Duration(
+		func() (interface{}, error) {return b.BotAPI.Send(c)},
+		b.m,
+		b.clientName,
+		"Send",
+	)
+	message := result.(tgbotapi.Message)
+	return message, err
+}
+
+func (b *BotWithMetrics) Request(c tgbotapi.Chattable) (*tgbotapi.APIResponse, error) {
+	result, err := middlewares.Duration(
+		func() (interface{}, error) {return b.BotAPI.Request(c)},
+		b.m,
+		b.clientName,
+		"Request",
+	)
+	response := result.(*tgbotapi.APIResponse)
+	return response, err
 }
