@@ -8,6 +8,7 @@ import (
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/metrics"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/services"
+	"github.com/AndreyAD1/helsinki-guide/internal/utils"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
@@ -240,6 +241,125 @@ func TestHandlerContainer_getBuilding(t *testing.T) {
 			[]services.BuildingDTO{},
 			errors.New("building error"),
 			"Internal error.",
+		},
+		{
+			"no buildings",
+			fields{
+				services.NewBuildings_mock(t),
+				newInternalBot_mock(t),
+				map[string]CommandHandler{},
+				map[string]internalButtonHandler{},
+				"",
+				nil,
+			},
+			args{
+				context.Background(),
+				&tgbotapi.Message{
+					Text: "\\address test address",
+					Entities: []tgbotapi.MessageEntity{
+						{Type: "bot_command", Length: 8},
+					},
+					Chat: &tgbotapi.Chat{ID: 123},
+				},
+			},
+			"test address",
+			[]services.BuildingDTO{},
+			nil,
+			"Unfortunately, I don't know this address.",
+		},
+		{
+			"one building",
+			fields{
+				services.NewBuildings_mock(t),
+				newInternalBot_mock(t),
+				map[string]CommandHandler{},
+				map[string]internalButtonHandler{},
+				"",
+				nil,
+			},
+			args{
+				context.Background(),
+				&tgbotapi.Message{
+					Text: "\\address test address",
+					Entities: []tgbotapi.MessageEntity{
+						{Type: "bot_command", Length: 8},
+					},
+					Chat: &tgbotapi.Chat{ID: 123},
+				},
+			},
+			"test address",
+			[]services.BuildingDTO{
+				{
+					NameEn: utils.GetPointer("test building"),
+					Address: "test address",
+				},
+			},
+			nil,
+			`Name: test building
+Address: test address
+Description: no data
+Completion year: no data
+Authors: no data
+Building history: no data
+Notable features: no data
+Facades: no data
+Interesting details: no data
+Surroundings: no data`,
+		},
+		{
+			"two buildings",
+			fields{
+				services.NewBuildings_mock(t),
+				newInternalBot_mock(t),
+				map[string]CommandHandler{},
+				map[string]internalButtonHandler{},
+				"",
+				nil,
+			},
+			args{
+				context.Background(),
+				&tgbotapi.Message{
+					Text: "\\address test address",
+					Entities: []tgbotapi.MessageEntity{
+						{Type: "bot_command", Length: 8},
+					},
+					Chat: &tgbotapi.Chat{ID: 123},
+				},
+			},
+			"test address",
+			[]services.BuildingDTO{
+				{
+					NameEn: utils.GetPointer("test building"),
+					Address: "test address",
+				},
+				{
+					NameEn: utils.GetPointer("test building 2"),
+					Address: "test address 2",
+					CompletionYear: utils.GetPointer(1973),
+				},
+			},
+			nil,
+			`Name: test building
+Address: test address
+Description: no data
+Completion year: no data
+Authors: no data
+Building history: no data
+Notable features: no data
+Facades: no data
+Interesting details: no data
+Surroundings: no data
+
+Name: test building 2
+Address: test address 2
+Description: no data
+Completion year: 1973
+Authors: no data
+Building history: no data
+Notable features: no data
+Facades: no data
+Interesting details: no data
+Surroundings: no data`,
 		},
 	}
 	for _, tt := range tests {
