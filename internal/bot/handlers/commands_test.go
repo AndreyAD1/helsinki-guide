@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	c "context"
 	"errors"
 	"testing"
@@ -27,12 +28,12 @@ func TestHandlerContainer_returnAddresses(t *testing.T) {
 		offset  int
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name             string
+		fields           fields
+		args             args
 		buildingPreviews []services.BuildingPreview
-		buildingError error
-		expectedMsg tgbotapi.MessageConfig
+		buildingError    error
+		expectedMsg      tgbotapi.MessageConfig
 	}{
 		{
 			"a building error",
@@ -154,7 +155,7 @@ Available building addresses and names:
 				tt.args.offset,
 			).Return(tt.buildingPreviews, tt.buildingError)
 			tt.fields.bot.EXPECT().
-			Send(tt.expectedMsg).Return(tgbotapi.Message{}, nil)
+				Send(tt.expectedMsg).Return(tgbotapi.Message{}, nil)
 			h := HandlerContainer{
 				buildingService:    tt.fields.buildingService,
 				bot:                tt.fields.bot,
@@ -164,6 +165,103 @@ Available building addresses and names:
 				metrics:            tt.fields.metrics,
 			}
 			h.returnAddresses(tt.args.ctx, tt.args.chatID, tt.args.address, tt.args.limit, tt.args.offset)
+		})
+	}
+}
+
+func TestHandlerContainer_getBuilding(t *testing.T) {
+	type fields struct {
+		buildingService    *services.Buildings_mock
+		bot                *internalBot_mock
+		HandlersPerCommand map[string]CommandHandler
+		handlersPerButton  map[string]internalButtonHandler
+		commandsForHelp    string
+		metrics            *metrics.Metrics
+	}
+	type args struct {
+		ctx     c.Context
+		message *tgbotapi.Message
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		address string
+		buildings []services.BuildingDTO
+		buildingError error
+		expectedMsg string
+	}{
+		{
+			"no address",
+			fields{
+				services.NewBuildings_mock(t),
+				newInternalBot_mock(t),
+				map[string]CommandHandler{},
+				map[string]internalButtonHandler{},
+				"",
+				nil,
+			},
+			args{
+				context.Background(),
+				&tgbotapi.Message{
+					Text: "test",
+					Entities: []tgbotapi.MessageEntity{
+						{Type: "bot_command", Length: 4},
+					},
+					Chat: &tgbotapi.Chat{ID: 123},
+				},
+			},
+			"",
+			[]services.BuildingDTO{},
+			nil,
+			"Please add an address to this command.",
+		},
+		{
+			"service error",
+			fields{
+				services.NewBuildings_mock(t),
+				newInternalBot_mock(t),
+				map[string]CommandHandler{},
+				map[string]internalButtonHandler{},
+				"",
+				nil,
+			},
+			args{
+				context.Background(),
+				&tgbotapi.Message{
+					Text: "\\address test address",
+					Entities: []tgbotapi.MessageEntity{
+						{Type: "bot_command", Length: 8},
+					},
+					Chat: &tgbotapi.Chat{ID: 123},
+				},
+			},
+			"test address",
+			[]services.BuildingDTO{},
+			errors.New("building error"),
+			"Internal error.",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.address != "" {
+				tt.fields.buildingService.EXPECT().
+				GetBuildingsByAddress(tt.args.ctx, tt.address).
+				Return(tt.buildings, tt.buildingError)
+			}
+
+			tt.fields.bot.EXPECT().
+			Send(tgbotapi.NewMessage(tt.args.message.Chat.ID, tt.expectedMsg)).
+			Return(tgbotapi.Message{}, nil)
+			h := HandlerContainer{
+				buildingService:    tt.fields.buildingService,
+				bot:                tt.fields.bot,
+				HandlersPerCommand: tt.fields.HandlersPerCommand,
+				handlersPerButton:  tt.fields.handlersPerButton,
+				commandsForHelp:    tt.fields.commandsForHelp,
+				metrics:            tt.fields.metrics,
+			}
+			h.getBuilding(tt.args.ctx, tt.args.message)
 		})
 	}
 }
