@@ -268,7 +268,7 @@ func TestHandlerContainer_getBuilding(t *testing.T) {
 			"Unfortunately, I don't know this address.",
 		},
 		{
-			"one building",
+			"one building en",
 			fields{
 				services.NewBuildings_mock(t),
 				newInternalBot_mock(t),
@@ -305,6 +305,89 @@ Notable features: no data
 Facades: no data
 Interesting details: no data
 Surroundings: no data`,
+		},
+		{
+			"one building ru",
+			fields{
+				services.NewBuildings_mock(t),
+				newInternalBot_mock(t),
+				map[string]CommandHandler{},
+				map[string]internalButtonHandler{},
+				"",
+				nil,
+			},
+			args{
+				context.Background(),
+				&tgbotapi.Message{
+					From: &tgbotapi.User{LanguageCode: "ru"},
+					Text: "\\address test address",
+					Entities: []tgbotapi.MessageEntity{
+						{Type: "bot_command", Length: 8},
+					},
+					Chat: &tgbotapi.Chat{ID: 123},
+				},
+			},
+			"test address",
+			[]services.BuildingDTO{
+				{
+					NameEn: utils.GetPointer("test building"),
+					NameRu: utils.GetPointer("тестовое имя"),
+					Address: "test address",
+				},
+			},
+			nil,
+			`Имя: тестовое имя
+Адрес: test address
+Описание: нет данных
+Год постройки: нет данных
+Авторы: нет данных
+История здания: нет данных
+Примечательные особенности: нет данных
+Фасады: нет данных
+Интересные детали: нет данных
+Окрестности: нет данных`,
+		},
+		{
+			"one building ru",
+			fields{
+				services.NewBuildings_mock(t),
+				newInternalBot_mock(t),
+				map[string]CommandHandler{},
+				map[string]internalButtonHandler{},
+				"",
+				nil,
+			},
+			args{
+				context.Background(),
+				&tgbotapi.Message{
+					From: &tgbotapi.User{LanguageCode: "fi"},
+					Text: "\\address test address",
+					Entities: []tgbotapi.MessageEntity{
+						{Type: "bot_command", Length: 8},
+					},
+					Chat: &tgbotapi.Chat{ID: 123},
+				},
+			},
+			"test address",
+			[]services.BuildingDTO{
+				{
+					NameFi: utils.GetPointer("testi rakennus"),
+					NameEn: utils.GetPointer("test building"),
+					NameRu: utils.GetPointer("тестовое имя"),
+					Address: "test address",
+				},
+			},
+			nil,
+			`Nimi: testi rakennus
+Katuosoite: test address
+Kerrosluku: no data
+Käyttöönottovuosi: no data
+Suunnittelijat: no data
+Rakennushistoria: no data
+Huomattavia ominaisuuksia: no data
+Julkisivut: no data
+Erityispiirteet: no data
+Ymparistonkuvaus: no data`,
 		},
 		{
 			"two buildings",
