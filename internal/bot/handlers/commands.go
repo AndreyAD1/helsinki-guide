@@ -18,7 +18,7 @@ import (
 
 const (
 	unexpectedTextTmpl = "an unexpected message text for a button " +
-		"'next': %s: message_id: %v: chat id: %v"
+		"'next': '%s': message_id: '%v': chat id: '%v'"
 	defaultLimit = 10
 )
 
@@ -116,7 +116,7 @@ func (h HandlerContainer) getAllAdresses(ctx c.Context, message *tgbotapi.Messag
 
 var (
 	headerTemplate = "Search address: %s\nAvailable building addresses and names:"
-	lineTemplate = "%v. %s - %s"
+	lineTemplate   = "%v. %s - %s"
 )
 
 func (h HandlerContainer) returnAddresses(
@@ -240,42 +240,72 @@ func (h HandlerContainer) getBuilding(ctx c.Context, message *tgbotapi.Message) 
 }
 
 func (h HandlerContainer) next(ctx c.Context, query *tgbotapi.CallbackQuery) {
-	msgID, chatID := query.Message.MessageID, query.Message.Chat.ID
+	// Telegram asks a bot server to explicitly answer every callback call
+	defer func() {
+		callbackAnswer := tgbotapi.NewCallback(query.ID, "")
+		_, err := h.bot.Request(callbackAnswer)
+		if err != nil {
+			slog.WarnContext(
+				ctx,
+				fmt.Sprintf("could not answer to a callback %v", query.ID),
+				slog.Any(logger.ErrorKey, err),
+			)
+		}
+	}()
+
+	message := query.Message
+	if message == nil {
+		errMsg := fmt.Sprintf("a callback has no message %v", query.ID)
+		slog.WarnContext(ctx, errMsg)
+		h.metrics.UnexpectedNextCallback.With(
+			prometheus.Labels{"error": "a callback has no message"},
+		).Inc()
+		return
+	}
+	msgID := query.Message.MessageID
+	chat := query.Message.Chat
+	if chat == nil {
+		errMsg := fmt.Sprintf("a callback has no chat %v", query.ID)
+		slog.WarnContext(ctx, errMsg)
+		h.metrics.UnexpectedNextCallback.With(
+			prometheus.Labels{"error": "a callback has no chat"},
+		).Inc()
+		return
+	}
 	var button Button
 	if err := json.Unmarshal([]byte(query.Data), &button); err != nil {
 		logMsg := fmt.Sprintf(
 			"unexpected callback data %v from a message %v and the chat %v",
 			query.Data,
 			msgID,
-			chatID,
+			chat.ID,
 		)
 		slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
+		h.metrics.UnexpectedNextCallback.With(
+			prometheus.Labels{"error": "unexpected callback data"},
+		).Inc()
 		return
 	}
 	// I need to extract an address from a message text
 	//  instead of using query data because the Telegram API specifies that
 	//  query data should be less than 64 bytes.
 	firstRow, _, found := strings.Cut(query.Message.Text, "\n")
-	logMsg := fmt.Sprintf(unexpectedTextTmpl, query.Message.Text, msgID, chatID)
+	logMsg := fmt.Sprintf(unexpectedTextTmpl, query.Message.Text, msgID, chat.ID)
 	if !found {
 		slog.ErrorContext(ctx, logMsg)
+		h.metrics.UnexpectedNextCallback.With(
+			prometheus.Labels{"error": "unexpected callback message"},
+		).Inc()
 		return
 	}
 	_, address, found := strings.Cut(firstRow, ":")
 	if !found {
 		slog.ErrorContext(ctx, logMsg)
+		h.metrics.UnexpectedNextCallback.With(
+			prometheus.Labels{"error": "unexpected callback message"},
+		).Inc()
 		return
 	}
 	address = strings.TrimSpace(address)
-	h.returnAddresses(ctx, chatID, address, button.Limit, button.Offset)
-	// Telegram asks a bot server to explicitly answer every callback call
-	callbackAnswer := tgbotapi.NewCallback(query.ID, "")
-	_, err := h.bot.Request(callbackAnswer)
-	if err != nil {
-		slog.WarnContext(
-			ctx,
-			fmt.Sprintf("could not answer to a callback %v", query.ID),
-			slog.Any(logger.ErrorKey, err),
-		)
-	}
+	h.returnAddresses(ctx, chat.ID, address, button.Limit, button.Offset)
 }
