@@ -23,7 +23,7 @@ const (
 )
 
 func NewCommandContainer(
-	bot *tgbotapi.BotAPI,
+	bot InternalBot,
 	service services.BuildingService,
 	metricsContainer *metrics.Metrics,
 ) HandlerContainer {

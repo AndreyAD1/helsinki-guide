@@ -15,7 +15,7 @@ import (
 func TestHandlerContainer_returnAddresses(t *testing.T) {
 	type fields struct {
 		buildingService    *services.Buildings_mock
-		bot                *internalBot_mock
+		bot                *InternalBot_mock
 		HandlersPerCommand map[string]CommandHandler
 		handlersPerButton  map[string]internalButtonHandler
 		commandsForHelp    string
@@ -40,7 +40,7 @@ func TestHandlerContainer_returnAddresses(t *testing.T) {
 			"a building error",
 			fields{
 				services.NewBuildings_mock(t),
-				newInternalBot_mock(t),
+				NewInternalBot_mock(t),
 				map[string]CommandHandler{},
 				map[string]internalButtonHandler{},
 				"",
@@ -55,7 +55,7 @@ func TestHandlerContainer_returnAddresses(t *testing.T) {
 			"no buildings - no address",
 			fields{
 				services.NewBuildings_mock(t),
-				newInternalBot_mock(t),
+				NewInternalBot_mock(t),
 				map[string]CommandHandler{},
 				map[string]internalButtonHandler{},
 				"",
@@ -72,7 +72,7 @@ End`),
 			"several buildings and address, no offset",
 			fields{
 				services.NewBuildings_mock(t),
-				newInternalBot_mock(t),
+				NewInternalBot_mock(t),
 				map[string]CommandHandler{},
 				map[string]internalButtonHandler{},
 				"",
@@ -94,7 +94,7 @@ End`),
 			"several buildings and address, offset",
 			fields{
 				services.NewBuildings_mock(t),
-				newInternalBot_mock(t),
+				NewInternalBot_mock(t),
 				map[string]CommandHandler{},
 				map[string]internalButtonHandler{},
 				"",
@@ -116,7 +116,7 @@ End`),
 			"several buildings and address, offset, button",
 			fields{
 				services.NewBuildings_mock(t),
-				newInternalBot_mock(t),
+				NewInternalBot_mock(t),
 				map[string]CommandHandler{},
 				map[string]internalButtonHandler{},
 				"",
@@ -173,7 +173,7 @@ Available building addresses and names:
 func TestHandlerContainer_getBuilding(t *testing.T) {
 	type fields struct {
 		buildingService    *services.Buildings_mock
-		bot                *internalBot_mock
+		bot                *InternalBot_mock
 		HandlersPerCommand map[string]CommandHandler
 		handlersPerButton  map[string]internalButtonHandler
 		commandsForHelp    string
@@ -196,7 +196,7 @@ func TestHandlerContainer_getBuilding(t *testing.T) {
 			"no address",
 			fields{
 				services.NewBuildings_mock(t),
-				newInternalBot_mock(t),
+				NewInternalBot_mock(t),
 				map[string]CommandHandler{},
 				map[string]internalButtonHandler{},
 				"",
@@ -221,7 +221,7 @@ func TestHandlerContainer_getBuilding(t *testing.T) {
 			"service error",
 			fields{
 				services.NewBuildings_mock(t),
-				newInternalBot_mock(t),
+				NewInternalBot_mock(t),
 				map[string]CommandHandler{},
 				map[string]internalButtonHandler{},
 				"",
@@ -246,7 +246,7 @@ func TestHandlerContainer_getBuilding(t *testing.T) {
 			"no buildings",
 			fields{
 				services.NewBuildings_mock(t),
-				newInternalBot_mock(t),
+				NewInternalBot_mock(t),
 				map[string]CommandHandler{},
 				map[string]internalButtonHandler{},
 				"",
@@ -271,7 +271,7 @@ func TestHandlerContainer_getBuilding(t *testing.T) {
 			"one building en",
 			fields{
 				services.NewBuildings_mock(t),
-				newInternalBot_mock(t),
+				NewInternalBot_mock(t),
 				map[string]CommandHandler{},
 				map[string]internalButtonHandler{},
 				"",
@@ -310,7 +310,7 @@ Surroundings: no data`,
 			"one building ru",
 			fields{
 				services.NewBuildings_mock(t),
-				newInternalBot_mock(t),
+				NewInternalBot_mock(t),
 				map[string]CommandHandler{},
 				map[string]internalButtonHandler{},
 				"",
@@ -351,7 +351,7 @@ Surroundings: no data`,
 			"one building ru",
 			fields{
 				services.NewBuildings_mock(t),
-				newInternalBot_mock(t),
+				NewInternalBot_mock(t),
 				map[string]CommandHandler{},
 				map[string]internalButtonHandler{},
 				"",
@@ -393,7 +393,7 @@ Ymparistonkuvaus: no data`,
 			"two buildings",
 			fields{
 				services.NewBuildings_mock(t),
-				newInternalBot_mock(t),
+				NewInternalBot_mock(t),
 				map[string]CommandHandler{},
 				map[string]internalButtonHandler{},
 				"",

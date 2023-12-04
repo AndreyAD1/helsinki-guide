@@ -10,7 +10,7 @@ packages:
       ActorRepository:
   github.com/AndreyAD1/helsinki-guide/internal/bot/handlers:
     interfaces:
-      internalBot:
+      InternalBot:
   github.com/AndreyAD1/helsinki-guide/internal/bot/services:
     interfaces:
       Buildings:
