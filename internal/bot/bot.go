@@ -87,7 +87,7 @@ func NewServer(ctx context.Context, config configuration.StartupConfig) (*Server
 		Handler: srvMux,
 	}
 
-	botWithMetrics := middlewares.NewBotWithMetrics(bot, registeredMetrics)
+	botWithMetrics := handlers.NewBotWithMetrics(bot, registeredMetrics)
 
 	handlerContainer := handlers.NewCommandContainer(
 		botWithMetrics,
