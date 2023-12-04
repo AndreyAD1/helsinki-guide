@@ -29,7 +29,7 @@ import (
 )
 
 type Server struct {
-	bot             *tgbotapi.BotAPI
+	bot             handlers.InternalBot
 	handlers        handlers.HandlerContainer
 	shutdownFuncs   []func()
 	tgUpdateTimeout int
@@ -43,6 +43,7 @@ func NewServer(ctx context.Context, config configuration.StartupConfig) (*Server
 		return nil, fmt.Errorf("can not connect to the Telegram API: %w", err)
 	}
 	bot.Debug = false
+
 	dbpool, err := pgxpool.New(ctx, config.DatabaseURL)
 	if err != nil {
 		return nil, fmt.Errorf(
@@ -86,13 +87,15 @@ func NewServer(ctx context.Context, config configuration.StartupConfig) (*Server
 		Handler: srvMux,
 	}
 
+	botWithMetrics := middlewares.NewBotWithMetrics(bot, registeredMetrics)
+
 	handlerContainer := handlers.NewCommandContainer(
-		bot,
+		botWithMetrics,
 		buildingService,
 		registeredMetrics,
 	)
 	server := Server{
-		bot,
+		botWithMetrics,
 		handlerContainer,
 		[]func(){dbpool.Close},
 		config.TGUpdateTimeout,

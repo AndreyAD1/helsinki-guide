@@ -15,7 +15,7 @@ import (
 func TestHandlerContainer_next_positive(t *testing.T) {
 	type fields struct {
 		buildingService *services.Buildings_mock
-		bot             *internalBot_mock
+		bot             *InternalBot_mock
 	}
 	type args struct {
 		ctx   c.Context
@@ -34,7 +34,7 @@ func TestHandlerContainer_next_positive(t *testing.T) {
 			"valid text",
 			fields{
 				services.NewBuildings_mock(t),
-				newInternalBot_mock(t),
+				NewInternalBot_mock(t),
 			},
 			args{
 				c.Background(),
@@ -80,7 +80,7 @@ func TestHandlerContainer_next_positive(t *testing.T) {
 func TestHandlerContainer_next_negative(t *testing.T) {
 	type fields struct {
 		buildingService *services.Buildings_mock
-		bot             *internalBot_mock
+		bot             *InternalBot_mock
 	}
 	type args struct {
 		ctx   c.Context
@@ -96,7 +96,7 @@ func TestHandlerContainer_next_negative(t *testing.T) {
 			"empty callback query",
 			fields{
 				services.NewBuildings_mock(t),
-				newInternalBot_mock(t),
+				NewInternalBot_mock(t),
 			},
 			args{
 				c.Background(),
@@ -108,7 +108,7 @@ func TestHandlerContainer_next_negative(t *testing.T) {
 			"invalid callback data",
 			fields{
 				services.NewBuildings_mock(t),
-				newInternalBot_mock(t),
+				NewInternalBot_mock(t),
 			},
 			args{
 				c.Background(),
@@ -123,7 +123,7 @@ func TestHandlerContainer_next_negative(t *testing.T) {
 			"invalid callback text",
 			fields{
 				services.NewBuildings_mock(t),
-				newInternalBot_mock(t),
+				NewInternalBot_mock(t),
 			},
 			args{
 				c.Background(),
@@ -142,7 +142,7 @@ func TestHandlerContainer_next_negative(t *testing.T) {
 			"valid text",
 			fields{
 				services.NewBuildings_mock(t),
-				newInternalBot_mock(t),
+				NewInternalBot_mock(t),
 			},
 			args{
 				c.Background(),
