@@ -184,13 +184,13 @@ func TestHandlerContainer_getBuilding(t *testing.T) {
 		message *tgbotapi.Message
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		address string
-		buildings []services.BuildingDTO
+		name          string
+		fields        fields
+		args          args
+		address       string
+		buildings     []services.BuildingDTO
 		buildingError error
-		expectedMsg string
+		expectedMsg   string
 	}{
 		{
 			"no address",
@@ -290,7 +290,7 @@ func TestHandlerContainer_getBuilding(t *testing.T) {
 			"test address",
 			[]services.BuildingDTO{
 				{
-					NameEn: utils.GetPointer("test building"),
+					NameEn:  utils.GetPointer("test building"),
 					Address: "test address",
 				},
 			},
@@ -330,8 +330,8 @@ Surroundings: no data`,
 			"test address",
 			[]services.BuildingDTO{
 				{
-					NameEn: utils.GetPointer("test building"),
-					NameRu: utils.GetPointer("тестовое имя"),
+					NameEn:  utils.GetPointer("test building"),
+					NameRu:  utils.GetPointer("тестовое имя"),
 					Address: "test address",
 				},
 			},
@@ -371,9 +371,9 @@ Surroundings: no data`,
 			"test address",
 			[]services.BuildingDTO{
 				{
-					NameFi: utils.GetPointer("testi rakennus"),
-					NameEn: utils.GetPointer("test building"),
-					NameRu: utils.GetPointer("тестовое имя"),
+					NameFi:  utils.GetPointer("testi rakennus"),
+					NameEn:  utils.GetPointer("test building"),
+					NameRu:  utils.GetPointer("тестовое имя"),
 					Address: "test address",
 				},
 			},
@@ -412,12 +412,12 @@ Ymparistonkuvaus: no data`,
 			"test address",
 			[]services.BuildingDTO{
 				{
-					NameEn: utils.GetPointer("test building"),
+					NameEn:  utils.GetPointer("test building"),
 					Address: "test address",
 				},
 				{
-					NameEn: utils.GetPointer("test building 2"),
-					Address: "test address 2",
+					NameEn:         utils.GetPointer("test building 2"),
+					Address:        "test address 2",
 					CompletionYear: utils.GetPointer(1973),
 				},
 			},
@@ -449,13 +449,13 @@ Surroundings: no data`,
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.address != "" {
 				tt.fields.buildingService.EXPECT().
-				GetBuildingsByAddress(tt.args.ctx, tt.address).
-				Return(tt.buildings, tt.buildingError)
+					GetBuildingsByAddress(tt.args.ctx, tt.address).
+					Return(tt.buildings, tt.buildingError)
 			}
 
 			tt.fields.bot.EXPECT().
-			Send(tgbotapi.NewMessage(tt.args.message.Chat.ID, tt.expectedMsg)).
-			Return(tgbotapi.Message{}, nil)
+				Send(tgbotapi.NewMessage(tt.args.message.Chat.ID, tt.expectedMsg)).
+				Return(tgbotapi.Message{}, nil)
 			h := HandlerContainer{
 				buildingService:    tt.fields.buildingService,
 				bot:                tt.fields.bot,
