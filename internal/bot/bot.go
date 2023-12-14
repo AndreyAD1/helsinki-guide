@@ -242,25 +242,24 @@ func (s *Server) handleMessage(ctx context.Context, message *tgbotapi.Message) {
 	}
 	handler, ok := s.handlers.GetCommandHandler(message.Command())
 	slog.DebugContext(ctx, "handle a command", slog.String("command", message.Command()))
-
-	if !ok {
-		answer := fmt.Sprintf(
-			"Unfortunately, I don't understand this message: %s",
-			message.Text,
-		)
-		responseMsg := tgbotapi.NewMessage(message.Chat.ID, answer)
-		if _, err := s.bot.Send(responseMsg); err != nil {
-			logMsg := fmt.Sprintf(
-				"can not send a message to %v: %v",
-				message.Chat.ID,
-				answer,
-			)
-			slog.WarnContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
-		}
-		s.metrics.UnexpectedUpdates.With(prom.Labels{"error": "unexpected command"}).Inc()
+	if ok {
+		handler(ctx, message)
 		return
 	}
-	handler(ctx, message)
+	answer := fmt.Sprintf(
+		"Unfortunately, I don't understand this message: %s",
+		message.Text,
+	)
+	responseMsg := tgbotapi.NewMessage(message.Chat.ID, answer)
+	if _, err := s.bot.Send(responseMsg); err != nil {
+		logMsg := fmt.Sprintf(
+			"can not send a message to %v: %v",
+			message.Chat.ID,
+			answer,
+		)
+		slog.WarnContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
+	}
+	s.metrics.UnexpectedUpdates.With(prom.Labels{"error": "unexpected command"}).Inc()
 }
 
 func (s *Server) handleButton(ctx context.Context, query *tgbotapi.CallbackQuery) {
