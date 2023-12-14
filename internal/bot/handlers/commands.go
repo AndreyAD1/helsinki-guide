@@ -33,6 +33,7 @@ func NewCommandContainer(
 		"settings":  {HandlerContainer.settings, "Configure settings"},
 		"addresses": {HandlerContainer.getAllAdresses, "Get all available addresses"},
 		"building":  {HandlerContainer.getBuilding, "Get building by address"},
+		"location":  {HandlerContainer.location, "Get nearest buildings"},
 	}
 	handlersPerButton := map[string]internalButtonHandler{
 		"next": HandlerContainer.next,
