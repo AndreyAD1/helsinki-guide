@@ -112,8 +112,29 @@ func (h HandlerContainer) SendMessage(ctx c.Context, chatId int64, msgText strin
 }
 
 func (h HandlerContainer) start(ctx c.Context, message *tgbotapi.Message) error {
+	if message.Chat == nil {
+		return ErrNoChat
+	}
+	chatID := message.Chat.ID
 	startMsg := "Hello! I'm a bot that provides information about Helsinki buildings."
-	return h.SendMessage(ctx, message.Chat.ID, startMsg)
+	msg := tgbotapi.NewMessage(
+		chatID,
+		startMsg,
+	)
+	locationButton := tgbotapi.NewKeyboardButtonLocation("Share my location and get nearest buildings")
+	keyboardMarkup := tgbotapi.NewOneTimeReplyKeyboard(
+		[]tgbotapi.KeyboardButton{locationButton},
+	)
+	msg.ReplyMarkup = keyboardMarkup
+	_, err := h.bot.Send(msg)
+	if err != nil {
+		slog.WarnContext(
+			ctx,
+			fmt.Sprintf("can not send an inline keyboard to: %v", chatID),
+			slog.Any(logger.ErrorKey, err),
+		)
+	}
+	return err
 }
 
 func (h HandlerContainer) help(ctx c.Context, message *tgbotapi.Message) error {
