@@ -71,6 +71,7 @@ func TestHandlerContainer_next_positive(t *testing.T) {
 				map[string]internalButtonHandler{},
 				"",
 				metrics.NewMetrics(prometheus.NewRegistry()),
+				map[string]CommandHandler{},
 			}
 			h.next(tt.args.ctx, tt.args.query)
 		})
@@ -169,6 +170,7 @@ func TestHandlerContainer_next_negative(t *testing.T) {
 				map[string]internalButtonHandler{},
 				"",
 				metrics.NewMetrics(prometheus.NewRegistry()),
+				map[string]CommandHandler{},
 			}
 			h.next(tt.args.ctx, tt.args.query)
 		})

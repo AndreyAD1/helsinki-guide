@@ -231,6 +231,8 @@ func (s *Server) handleUpdate(ctx context.Context, update tgbotapi.Update) {
 		s.handleMessage(ctx, update.Message)
 	case update.CallbackQuery != nil:
 		s.handleButton(ctx, update.CallbackQuery)
+	default:
+		slog.DebugContext(ctx, fmt.Sprintf("an unexpected update %v", update))
 	}
 }
 
@@ -240,7 +242,11 @@ func (s *Server) handleMessage(ctx context.Context, message *tgbotapi.Message) {
 		s.metrics.UnexpectedUpdates.With(prom.Labels{"error": "no user"}).Inc()
 		return
 	}
-	handler, ok := s.handlers.GetCommandHandler(message.Command())
+	handlerName := message.Command()
+	if message.Location != nil {
+		handlerName = "nearestAddresses"
+	}
+	handler, ok := s.handlers.GetCommandHandler(handlerName)
 	slog.DebugContext(ctx, "handle a command", slog.String("command", message.Command()))
 	if ok {
 		handler(ctx, message)

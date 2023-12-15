@@ -3,6 +3,7 @@ package handlers
 import (
 	c "context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"slices"
@@ -27,14 +28,6 @@ func NewCommandContainer(
 	service services.BuildingService,
 	metricsContainer *metrics.Metrics,
 ) HandlerContainer {
-	handlersPerCommand := map[string]CommandHandler{
-		"start":     {HandlerContainer.start, "Start the bot"},
-		"help":      {HandlerContainer.help, "Get help"},
-		"settings":  {HandlerContainer.settings, "Configure settings"},
-		"addresses": {HandlerContainer.getAllAdresses, "Get all available addresses"},
-		"building":  {HandlerContainer.getBuilding, "Get building by address"},
-		"location":  {HandlerContainer.location, "Get nearest buildings"},
-	}
 	handlersPerButton := map[string]internalButtonHandler{
 		"next": HandlerContainer.next,
 	}
@@ -44,6 +37,14 @@ func NewCommandContainer(
 	}
 	slices.Sort(availableCommands)
 	commandsForHelp := strings.Join(availableCommands, ", ")
+	allHandlers := make(map[string]CommandHandler)
+	for command, handler := range handlersPerCommand {
+		allHandlers[command] = handler
+	}
+	allHandlers["nearestAddresses"] = CommandHandler{
+		HandlerContainer.getNearestAddresses,
+		"get nearest addresses",
+	}
 	return HandlerContainer{
 		service,
 		bot,
@@ -51,20 +52,27 @@ func NewCommandContainer(
 		handlersPerButton,
 		commandsForHelp,
 		metricsContainer,
+		allHandlers,
 	}
 }
 
-func (h HandlerContainer) GetCommandHandler(command string) (func(c.Context, *tgbotapi.Message), bool) {
-	handler, ok := h.HandlersPerCommand[command]
+func (h HandlerContainer) GetCommandHandler(command string) (func(c.Context, *tgbotapi.Message) error, bool) {
+	handler, ok := h.allHandlers[command]
 	if !ok {
 		return nil, false
 	}
-	metricWrapper := func(ctx c.Context, message *tgbotapi.Message) {
+	metricWrapper := func(ctx c.Context, message *tgbotapi.Message) error {
 		now := time.Now()
-		handler.Function(h, ctx, message)
+		err := handler.Function(h, ctx, message)
 		h.metrics.CommandDuration.With(
 			prometheus.Labels{"command_name": command},
 		).Observe(time.Since(now).Seconds())
+		if err != nil {
+			h.metrics.HandlerErrors.With(
+				prometheus.Labels{"handler_name": command},
+			).Inc()
+		}
+		return err
 	}
 	return metricWrapper, ok
 }
@@ -74,51 +82,54 @@ func (h HandlerContainer) GetButtonHandler(buttonName string) (ButtonHandler, bo
 	if !ok {
 		return nil, false
 	}
-	metricWrapper := func(ctx c.Context, query *tgbotapi.CallbackQuery) {
+	metricWrapper := func(ctx c.Context, query *tgbotapi.CallbackQuery) error {
 		now := time.Now()
-		handler(h, ctx, query)
+		err := handler(h, ctx, query)
 		h.metrics.ButtonDuration.With(
 			prometheus.Labels{"button_name": buttonName},
 		).Observe(time.Since(now).Seconds())
+		if err != nil {
+			h.metrics.HandlerErrors.With(
+				prometheus.Labels{"handler_name": buttonName},
+			).Inc()
+		}
+		return err
 	}
 	return metricWrapper, ok
 }
 
-func (h HandlerContainer) SendMessage(ctx c.Context, chatId int64, msgText string) {
+func (h HandlerContainer) SendMessage(ctx c.Context, chatId int64, msgText string) error {
 	msg := tgbotapi.NewMessage(chatId, msgText)
-	if _, err := h.bot.Send(msg); err != nil {
+	_, err := h.bot.Send(msg)
+	if err != nil {
 		slog.WarnContext(
 			ctx,
 			fmt.Sprintf("can not send a message to %v: %v", chatId, msgText),
 			slog.Any(logger.ErrorKey, err),
 		)
 	}
+	return err
 }
 
-func (h HandlerContainer) start(ctx c.Context, message *tgbotapi.Message) {
+func (h HandlerContainer) start(ctx c.Context, message *tgbotapi.Message) error {
 	startMsg := "Hello! I'm a bot that provides information about Helsinki buildings."
-	h.SendMessage(ctx, message.Chat.ID, startMsg)
+	return h.SendMessage(ctx, message.Chat.ID, startMsg)
 }
 
-func (h HandlerContainer) help(ctx c.Context, message *tgbotapi.Message) {
+func (h HandlerContainer) help(ctx c.Context, message *tgbotapi.Message) error {
 	helpMsg := fmt.Sprintf("Available commands: %s", h.commandsForHelp)
-	h.SendMessage(ctx, message.Chat.ID, helpMsg)
+	return h.SendMessage(ctx, message.Chat.ID, helpMsg)
 }
 
-func (h HandlerContainer) settings(ctx c.Context, message *tgbotapi.Message) {
+func (h HandlerContainer) settings(ctx c.Context, message *tgbotapi.Message) error {
 	settingsMsg := "No settings yet."
-	h.SendMessage(ctx, message.Chat.ID, settingsMsg)
+	return h.SendMessage(ctx, message.Chat.ID, settingsMsg)
 }
 
-func (h HandlerContainer) getAllAdresses(ctx c.Context, message *tgbotapi.Message) {
+func (h HandlerContainer) getAllAdresses(ctx c.Context, message *tgbotapi.Message) error {
 	address := message.CommandArguments()
-	h.returnAddresses(ctx, message.Chat.ID, address, defaultLimit, 0)
+	return h.returnAddresses(ctx, message.Chat.ID, address, defaultLimit, 0)
 }
-
-var (
-	headerTemplate = "Search address: %s\nAvailable building addresses and names:"
-	lineTemplate   = "%v. %s - %s"
-)
 
 func (h HandlerContainer) returnAddresses(
 	ctx c.Context,
@@ -126,7 +137,7 @@ func (h HandlerContainer) returnAddresses(
 	address string,
 	limit,
 	offset int,
-) {
+) error {
 	buildings, err := h.buildingService.GetBuildingPreviews(
 		ctx,
 		address,
@@ -134,8 +145,8 @@ func (h HandlerContainer) returnAddresses(
 		offset,
 	)
 	if err != nil {
-		h.SendMessage(ctx, chatID, "Internal error")
-		return
+		sendErr := h.SendMessage(ctx, chatID, "Internal error")
+		return errors.Join(sendErr, err)
 	}
 	items := make([]string, len(buildings)+1)
 	items[0] = fmt.Sprintf(headerTemplate, address)
@@ -150,19 +161,7 @@ func (h HandlerContainer) returnAddresses(
 	response := strings.Join(items, "\n")
 	if len(buildings) < limit {
 		response += "\nEnd"
-		msg := tgbotapi.NewMessage(chatID, response)
-		if _, err := h.bot.Send(msg); err != nil {
-			slog.WarnContext(
-				ctx,
-				fmt.Sprintf(
-					"Can not send a response %v to the chat %v",
-					response,
-					chatID,
-				),
-				slog.Any(logger.ErrorKey, err),
-			)
-		}
-		return
+		return h.SendMessage(ctx, chatID, response)
 	}
 
 	msg := tgbotapi.NewMessage(chatID, response)
@@ -175,7 +174,7 @@ func (h HandlerContainer) returnAddresses(
 			fmt.Sprintf("can not create a button %v", button),
 			slog.Any(logger.ErrorKey, err),
 		)
-		return
+		return err
 	}
 	buttonData := tgbotapi.NewInlineKeyboardButtonData(
 		button.label,
@@ -185,20 +184,25 @@ func (h HandlerContainer) returnAddresses(
 		tgbotapi.NewInlineKeyboardRow(buttonData),
 	)
 	msg.ReplyMarkup = moreAddressesMenuMarkup
-	if _, err := h.bot.Send(msg); err != nil {
+	_, err = h.bot.Send(msg)
+	if err != nil {
 		slog.WarnContext(
 			ctx,
 			fmt.Sprintf("can not send an inline keyboard to: %v", chatID),
 			slog.Any(logger.ErrorKey, err),
 		)
 	}
+	return err
 }
 
-func (h HandlerContainer) getBuilding(ctx c.Context, message *tgbotapi.Message) {
+func (h HandlerContainer) getBuilding(ctx c.Context, message *tgbotapi.Message) error {
 	address := message.CommandArguments()
 	if address == "" {
-		h.SendMessage(ctx, message.Chat.ID, "Please add an address to this command.")
-		return
+		return h.SendMessage(
+			ctx,
+			message.Chat.ID,
+			"Please add an address to this command.",
+		)
 	}
 	buildings, err := h.buildingService.GetBuildingsByAddress(ctx, address)
 	if err != nil {
@@ -207,8 +211,8 @@ func (h HandlerContainer) getBuilding(ctx c.Context, message *tgbotapi.Message) 
 			fmt.Sprintf("can not get building by address '%s'", address),
 			slog.Any(logger.ErrorKey, err),
 		)
-		h.SendMessage(ctx, message.Chat.ID, "Internal error.")
-		return
+		sendErr := h.SendMessage(ctx, message.Chat.ID, "Internal error.")
+		return errors.Join(sendErr, err)
 	}
 	userLanguage := English
 	if user := message.From; user != nil {
@@ -237,10 +241,10 @@ func (h HandlerContainer) getBuilding(ctx c.Context, message *tgbotapi.Message) 
 	if len(items) > 0 {
 		response = strings.Join(items, "\n\n")
 	}
-	h.SendMessage(ctx, message.Chat.ID, response)
+	return h.SendMessage(ctx, message.Chat.ID, response)
 }
 
-func (h HandlerContainer) next(ctx c.Context, query *tgbotapi.CallbackQuery) {
+func (h HandlerContainer) next(ctx c.Context, query *tgbotapi.CallbackQuery) error {
 	// Telegram asks a bot server to explicitly answer every callback call
 	defer func() {
 		callbackAnswer := tgbotapi.NewCallback(query.ID, "")
@@ -261,7 +265,7 @@ func (h HandlerContainer) next(ctx c.Context, query *tgbotapi.CallbackQuery) {
 		h.metrics.UnexpectedNextCallback.With(
 			prometheus.Labels{"error": "a callback has no message"},
 		).Inc()
-		return
+		return nil
 	}
 	msgID := query.Message.MessageID
 	chat := query.Message.Chat
@@ -271,7 +275,7 @@ func (h HandlerContainer) next(ctx c.Context, query *tgbotapi.CallbackQuery) {
 		h.metrics.UnexpectedNextCallback.With(
 			prometheus.Labels{"error": "a callback has no chat"},
 		).Inc()
-		return
+		return nil
 	}
 	var button Button
 	if err := json.Unmarshal([]byte(query.Data), &button); err != nil {
@@ -285,7 +289,7 @@ func (h HandlerContainer) next(ctx c.Context, query *tgbotapi.CallbackQuery) {
 		h.metrics.UnexpectedNextCallback.With(
 			prometheus.Labels{"error": "unexpected callback data"},
 		).Inc()
-		return
+		return nil
 	}
 	// I need to extract an address from a message text
 	//  instead of using query data because the Telegram API specifies that
@@ -297,7 +301,7 @@ func (h HandlerContainer) next(ctx c.Context, query *tgbotapi.CallbackQuery) {
 		h.metrics.UnexpectedNextCallback.With(
 			prometheus.Labels{"error": "unexpected callback message"},
 		).Inc()
-		return
+		return nil
 	}
 	_, address, found := strings.Cut(firstRow, ":")
 	if !found {
@@ -305,8 +309,8 @@ func (h HandlerContainer) next(ctx c.Context, query *tgbotapi.CallbackQuery) {
 		h.metrics.UnexpectedNextCallback.With(
 			prometheus.Labels{"error": "unexpected callback message"},
 		).Inc()
-		return
+		return nil
 	}
 	address = strings.TrimSpace(address)
-	h.returnAddresses(ctx, chat.ID, address, button.Limit, button.Offset)
+	return h.returnAddresses(ctx, chat.ID, address, button.Limit, button.Offset)
 }
