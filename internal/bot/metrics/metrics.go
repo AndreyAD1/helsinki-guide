@@ -9,6 +9,7 @@ type Metrics struct {
 	CommandDuration        *prometheus.HistogramVec
 	ButtonDuration         *prometheus.HistogramVec
 	RequestDuration        *prometheus.HistogramVec
+	HandlerErrors          *prometheus.CounterVec
 }
 
 func NewMetrics(registerer prometheus.Registerer) *Metrics {
@@ -46,6 +47,11 @@ func NewMetrics(registerer prometheus.Registerer) *Metrics {
 			Help:      "Duration of the sending request.",
 			Buckets:   []float64{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1},
 		}, []string{"client", "method", "is_error"}),
+		prometheus.NewCounterVec(prometheus.CounterOpts{
+			Namespace: "helsinki_guide",
+			Name:      "handler_errors",
+			Help:      "number of handler errors",
+		}, []string{"handler_name"}),
 	}
 	registerer.MustRegister(
 		metrics.ChatUpdates,
@@ -54,6 +60,7 @@ func NewMetrics(registerer prometheus.Registerer) *Metrics {
 		metrics.CommandDuration,
 		metrics.ButtonDuration,
 		metrics.RequestDuration,
+		metrics.HandlerErrors,
 	)
 	return &metrics
 }

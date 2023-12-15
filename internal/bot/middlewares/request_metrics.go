@@ -9,9 +9,9 @@ import (
 )
 
 func Duration(
-	f func() (interface{}, error), 
-	m *metrics.Metrics, 
-	clientName, 
+	f func() (interface{}, error),
+	m *metrics.Metrics,
+	clientName,
 	methodName string,
 ) (interface{}, error) {
 	start := time.Now()
@@ -22,8 +22,8 @@ func Duration(
 	}
 	m.RequestDuration.With(
 		prometheus.Labels{
-			"client": clientName,
-			"method": methodName,
+			"client":   clientName,
+			"method":   methodName,
 			"is_error": strconv.FormatBool(isError),
 		},
 	).Observe(time.Since(start).Seconds())

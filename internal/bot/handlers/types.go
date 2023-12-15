@@ -10,12 +10,12 @@ import (
 )
 
 type CommandHandler struct {
-	Function    func(HandlerContainer, c.Context, *tgbotapi.Message)
+	Function    func(HandlerContainer, c.Context, *tgbotapi.Message) error
 	Description string
 }
 
-type internalButtonHandler func(HandlerContainer, c.Context, *tgbotapi.CallbackQuery)
-type ButtonHandler func(c.Context, *tgbotapi.CallbackQuery)
+type internalButtonHandler func(HandlerContainer, c.Context, *tgbotapi.CallbackQuery) error
+type ButtonHandler func(c.Context, *tgbotapi.CallbackQuery) error
 
 type HandlerContainer struct {
 	buildingService    services.Buildings
@@ -24,6 +24,7 @@ type HandlerContainer struct {
 	handlersPerButton  map[string]internalButtonHandler
 	commandsForHelp    string
 	metrics            *metrics.Metrics
+	allHandlers        map[string]CommandHandler
 }
 
 type Button struct {
@@ -51,7 +52,7 @@ func NewBotWithMetrics(bot *tgbotapi.BotAPI, m *metrics.Metrics) *BotWithMetrics
 
 func (b *BotWithMetrics) Send(c tgbotapi.Chattable) (tgbotapi.Message, error) {
 	result, err := middlewares.Duration(
-		func() (interface{}, error) {return b.BotAPI.Send(c)},
+		func() (interface{}, error) { return b.BotAPI.Send(c) },
 		b.m,
 		b.clientName,
 		"Send",
@@ -62,7 +63,7 @@ func (b *BotWithMetrics) Send(c tgbotapi.Chattable) (tgbotapi.Message, error) {
 
 func (b *BotWithMetrics) Request(c tgbotapi.Chattable) (*tgbotapi.APIResponse, error) {
 	result, err := middlewares.Duration(
-		func() (interface{}, error) {return b.BotAPI.Request(c)},
+		func() (interface{}, error) { return b.BotAPI.Request(c) },
 		b.m,
 		b.clientName,
 		"Request",
