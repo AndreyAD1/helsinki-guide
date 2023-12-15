@@ -11,5 +11,4 @@ var handlersPerCommand = map[string]CommandHandler{
 	"settings":  {HandlerContainer.settings, "Configure settings"},
 	"addresses": {HandlerContainer.getAllAdresses, "Get all available addresses"},
 	"building":  {HandlerContainer.getBuilding, "Get building by address"},
-	"location":  {HandlerContainer.location, "Get a location button"},
 }
