@@ -13,10 +13,8 @@ type CommandHandler struct {
 	Function    func(HandlerContainer, c.Context, *tgbotapi.Message) error
 	Description string
 }
-
 type internalButtonHandler func(HandlerContainer, c.Context, *tgbotapi.CallbackQuery) error
 type ButtonHandler func(c.Context, *tgbotapi.CallbackQuery) error
-
 type HandlerContainer struct {
 	buildingService    services.Buildings
 	bot                InternalBot
@@ -26,20 +24,12 @@ type HandlerContainer struct {
 	metrics            *metrics.Metrics
 	allHandlers        map[string]CommandHandler
 }
-
 type Button struct {
 	label  string
 	Name   string `json:"name"`
 	Limit  int    `json:"limit,omitempty"`
 	Offset int    `json:"offset,omitempty"`
 }
-
-type InternalBot interface {
-	Request(tgbotapi.Chattable) (*tgbotapi.APIResponse, error)
-	Send(tgbotapi.Chattable) (tgbotapi.Message, error)
-	GetUpdatesChan(tgbotapi.UpdateConfig) tgbotapi.UpdatesChannel
-}
-
 type BotWithMetrics struct {
 	clientName string
 	*tgbotapi.BotAPI
