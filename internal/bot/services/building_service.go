@@ -108,3 +108,13 @@ func (bs BuildingService) GetBuildingsByAddress(
 
 	return buildingsDto, nil
 }
+
+func (bs BuildingService) GetNearestBuildingPreviews(
+	ctx context.Context,
+	latitude,
+	longitude float64,
+	limit,
+	offset int,
+) ([]BuildingPreview, error) {
+	return nil, nil
+}
