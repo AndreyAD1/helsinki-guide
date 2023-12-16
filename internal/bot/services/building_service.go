@@ -9,6 +9,7 @@ import (
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories"
 	s "github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/specifications"
 	i "github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/types"
+	"github.com/AndreyAD1/helsinki-guide/internal/bot/logger"
 )
 
 type BuildingService struct {
@@ -70,6 +71,11 @@ func (bs BuildingService) GetBuildingPreviews(
 	spec := s.NewBuildingSpecificationByAlikeAddress(addressPrefix, limit, offset)
 	buildings, err := bs.buildingCollection.Query(ctx, spec)
 	if err != nil {
+		slog.ErrorContext(
+			ctx, 
+			fmt.Sprintf("can not get building for '%v'", addressPrefix), 
+			slog.Any(logger.ErrorKey, err),
+		)
 		return nil, err
 	}
 
