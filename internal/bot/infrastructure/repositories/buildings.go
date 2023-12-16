@@ -228,6 +228,8 @@ func (b *BuildingStorage) Query(
 			&building.CreatedAt,
 			&building.UpdatedAt,
 			&building.DeletedAt,
+			&building.Latitude_WGS84,
+			&building.Longitude_WGS84,
 			&address.ID,
 			&address.StreetAddress,
 			&address.NeighbourhoodID,
@@ -235,12 +237,25 @@ func (b *BuildingStorage) Query(
 			&address.UpdatedAt,
 			&address.DeletedAt,
 		); err != nil {
+			slog.ErrorContext(
+				ctx, 
+				fmt.Sprintf(
+					"can not convert a query result into a building: %v", 
+					building.ID,
+				),
+				slog.Any(logger.ErrorKey, err),
+			)
 			return nil, err
 		}
 		building.Address = address
 
 		authorIDs, err := b.getAuthorIds(ctx, building.ID)
 		if err != nil {
+			slog.ErrorContext(
+				ctx, 
+				fmt.Sprintf("can not get authors for a building %v", building.ID),
+				slog.Any(logger.ErrorKey, err),
+			)
 			return nil, err
 		}
 		building.AuthorIDs = authorIDs
@@ -270,6 +285,7 @@ func (b *BuildingStorage) Query(
 		building.CurrentUses = uses
 		buildings = append(buildings, building)
 	}
+	slog.DebugContext(ctx, fmt.Sprintf("found %v buildings", len(buildings)))
 	return buildings, nil
 }
 

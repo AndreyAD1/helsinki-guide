@@ -1,5 +1,7 @@
 package specifications
 
+import "strings"
+
 type BuildingSpecificationByAlikeAddress struct {
 	AddressPrefix string
 	Limit         int
@@ -17,11 +19,11 @@ func NewBuildingSpecificationByAlikeAddress(
 func (b *BuildingSpecificationByAlikeAddress) ToSQL() (string, map[string]any) {
 	queryTemplate := `SELECT *
 	FROM buildings JOIN addresses ON 
-	buildings.address_id = addresses.id WHERE street_address 
-	ILIKE @search_pattern
-	ORDER BY street_address LIMIT @limit OFFSET @offset;`
+	buildings.address_id = addresses.id WHERE lower(street_address) 
+	LIKE @search_pattern
+	ORDER BY lower(street_address) LIMIT @limit OFFSET @offset;`
 	queryArgs := map[string]any{
-		"search_pattern": b.AddressPrefix + "%",
+		"search_pattern": strings.ToLower(b.AddressPrefix) + "%",
 		"limit":          b.Limit,
 		"offset":         b.Offset,
 	}
@@ -38,7 +40,7 @@ func NewBuildingSpecificationByAddress(address string) Specification {
 
 func (b *BuildingSpecificationByAddress) ToSQL() (string, map[string]any) {
 	queryTemplate := `SELECT * FROM buildings JOIN addresses ON 
-	buildings.address_id = addresses.id WHERE street_address ILIKE @address
+	buildings.address_id = addresses.id WHERE lower(street_address) LIKE @address
 	ORDER BY name_fi, name_en, name_ru;`
-	return queryTemplate, map[string]any{"address": b.Address}
+	return queryTemplate, map[string]any{"address": strings.ToLower(b.Address)}
 }
