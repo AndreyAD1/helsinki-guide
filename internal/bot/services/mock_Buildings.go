@@ -141,6 +141,68 @@ func (_c *Buildings_mock_GetBuildingsByAddress_Call) RunAndReturn(run func(conte
 	return _c
 }
 
+// GetNearestBuildingPreviews provides a mock function with given fields: ctx, latitude, longitude, limit, offset
+func (_m *Buildings_mock) GetNearestBuildingPreviews(ctx context.Context, latitude float64, longitude float64, limit int, offset int) ([]BuildingPreview, error) {
+	ret := _m.Called(ctx, latitude, longitude, limit, offset)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetNearestBuildingPreviews")
+	}
+
+	var r0 []BuildingPreview
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, float64, float64, int, int) ([]BuildingPreview, error)); ok {
+		return rf(ctx, latitude, longitude, limit, offset)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, float64, float64, int, int) []BuildingPreview); ok {
+		r0 = rf(ctx, latitude, longitude, limit, offset)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]BuildingPreview)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, float64, float64, int, int) error); ok {
+		r1 = rf(ctx, latitude, longitude, limit, offset)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Buildings_mock_GetNearestBuildingPreviews_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetNearestBuildingPreviews'
+type Buildings_mock_GetNearestBuildingPreviews_Call struct {
+	*mock.Call
+}
+
+// GetNearestBuildingPreviews is a helper method to define mock.On call
+//   - ctx context.Context
+//   - latitude float64
+//   - longitude float64
+//   - limit int
+//   - offset int
+func (_e *Buildings_mock_Expecter) GetNearestBuildingPreviews(ctx interface{}, latitude interface{}, longitude interface{}, limit interface{}, offset interface{}) *Buildings_mock_GetNearestBuildingPreviews_Call {
+	return &Buildings_mock_GetNearestBuildingPreviews_Call{Call: _e.mock.On("GetNearestBuildingPreviews", ctx, latitude, longitude, limit, offset)}
+}
+
+func (_c *Buildings_mock_GetNearestBuildingPreviews_Call) Run(run func(ctx context.Context, latitude float64, longitude float64, limit int, offset int)) *Buildings_mock_GetNearestBuildingPreviews_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(float64), args[2].(float64), args[3].(int), args[4].(int))
+	})
+	return _c
+}
+
+func (_c *Buildings_mock_GetNearestBuildingPreviews_Call) Return(_a0 []BuildingPreview, _a1 error) *Buildings_mock_GetNearestBuildingPreviews_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Buildings_mock_GetNearestBuildingPreviews_Call) RunAndReturn(run func(context.Context, float64, float64, int, int) ([]BuildingPreview, error)) *Buildings_mock_GetNearestBuildingPreviews_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewBuildings_mock creates a new instance of Buildings_mock. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewBuildings_mock(t interface {
