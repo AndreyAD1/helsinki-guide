@@ -72,8 +72,8 @@ func (bs BuildingService) GetBuildingPreviews(
 	buildings, err := bs.buildingCollection.Query(ctx, spec)
 	if err != nil {
 		slog.ErrorContext(
-			ctx, 
-			fmt.Sprintf("can not get building for '%v'", addressPrefix), 
+			ctx,
+			fmt.Sprintf("can not get building for '%v'", addressPrefix),
 			slog.Any(logger.ErrorKey, err),
 		)
 		return nil, err

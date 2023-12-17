@@ -238,9 +238,9 @@ func (b *BuildingStorage) Query(
 			&address.DeletedAt,
 		); err != nil {
 			slog.ErrorContext(
-				ctx, 
+				ctx,
 				fmt.Sprintf(
-					"can not convert a query result into a building: %v", 
+					"can not convert a query result into a building: %v",
 					building.ID,
 				),
 				slog.Any(logger.ErrorKey, err),
@@ -252,7 +252,7 @@ func (b *BuildingStorage) Query(
 		authorIDs, err := b.getAuthorIds(ctx, building.ID)
 		if err != nil {
 			slog.ErrorContext(
-				ctx, 
+				ctx,
 				fmt.Sprintf("can not get authors for a building %v", building.ID),
 				slog.Any(logger.ErrorKey, err),
 			)
