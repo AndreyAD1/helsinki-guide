@@ -8,9 +8,9 @@ import (
 )
 
 var (
-	databaseURL string
+	databaseURL  string
 	converterURL string
-	RootCmd = &cobra.Command{
+	RootCmd      = &cobra.Command{
 		Use:   "convert",
 		Short: "Convert ETRS89/GK25FIN coordinates into WGS84 coordinate.",
 		Long: `This script gets projected coordinates from columns 'latitude_etrsgk25' and
