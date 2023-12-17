@@ -1,1 +1,1 @@
-DROP EXTENSION IF EXISTS cube CASCADE;
+DROP INDEX geolocation_index;
