@@ -1,2 +1,3 @@
-CREATE EXTENSION IF NOT EXISTS cube;
-CREATE EXTENSION IF NOT EXISTS earthdistance;
+CREATE INDEX CONCURRENTLY geolocation_index ON buildings
+USING gist 
+(ll_to_earth(latitude_wgs84, longitude_wgs84));

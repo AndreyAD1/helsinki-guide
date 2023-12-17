@@ -40,7 +40,8 @@ BOT_TOKEN=<BOT_TOKEN> DATABASE_URL=<DATABASE_URL> make run
 - Go v.1.21 or higher should be already installed.
 - A bot API token `BOT_TOKEN` provided by [@BotFather](https://t.me/BotFather).
 - [Docker](https://docs.docker.com/engine/) should be already installed.
-- An environment variable `DATABASE_URL` to connect to an empty PostgreSQL database.
+- An empty Postgresql database with an installed [`earthdistance` extension](https://www.postgresql.org/docs/15/earthdistance.html).
+- An environment variable `DATABASE_URL` to connect to the PostgreSQL database.
 - A subscription to [the Google Translate API](https://rapidapi.com/googlecloud/api/google-translate1/) 
 is required to automatically translate the source dataset into other languages.
 
