@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/clients"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/specifications"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -29,7 +30,7 @@ func run() error {
 		return fmt.Errorf("%v: %w", logMsg, err)
 	}
 	buildingRepo := repositories.NewBuildingRepo(dbpool)
-	converterClient := NewCoordinateConverterClient(converterURL)
+	converterClient := clients.NewEPSGClient(converterURL)
 	spec := specifications.NewBuildingSpecificationByAlikeAddress("", 500, 0)
 	buildings, err := buildingRepo.Query(ctx, spec)
 	if err != nil {
@@ -38,15 +39,31 @@ func run() error {
 	for _, building := range buildings {
 		latitude := building.Latitude_ETRSGK25
 		longitude := building.Longitude_ETRSGK25
-		latitudeWGS84, longitudeWGS84, err := converterClient.Convert(
+		if latitude == nil || longitude == nil {
+			log.Printf("building '%v' has no coordinates. Skip it", building.ID)
+			continue
+		}
+		latitudeWGS84, longitudeWGS84, err := converterClient.ConvertETRSGK24toWGS84(
 			ctx,
-			latitude,
-			longitude,
+			*latitude,
+			*longitude,
 		)
-		building.Latitude_WGS84 = latitudeWGS84
-		building.Longitude_ETRSGK25 = longitudeWGS84
+		if err != nil {
+			log.Printf(
+				"can not update the building '%v' because of the client error '%v'",
+				building.ID,
+				err,
+			)
+			continue
+		}
+		building.Latitude_WGS84 = &latitudeWGS84
+		building.Longitude_WGS84 = &longitudeWGS84
 		if _, err = buildingRepo.Update(ctx, building); err != nil {
-			log.Println("can not update a building '%v'", building.ID)
+			log.Printf(
+				"can not update a building '%v' due to a DB error '%v'",
+				building.ID,
+				err,
+			)
 		}
 	}
 
