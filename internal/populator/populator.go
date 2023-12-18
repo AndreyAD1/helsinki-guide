@@ -193,7 +193,7 @@ func (p *Populator) Run(
 			SpecialFeaturesEn:     getPointerStr(enRow[specialFeaturesIdx]),
 			SpecialFeaturesRu:     getPointerStr(ruRow[specialFeaturesIdx]),
 			Latitude_ETRSGK25:     latitude,
-			Longitude_ERRSGK25:    longitude,
+			Longitude_ETRSGK25:    longitude,
 			AuthorIDs:             authorIDs,
 			InitialUses:           initialUses,
 			CurrentUses:           currentuses,

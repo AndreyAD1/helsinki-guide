@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/spf13/cobra"
 )
@@ -12,7 +11,7 @@ var (
 	converterURL string
 	RootCmd      = &cobra.Command{
 		Use:   "convert",
-		Short: "Convert ETRS89/GK25FIN coordinates into WGS84 coordinate.",
+		Short: "Convert ETRS89/GK25FIN coordinates into WGS84 coordinates.",
 		Long: `This script gets projected coordinates from columns 'latitude_etrsgk25' and
 'longitude_etrsgk25' of the table 'buildings', converts them into
 geographic coordinates, and sets the columns 'latitude_wgs84' and 
@@ -45,10 +44,4 @@ func main() {
 	if err := RootCmd.Execute(); err != nil {
 		fmt.Println(err)
 	}
-}
-
-func run() error {
-	log.Println(databaseURL)
-	log.Println(converterURL)
-	return nil
 }
