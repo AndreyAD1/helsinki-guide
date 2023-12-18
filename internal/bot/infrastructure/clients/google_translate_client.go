@@ -4,11 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
-	"log"
 	"net/http"
 	"strings"
-	"time"
 )
 
 type GoogleTranslateClient struct {
@@ -61,7 +58,7 @@ func (c GoogleTranslateClient) GetTranslation(
 	request.Header.Add("X-RapidAPI-Key", c.apiKey)
 	request.Header.Add("X-RapidAPI-Host", "google-translate1.p.rapidapi.com")
 
-	responseBody, err := c.GetResponseWithRetry(request)
+	responseBody, err := GetResponseWithRetry(http.DefaultClient, request)
 	if err != nil {
 		return "", err
 	}
@@ -76,42 +73,4 @@ func (c GoogleTranslateClient) GetTranslation(
 	}
 	translatedText := parsedResponse.Data.Translations[0].TranslatedText
 	return translatedText, nil
-}
-
-func (c GoogleTranslateClient) GetResponseWithRetry(request *http.Request) ([]byte, error) {
-	for {
-		response, err := http.DefaultClient.Do(request)
-		if err != nil {
-			err = fmt.Errorf("can not send a request: %v: %w", request, err)
-			return nil, err
-		}
-		defer response.Body.Close()
-
-		responseBody, err := io.ReadAll(response.Body)
-		if err != nil {
-			err = fmt.Errorf(
-				"can not read a response body for a request: %v: %w",
-				request,
-				err,
-			)
-			return nil, err
-		}
-		if response.StatusCode >= 500 {
-			log.Printf("receive 500 for a request %v: %s", request, responseBody)
-			time.Sleep(time.Second * 2)
-			continue
-		}
-
-		if response.StatusCode != http.StatusOK {
-			err = fmt.Errorf(
-				"receive an error status code '%v': %v: %v",
-				response.StatusCode,
-				request,
-				string(responseBody),
-			)
-			return nil, err
-		}
-		return responseBody, nil
-	}
-
 }

@@ -30,8 +30,8 @@ func run() error {
 		return fmt.Errorf("%v: %w", logMsg, err)
 	}
 	buildingRepo := repositories.NewBuildingRepo(dbpool)
-	converterClient := clients.NewEPSGClient(converterURL)
-	spec := specifications.NewBuildingSpecificationByAlikeAddress("", 500, 0)
+	converterClient := clients.NewEPSGClient(converterURL, 10)
+	spec := specifications.NewBuildingSpecificationByAlikeAddress("", 1, 0)
 	buildings, err := buildingRepo.Query(ctx, spec)
 	if err != nil {
 		return err
@@ -56,6 +56,7 @@ func run() error {
 			)
 			continue
 		}
+		log.Println(latitudeWGS84, longitudeWGS84)
 		building.Latitude_WGS84 = &latitudeWGS84
 		building.Longitude_WGS84 = &longitudeWGS84
 		if _, err = buildingRepo.Update(ctx, building); err != nil {

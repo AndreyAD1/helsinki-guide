@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGoogleTranslateClient_GetResponseWithRetry_InternalError(t *testing.T) {
+func TestGetResponseWithRetry_InternalError(t *testing.T) {
 	callNumber := 0
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		callNumber++
@@ -31,13 +31,13 @@ func TestGoogleTranslateClient_GetResponseWithRetry_InternalError(t *testing.T) 
 		nil,
 	)
 	require.NoError(t, err)
-	responseBody, err := client.GetResponseWithRetry(request)
+	responseBody, err := GetResponseWithRetry(http.DefaultClient, request)
 	require.Nil(t, responseBody)
 	require.NotNil(t, err)
 	require.Equal(t, 2, callNumber)
 }
 
-func TestGoogleTranslateClient_GetResponseWithRetryOkResponse(t *testing.T) {
+func TestGetResponseWithRetryOkResponse(t *testing.T) {
 	type args struct {
 		request *http.Request
 	}
@@ -77,7 +77,7 @@ func TestGoogleTranslateClient_GetResponseWithRetryOkResponse(t *testing.T) {
 				nil,
 			)
 			require.NoError(t, err)
-			responseBody, err := client.GetResponseWithRetry(request)
+			responseBody, err := GetResponseWithRetry(http.DefaultClient, request)
 			require.Nil(t, err)
 			require.Equal(t, string(responseBody), "OK test response")
 		})
