@@ -84,7 +84,7 @@ var (
 			FacadesEn:          u.GetPointer("facade en 1"),
 			FacadesRu:          u.GetPointer("facade ru 1"),
 			Latitude_ETRSGK25:  u.GetPointer(float32(6671929)),
-			Longitude_ERRSGK25: u.GetPointer(float32(25493834)),
+			Longitude_ETRSGK25: u.GetPointer(float32(25493834)),
 		},
 		{
 			ID:     int64(2),
@@ -135,7 +135,7 @@ var (
 			FacadesEn:          u.GetPointer("facade en 2"),
 			FacadesRu:          u.GetPointer("facade ru 2"),
 			Latitude_ETRSGK25:  u.GetPointer(float32(6671951)),
-			Longitude_ERRSGK25: u.GetPointer(float32(25493874)),
+			Longitude_ETRSGK25: u.GetPointer(float32(25493874)),
 		},
 		{
 			ID:     int64(3),
@@ -186,7 +186,7 @@ var (
 			FacadesEn:          u.GetPointer("facade en 3"),
 			FacadesRu:          u.GetPointer("facade ru 3"),
 			Latitude_ETRSGK25:  u.GetPointer(float32(6671911)),
-			Longitude_ERRSGK25: u.GetPointer(float32(25494008)),
+			Longitude_ETRSGK25: u.GetPointer(float32(25494008)),
 		},
 	}
 )
@@ -293,7 +293,7 @@ func testRunPopulator(t *testing.T) {
 		validatePointerField(t, expected.SpecialFeaturesEn, actual.SpecialFeaturesEn)
 		validatePointerField(t, expected.SpecialFeaturesRu, actual.SpecialFeaturesRu)
 		validatePointerField(t, expected.Latitude_ETRSGK25, actual.Latitude_ETRSGK25)
-		validatePointerField(t, expected.Longitude_ERRSGK25, actual.Longitude_ERRSGK25)
+		validatePointerField(t, expected.Longitude_ETRSGK25, actual.Longitude_ETRSGK25)
 		require.Equal(t, expected.AuthorIDs, actual.AuthorIDs)
 		require.Equal(t, len(expected.InitialUses), len(actual.InitialUses))
 		for i, expectedUse := range expected.InitialUses {

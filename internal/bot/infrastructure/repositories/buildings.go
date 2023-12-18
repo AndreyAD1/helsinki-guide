@@ -92,7 +92,7 @@ func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Buil
 		building.SpecialFeaturesEn,
 		building.SpecialFeaturesRu,
 		building.Latitude_ETRSGK25,
-		building.Longitude_ERRSGK25,
+		building.Longitude_ETRSGK25,
 	).Scan(&building.ID, &building.CreatedAt)
 	if err != nil {
 		itemName := fmt.Sprintf("building '%v'", building.Address.StreetAddress)
@@ -224,7 +224,7 @@ func (b *BuildingStorage) Query(
 			&building.SpecialFeaturesEn,
 			&building.SpecialFeaturesRu,
 			&building.Latitude_ETRSGK25,
-			&building.Longitude_ERRSGK25,
+			&building.Longitude_ETRSGK25,
 			&building.CreatedAt,
 			&building.UpdatedAt,
 			&building.DeletedAt,
