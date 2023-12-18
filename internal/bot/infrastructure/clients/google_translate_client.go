@@ -13,7 +13,7 @@ type GoogleTranslateClient struct {
 	apiKey   string
 }
 
-var url = "https://google-translate1.p.rapidapi.com/language/translate/v2"
+var translatorURL = "https://google-translate1.p.rapidapi.com/language/translate/v2"
 
 type translatedText struct {
 	TranslatedText string `json:"translatedText"`
@@ -27,7 +27,7 @@ type TranslationResponseBody struct {
 }
 
 func NewGoogleClient(apiKey string) GoogleTranslateClient {
-	return GoogleTranslateClient{url, apiKey}
+	return GoogleTranslateClient{translatorURL, apiKey}
 }
 
 func (c GoogleTranslateClient) GetTranslation(

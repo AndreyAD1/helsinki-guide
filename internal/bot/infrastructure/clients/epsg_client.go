@@ -5,9 +5,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+	"net/url"
 	"strconv"
 	"time"
+)
+
+const (
+	EPSGcodeETRSGK25 = 3879
+	EPSGcodeWGS84    = 4326
 )
 
 type EPSGClient struct {
@@ -31,16 +38,29 @@ func (c *EPSGClient) ConvertETRSGK24toWGS84(
 	latitude,
 	longitude float32,
 ) (float64, float64, error) {
-	requestURL := c.baseURL
+	requestURL, err := url.JoinPath(c.baseURL, "trans")
+	if err != nil {
+		return 0, 0, err
+	}
+	lat := strconv.FormatFloat(float64(latitude), 'f', 2, 32)
+	lon := strconv.FormatFloat(float64(longitude), 'f', 2, 32)
+	query := fmt.Sprintf(
+		"x=%v&y=%v&s_srs=%v&t_srs=%v",
+		lon,
+		lat,
+		EPSGcodeETRSGK25,
+		EPSGcodeWGS84,
+	)
 	ctx, cancel := context.WithTimeout(
 		ctx,
 		time.Second*time.Duration(c.timeout),
 	)
 	defer cancel()
+	log.Println(requestURL + "?" + query)
 	request, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodGet,
-		requestURL,
+		requestURL+"?"+query,
 		bytes.NewBuffer([]byte{}),
 	)
 	if err != nil {
