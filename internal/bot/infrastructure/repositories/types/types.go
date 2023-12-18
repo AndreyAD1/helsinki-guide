@@ -83,8 +83,8 @@ type Building struct {
 	SpecialFeaturesRu     *string
 	Latitude_ETRSGK25     *float32
 	Longitude_ETRSGK25    *float32
-	Latitude_WGS84        *float32
-	Longitude_WGS84       *float32
+	Latitude_WGS84        *float64
+	Longitude_WGS84       *float64
 	AuthorIDs             []int64
 	InitialUses           []UseType
 	CurrentUses           []UseType
