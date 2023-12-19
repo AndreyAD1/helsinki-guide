@@ -1,6 +1,7 @@
 package repositories
 
-var insertBuilding = `INSERT INTO buildings
+var (
+	insertBuilding = `INSERT INTO buildings
 (	
 	code, 
 	name_fi, 
@@ -43,7 +44,9 @@ var insertBuilding = `INSERT INTO buildings
 	special_features_en,
 	special_features_ru,
 	latitude_etrsgk25,
-	longitude_etrsgk25
+	longitude_etrsgk25,
+	latitude_wgs84,
+	longitude_wgs84
 ) VALUES (
 	$1,
 	$2,
@@ -86,26 +89,75 @@ var insertBuilding = `INSERT INTO buildings
 	$39,
 	$40,
 	$41,
-	$42
+	$42,
+	$43,
+	$44
 ) RETURNING id, created_at;`
-
-var getAddress = `SELECT id, street_address, neighbourhood_id, created_at, 
+	updateBuilding = `UPDATE buildings SET
+	code = $1, 
+	name_fi = $2, 
+	name_en = $3, 
+	name_ru = $4, 
+	address_id = $5, 
+	construction_start_year = $6,
+	completion_year = $7, 
+	complex_fi = $8, 
+	complex_en = $9, 
+	complex_ru = $10, 
+	history_fi = $11,
+	history_en = $12, 
+	history_ru = $13, 
+	reasoning_fi = $14, 
+	reasoning_en = $15, 
+	reasoning_ru = $16,
+	protection_status_fi = $17, 
+	protection_status_en = $18, 
+	protection_status_ru = $19,
+	info_source_fi = $20,
+	info_source_en = $21,
+	info_source_ru = $22,
+	surroundings_fi = $23,
+	surroundings_en = $24,
+	surroundings_ru = $25,
+	foundation_fi = $26,
+	foundation_en = $27,
+	foundation_ru = $28,
+	frame_fi = $29,
+	frame_en = $30,
+	frame_ru = $31,
+	floor_description_fi = $32,
+	floor_description_en = $33,
+	floor_description_ru = $34,
+	facades_fi = $35,
+	facades_en = $36,
+	facades_ru = $37,
+	special_features_fi = $38,
+	special_features_en = $39,
+	special_features_ru = $40,
+	latitude_etrsgk25 = $41,
+	longitude_etrsgk25 = $42,
+	latitude_wgs84 = $43,
+	longitude_wgs84 = $44,
+	updated_at = $45
+WHERE id = $46 
+RETURNING updated_at;`
+	getAddress = `SELECT id, street_address, neighbourhood_id, created_at, 
 updated_at, deleted_at FROM addresses WHERE street_address = $1`
-
-var insertAddress = `INSERT INTO addresses (street_address, neighbourhood_id) 
+	insertAddress = `INSERT INTO addresses (street_address, neighbourhood_id) 
 VALUES ($1, $2) RETURNING id, street_address, neighbourhood_id, created_at, 
 updated_at, deleted_at;`
-
-var insertBuildingAuthor = `INSERT INTO building_authors (building_id, actor_id)
+	insertBuildingAuthor = `INSERT INTO building_authors (building_id, actor_id)
 VALUES ($1, $2);`
-
-var getUseType = `SELECT id, name_fi, name_en, name_ru, created_at, updated_at, 
+	getUseType = `SELECT id, name_fi, name_en, name_ru, created_at, updated_at, 
 deleted_at FROM use_types WHERE name_en = $1;`
-var insertUseType = `INSERT INTO use_types (name_fi, name_en, name_ru)
+	insertUseType = `INSERT INTO use_types (name_fi, name_en, name_ru)
 VALUES ($1, $2, $3) RETURNING id, name_fi, name_en, name_ru, created_at,
 updated_at, deleted_at;`
-
-var insertInitialUses = `INSERT INTO initial_uses (building_id, use_type_id)
+	insertInitialUses = `INSERT INTO initial_uses (building_id, use_type_id)
 VALUES ($1, $2);`
-var insertCurrentUses = `INSERT INTO current_uses (building_id, use_type_id)
+	insertCurrentUses = `INSERT INTO current_uses (building_id, use_type_id)
 VALUES ($1, $2);`
+	deleteBuildingAuthors = `DELETE FROM building_authors WHERE building_id = $1`
+	deleteInitialUses     = `DELETE FROM initial_uses WHERE building_id = $1`
+	deleteCurrentUses     = `DELETE FROM current_uses WHERE building_id = $1`
+)

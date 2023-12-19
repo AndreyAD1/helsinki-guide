@@ -61,11 +61,12 @@ func run() error {
 		building.Longitude_WGS84 = &longitudeWGS84
 		if _, err = buildingRepo.Update(ctx, building); err != nil {
 			log.Printf(
-				"can not update a building '%v' due to a DB error '%v'",
+				"can not update a building '%v' due to a DB error: '%v'",
 				building.ID,
 				err,
 			)
 		}
+		log.Printf("updated the building %v", building.ID)
 	}
 
 	return nil

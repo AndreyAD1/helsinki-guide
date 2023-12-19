@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"time"
 
 	s "github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/specifications"
 	i "github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/types"
@@ -93,6 +94,8 @@ func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Buil
 		building.SpecialFeaturesRu,
 		building.Latitude_ETRSGK25,
 		building.Longitude_ETRSGK25,
+		building.Latitude_WGS84,
+		building.Longitude_WGS84,
 	).Scan(&building.ID, &building.CreatedAt)
 	if err != nil {
 		itemName := fmt.Sprintf("building '%v'", building.Address.StreetAddress)
@@ -147,7 +150,7 @@ func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Buil
 
 	if err := transaction.Commit(ctx); err != nil {
 		logMsg := fmt.Sprintf(
-			"can not close a transaction for the building %v - %v",
+			"can not commit an insertion transaction for the building %v - %v",
 			building.NameEn,
 			building.Address.StreetAddress,
 		)
@@ -161,7 +164,151 @@ func (b *BuildingStorage) Remove(ctx context.Context, building i.Building) error
 }
 
 func (b *BuildingStorage) Update(ctx context.Context, building i.Building) (*i.Building, error) {
-	return nil, ErrNotImplemented
+	transaction, err := b.dbPool.Begin(ctx)
+	if err != nil {
+		logMsg := "can not begin a transaction"
+		slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
+		return nil, err
+	}
+	defer func() {
+		logMsg := fmt.Sprintf(
+			"finish a transaction for a building '%v'",
+			building.Address.StreetAddress,
+		)
+		slog.DebugContext(ctx, logMsg)
+		err := transaction.Rollback(ctx)
+		if err != nil && !errors.Is(err, pgx.ErrTxClosed) {
+			slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
+		}
+	}()
+
+	address, err := b.getAddress(ctx, transaction, building.Address)
+	if err != nil {
+		return nil, err
+	}
+	building.Address = address
+	err = transaction.QueryRow(
+		ctx,
+		updateBuilding,
+		building.Code,
+		building.NameFi,
+		building.NameEn,
+		building.NameRu,
+		address.ID,
+		building.ConstructionStartYear,
+		building.CompletionYear,
+		building.ComplexFi,
+		building.ComplexEn,
+		building.ComplexRu,
+		building.HistoryFi,
+		building.HistoryEn,
+		building.HistoryRu,
+		building.ReasoningFi,
+		building.ReasoningEn,
+		building.ReasoningRu,
+		building.ProtectionStatusFi,
+		building.ProtectionStatusEn,
+		building.ProtectionStatusRu,
+		building.InfoSourceFi,
+		building.InfoSourceEn,
+		building.InfoSourceRu,
+		building.SurroundingsFi,
+		building.SurroundingsEn,
+		building.SurroundingsRu,
+		building.FoundationFi,
+		building.FoundationEn,
+		building.FoundationRu,
+		building.FrameFi,
+		building.FrameEn,
+		building.FrameRu,
+		building.FloorDescriptionFi,
+		building.FloorDescriptionEn,
+		building.FloorDescriptionRu,
+		building.FacadesFi,
+		building.FacadesEn,
+		building.FacadesRu,
+		building.SpecialFeaturesFi,
+		building.SpecialFeaturesEn,
+		building.SpecialFeaturesRu,
+		building.Latitude_ETRSGK25,
+		building.Longitude_ETRSGK25,
+		building.Latitude_WGS84,
+		building.Longitude_WGS84,
+		time.Now(),
+		building.ID,
+	).Scan(&building.UpdatedAt)
+	if err != nil {
+		itemName := fmt.Sprintf("building '%v'", building.Address.StreetAddress)
+		return nil, processPostgresError(ctx, itemName, err)
+	}
+
+	if _, err := transaction.Exec(ctx, deleteBuildingAuthors, building.ID); err != nil {
+		itemName := fmt.Sprintf("authors per building %v", building.ID)
+		return nil, processPostgresError(ctx, itemName, err)
+	}
+	for _, authorID := range building.AuthorIDs {
+		res, err := transaction.Exec(
+			ctx,
+			insertBuildingAuthor,
+			building.ID,
+			authorID,
+		)
+		if err != nil {
+			itemName := fmt.Sprintf("building author %v", authorID)
+			return nil, processPostgresError(ctx, itemName, err)
+		}
+		if res.RowsAffected() != 1 {
+			logMsg := fmt.Sprintf(
+				"couldn't add a building author: %v - %v; affected rows: %v",
+				building.ID,
+				authorID,
+				res.RowsAffected(),
+			)
+			slog.WarnContext(ctx, logMsg)
+			return nil, ErrInsertFailed
+		}
+	}
+
+	if _, err := transaction.Exec(ctx, deleteInitialUses, building.ID); err != nil {
+		itemName := fmt.Sprintf("initial uses per building %v", building.ID)
+		return nil, processPostgresError(ctx, itemName, err)
+	}
+	uses, err := b.setUses(
+		ctx,
+		transaction,
+		insertInitialUses,
+		building.ID,
+		building.InitialUses,
+	)
+	if err != nil {
+		return nil, err
+	}
+	building.InitialUses = uses
+	if _, err := transaction.Exec(ctx, deleteCurrentUses, building.ID); err != nil {
+		itemName := fmt.Sprintf("initial uses per building %v", building.ID)
+		return nil, processPostgresError(ctx, itemName, err)
+	}
+	uses, err = b.setUses(
+		ctx,
+		transaction,
+		insertCurrentUses,
+		building.ID,
+		building.CurrentUses,
+	)
+	if err != nil {
+		return nil, err
+	}
+	building.CurrentUses = uses
+
+	if err := transaction.Commit(ctx); err != nil {
+		logMsg := fmt.Sprintf(
+			"can not commit an update transaction for the building %v - %v",
+			building.NameEn,
+			building.Address.StreetAddress,
+		)
+		slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
+	}
+	return &building, nil
 }
 
 func (b *BuildingStorage) Query(
