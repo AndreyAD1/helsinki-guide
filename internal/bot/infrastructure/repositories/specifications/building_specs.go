@@ -1,6 +1,9 @@
 package specifications
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 type BuildingSpecificationByAlikeAddress struct {
 	AddressPrefix string
@@ -43,4 +46,52 @@ func (b *BuildingSpecificationByAddress) ToSQL() (string, map[string]any) {
 	buildings.address_id = addresses.id WHERE lower(street_address) LIKE @address
 	ORDER BY name_fi, name_en, name_ru;`
 	return queryTemplate, map[string]any{"address": strings.ToLower(b.Address)}
+}
+
+type BuildingSpecificationByLocation struct {
+	DistanceMeters int
+	Latitude string
+	Longitude string
+	Limit int
+	Offset int
+}
+
+func NewBuildingSpecificationByLocation(
+	distanceMeters int,
+	latitude, 
+	longitude float64,
+	limit, 
+	offset int,
+) Specification {
+	lat := fmt.Sprintf("%.2f", latitude)
+	lon := fmt.Sprintf("%.2f", longitude)
+	return &BuildingSpecificationByLocation{distanceMeters, lat, lon, limit, offset}
+}
+
+func (b *BuildingSpecificationByLocation) ToSQL() (string, map[string]any) {
+	queryTemplate := `SELECT *
+	FROM buildings
+	JOIN addresses ON buildings.address_id = addresses.id 
+	WHERE earth_box(ll_to_earth(@latitude, @longitude), @distance) @> 
+		ll_to_earth(latitude_wgs84, longitude_wgs84) 
+		AND
+		earth_distance(
+			ll_to_earth(@latitude, @longitude), 
+			ll_to_earth(latitude_wgs84, longitude_wgs84)
+		) <= @distance
+	ORDER BY (
+		earth_distance(
+			ll_to_earth(latitude_wgs84, longitude_wgs84),
+			ll_to_earth(@latitude, @longitude)
+		)
+	)
+	LIMIT @limit OFFSET @offset;`
+	args := map[string]any{
+		"distance": b.DistanceMeters,
+		"latitude": b.Latitude,
+		"longitude": b.Longitude,
+		"limit": b.Limit,
+		"offset": b.Offset,
+	}
+	return queryTemplate, args
 }
