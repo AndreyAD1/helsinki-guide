@@ -41,12 +41,10 @@ func (c *EPSGClient) ConvertETRSGK24toWGS84(
 	if err != nil {
 		return 0, 0, err
 	}
-	lat := strconv.FormatFloat(float64(latitude), 'f', 2, 32)
-	lon := strconv.FormatFloat(float64(longitude), 'f', 2, 32)
 	query := fmt.Sprintf(
-		"x=%v&y=%v&s_srs=%v&t_srs=%v",
-		lon,
-		lat,
+		"x=%.2f&y=%.2f&s_srs=%v&t_srs=%v",
+		longitude,
+		latitude,
 		EPSGcodeETRSGK25,
 		EPSGcodeWGS84,
 	)
@@ -63,7 +61,7 @@ func (c *EPSGClient) ConvertETRSGK24toWGS84(
 	)
 	if err != nil {
 		return 0, 0, fmt.Errorf(
-			"can not make a request for '%v', '%v': %v",
+			"can not make a request for '%.2f': '%.2f': %v",
 			latitude,
 			longitude,
 			err,
@@ -72,7 +70,7 @@ func (c *EPSGClient) ConvertETRSGK24toWGS84(
 	response, err := GetResponseWithRetry(c.client, request)
 	if err != nil {
 		return 0, 0, fmt.Errorf(
-			"can not send a request for '%v', '%v': %v",
+			"can not send a request for '%.2f': '%.2f': %v",
 			latitude,
 			longitude,
 			err,

@@ -31,7 +31,7 @@ func run() error {
 	}
 	buildingRepo := repositories.NewBuildingRepo(dbpool)
 	converterClient := clients.NewEPSGClient(converterURL, 10)
-	spec := specifications.NewBuildingSpecificationByAlikeAddress("", 1, 0)
+	spec := specifications.NewBuildingSpecificationByAlikeAddress("", 3, 0)
 	buildings, err := buildingRepo.Query(ctx, spec)
 	if err != nil {
 		return err
