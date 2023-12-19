@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -56,7 +55,6 @@ func (c *EPSGClient) ConvertETRSGK24toWGS84(
 		time.Second*time.Duration(c.timeout),
 	)
 	defer cancel()
-	log.Println(requestURL + "?" + query)
 	request, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodGet,
