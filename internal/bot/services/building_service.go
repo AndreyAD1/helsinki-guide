@@ -122,5 +122,34 @@ func (bs BuildingService) GetNearestBuildingPreviews(
 	limit,
 	offset int,
 ) ([]BuildingPreview, error) {
-	return nil, nil
+	spec := s.NewBuildingSpecificationByLocation(
+		10000,
+		latitude, 
+		longitude, 
+		limit, 
+		offset,
+	)
+	buildings, err := bs.buildingCollection.Query(ctx, spec)
+	if err != nil {
+		slog.ErrorContext(
+			ctx,
+			fmt.Sprintf(
+				"can not get nearest buildings for '%.2f-%.2f'", 
+				latitude,
+				longitude,
+			),
+			slog.Any(logger.ErrorKey, err),
+		)
+		return nil, err
+	}
+
+	previews := make([]BuildingPreview, len(buildings))
+	for i, building := range buildings {
+		name := ""
+		if building.NameFi != nil {
+			name = *building.NameFi
+		}
+		previews[i] = BuildingPreview{building.Address.StreetAddress, name}
+	}
+	return previews, nil
 }
