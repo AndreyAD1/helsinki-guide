@@ -48,50 +48,53 @@ func (b *BuildingSpecificationByAddress) ToSQL() (string, map[string]any) {
 	return queryTemplate, map[string]any{"address": strings.ToLower(b.Address)}
 }
 
-type BuildingSpecificationByLocation struct {
+type BuildingSpecificationNearest struct {
 	DistanceMeters int
-	Latitude string
-	Longitude string
-	Limit int
-	Offset int
+	Latitude       string
+	Longitude      string
+	Limit          int
+	Offset         int
 }
 
-func NewBuildingSpecificationByLocation(
+func NewBuildingSpecificationNearest(
 	distanceMeters int,
-	latitude, 
+	latitude,
 	longitude float64,
-	limit, 
+	limit,
 	offset int,
 ) Specification {
 	lat := fmt.Sprintf("%.2f", latitude)
 	lon := fmt.Sprintf("%.2f", longitude)
-	return &BuildingSpecificationByLocation{distanceMeters, lat, lon, limit, offset}
+	return &BuildingSpecificationNearest{distanceMeters, lat, lon, limit, offset}
 }
 
-func (b *BuildingSpecificationByLocation) ToSQL() (string, map[string]any) {
-	queryTemplate := `SELECT *
-	FROM buildings
-	JOIN addresses ON buildings.address_id = addresses.id 
-	WHERE earth_box(ll_to_earth(@latitude, @longitude), @distance) @> 
+func (b *BuildingSpecificationNearest) ToSQL() (string, map[string]any) {
+	queryTemplate := `WITH nearest_buildings AS (
+		SELECT * FROM buildings
+		WHERE earth_box(ll_to_earth(@latitude, @longitude), @distance) @> 
 		ll_to_earth(latitude_wgs84, longitude_wgs84) 
 		AND
 		earth_distance(
 			ll_to_earth(@latitude, @longitude), 
 			ll_to_earth(latitude_wgs84, longitude_wgs84)
 		) <= @distance
-	ORDER BY (
-		earth_distance(
-			ll_to_earth(latitude_wgs84, longitude_wgs84),
-			ll_to_earth(@latitude, @longitude)
+		ORDER BY (
+			earth_distance(
+				ll_to_earth(@latitude, @longitude),
+				ll_to_earth(latitude_wgs84, longitude_wgs84)
+			)
 		)
 	)
+	SELECT *
+	FROM nearest_buildings
+	JOIN addresses ON nearest_buildings.address_id = addresses.id 
 	LIMIT @limit OFFSET @offset;`
 	args := map[string]any{
-		"distance": b.DistanceMeters,
-		"latitude": b.Latitude,
+		"distance":  b.DistanceMeters,
+		"latitude":  b.Latitude,
 		"longitude": b.Longitude,
-		"limit": b.Limit,
-		"offset": b.Offset,
+		"limit":     b.Limit,
+		"offset":    b.Offset,
 	}
 	return queryTemplate, args
 }
