@@ -14,6 +14,7 @@ func testAddNewBuilding(t *testing.T) {
 	storageN := repositories.NewNeighbourhoodRepo(dbpool)
 	neighbourbourhood := i.Neighbourhood{Name: "test neighbourhood"}
 	savedNeighbour, err := storageN.Add(context.Background(), neighbourbourhood)
+	require.NoError(t, err)
 
 	actorStorage := repositories.NewActorRepo(dbpool)
 	titleEn := "test title en"

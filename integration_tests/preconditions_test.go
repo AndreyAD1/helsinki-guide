@@ -61,19 +61,26 @@ func TestMain(m *testing.M) {
 	}
 
 	log.Println("run a postgres container")
-	resource, err := dockerPool.RunWithOptions(&dockertest.RunOptions{
-		Repository: "postgres",
-		Tag:        "15",
-		Env: []string{
-			"POSTGRES_PASSWORD=secret",
-			"POSTGRES_USER=user_name",
-			"POSTGRES_DB=dbname",
-			"listen_addresses = '*'",
+	resource, err := dockerPool.BuildAndRunWithBuildOptions(
+		&dockertest.BuildOptions{
+			Dockerfile: "./Dockerfile",
+			ContextDir: ".",
+			BuildArgs: []docker.BuildArg{{Name: "tag", Value: "guide_test_db"}},
 		},
-	}, func(config *docker.HostConfig) {
-		config.AutoRemove = true
-		config.RestartPolicy = docker.RestartPolicy{Name: "no"}
-	})
+		&dockertest.RunOptions{
+			Name: "guide_test_db",
+			Env: []string{
+				"POSTGRES_PASSWORD=secret",
+				"POSTGRES_USER=user_name",
+				"POSTGRES_DB=dbname",
+				"listen_addresses = '*'",
+			},
+		}, 
+		func(config *docker.HostConfig) {
+			config.AutoRemove = true
+			config.RestartPolicy = docker.RestartPolicy{Name: "no"}
+		},
+	)
 	if err != nil {
 		log.Fatalf("Could not start a resource: %s", err)
 	}
@@ -105,7 +112,6 @@ func TestMain(m *testing.M) {
 	}); err != nil {
 		log.Fatalf("Could not connect to a DB container: %s", err)
 	}
-
 	code := m.Run()
 
 	if err := dockerPool.Purge(resource); err != nil {
@@ -156,5 +162,6 @@ var integrationTests = []integrationTest{
 	{"addBuilding", testAddNewBuilding},
 	{"addBuildingAddressError", testAddNewBuildingAddressError},
 	{"addBuildingAuthorError", testAddNewBuildingAuthorError},
+	{"getNearestBuildings", testGetNearestBuildings},
 	{"runPopulator", testRunPopulator},
 }
