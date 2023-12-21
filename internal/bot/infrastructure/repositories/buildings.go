@@ -160,7 +160,12 @@ func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Buil
 }
 
 func (b *BuildingStorage) Remove(ctx context.Context, building i.Building) error {
-	return ErrNotImplemented
+	_, err := b.dbPool.Exec(ctx, deleteBuilding, time.Now(), building.ID)
+	if err != nil {
+		itemName := fmt.Sprintf("building %v", building.ID)
+		return processPostgresError(ctx, itemName, err)
+	}
+	return nil
 }
 
 func (b *BuildingStorage) Update(ctx context.Context, building i.Building) (*i.Building, error) {

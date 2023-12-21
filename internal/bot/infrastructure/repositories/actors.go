@@ -114,6 +114,6 @@ func (a *actorStorage) Query(ctx context.Context, spec s.Specification) ([]i.Act
 		}
 		actors = append(actors, actor)
 	}
-	slog.DebugContext(ctx, fmt.Sprintf("received actors: %v", actors))
+	slog.DebugContext(ctx, fmt.Sprintf("received actors: %v", len(actors)))
 	return actors, nil
 }
