@@ -139,7 +139,7 @@ var (
 	latitude_wgs84 = $43,
 	longitude_wgs84 = $44,
 	updated_at = $45
-WHERE id = $46 
+WHERE id = $46 AND deleted_at IS NULL
 RETURNING updated_at;`
 	getAddress = `SELECT id, street_address, neighbourhood_id, created_at, 
 updated_at, deleted_at FROM addresses WHERE street_address = $1`
