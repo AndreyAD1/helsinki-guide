@@ -2,6 +2,7 @@ package integrationtests
 
 import (
 	"context"
+	"log"
 	"testing"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories"
@@ -115,13 +116,70 @@ func testGetNearestBuildings(t *testing.T) {
 				},
 			},
 		},
+		{
+			"one close and two far buildings",
+			[]i.Building{
+				{
+					NameEn: &nameEn,
+					Address: i.Address{
+						StreetAddress:   streetAddress,
+						NeighbourhoodID: &savedNeighbour.ID,
+					},
+					Latitude_WGS84: utils.GetPointer(float64(0.0)),
+					Longitude_WGS84: utils.GetPointer(float64(0.0)),
+				},
+				{
+					NameEn: &nameEn,
+					Address: i.Address{
+						StreetAddress:   streetAddress,
+						NeighbourhoodID: &savedNeighbour.ID,
+					},
+					Latitude_WGS84: utils.GetPointer(float64(60.361)),
+					Longitude_WGS84: utils.GetPointer(float64(24.751)),
+				},
+				{
+					NameEn: &nameEn,
+					Address: i.Address{
+						StreetAddress:   streetAddress,
+						NeighbourhoodID: &savedNeighbour.ID,
+					},
+					Latitude_WGS84: utils.GetPointer(float64(10.0)),
+					Longitude_WGS84: utils.GetPointer(float64(10.0)),
+				},
+			},
+			1000,
+			60.36,
+			24.75,
+			10,
+			0,
+			[]i.Building{
+				{
+					NameEn: &nameEn,
+					Address: i.Address{
+						StreetAddress:   streetAddress,
+						NeighbourhoodID: &savedNeighbour.ID,
+					},
+					Latitude_WGS84: utils.GetPointer(float64(60.361)),
+					Longitude_WGS84: utils.GetPointer(float64(24.751)),
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
 			for _, b := range tt.storedBuildings {
-				_, err := storage.Add(ctx, b)
+				saved, err := storage.Add(ctx, b)
 				require.NoError(t, err)
+				defer func() {
+					if err := storage.Remove(ctx, *saved); err != nil {
+						log.Printf(
+							"after the test, can not remove a building '%v': %v", 
+							saved.ID, 
+							err,
+						)
+					}
+				}()
 			}
 			specification := s.NewBuildingSpecificationNearest(
 				tt.distance,

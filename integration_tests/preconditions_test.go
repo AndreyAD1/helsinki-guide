@@ -163,5 +163,6 @@ var integrationTests = []integrationTest{
 	{"addBuildingAddressError", testAddNewBuildingAddressError},
 	{"addBuildingAuthorError", testAddNewBuildingAuthorError},
 	{"getNearestBuildings", testGetNearestBuildings},
+	{"updateBuildings", testUpdateBuildings},
 	{"runPopulator", testRunPopulator},
 }

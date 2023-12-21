@@ -21,7 +21,8 @@ func NewBuildingSpecificationByAlikeAddress(
 
 func (b *BuildingSpecificationByAlikeAddress) ToSQL() (string, map[string]any) {
 	queryTemplate := `SELECT *
-	FROM buildings JOIN addresses ON 
+	FROM (SELECT * FROM buildings WHERE deleted_at IS NULL) AS buildings
+	JOIN addresses ON 
 	buildings.address_id = addresses.id WHERE lower(street_address) 
 	LIKE @search_pattern
 	ORDER BY lower(street_address) LIMIT @limit OFFSET @offset;`
@@ -42,7 +43,9 @@ func NewBuildingSpecificationByAddress(address string) Specification {
 }
 
 func (b *BuildingSpecificationByAddress) ToSQL() (string, map[string]any) {
-	queryTemplate := `SELECT * FROM buildings JOIN addresses ON 
+	queryTemplate := `SELECT * FROM 
+	(SELECT * FROM buildings WHERE deleted_at IS NULL) AS buildings 
+	JOIN addresses ON 
 	buildings.address_id = addresses.id WHERE lower(street_address) LIKE @address
 	ORDER BY name_fi, name_en, name_ru;`
 	return queryTemplate, map[string]any{"address": strings.ToLower(b.Address)}
@@ -70,7 +73,8 @@ func NewBuildingSpecificationNearest(
 
 func (b *BuildingSpecificationNearest) ToSQL() (string, map[string]any) {
 	queryTemplate := `WITH nearest_buildings AS (
-		SELECT * FROM buildings
+		SELECT * FROM 
+		(SELECT * FROM buildings WHERE deleted_at IS NULL) AS buildings
 		WHERE earth_box(ll_to_earth(@latitude, @longitude), @distance) @> 
 		ll_to_earth(latitude_wgs84, longitude_wgs84) 
 		AND

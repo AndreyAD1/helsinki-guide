@@ -237,6 +237,9 @@ func (b *BuildingStorage) Update(ctx context.Context, building i.Building) (*i.B
 		time.Now(),
 		building.ID,
 	).Scan(&building.UpdatedAt)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, ErrNotExist
+	}
 	if err != nil {
 		itemName := fmt.Sprintf("building '%v'", building.Address.StreetAddress)
 		return nil, processPostgresError(ctx, itemName, err)
