@@ -324,7 +324,7 @@ func (b *BuildingStorage) Query(
 		return nil, fmt.Errorf("%v: %w", logMsg, err)
 	}
 	defer rows.Close()
-	var buildings []i.Building
+	buildings := []i.Building{}
 	for rows.Next() {
 		var building i.Building
 		var address i.Address

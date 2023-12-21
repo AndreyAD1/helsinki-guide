@@ -7,6 +7,8 @@ import (
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories"
 	s "github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/specifications"
 	i "github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/types"
+	"github.com/AndreyAD1/helsinki-guide/internal/utils"
+	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
 )
 
@@ -20,12 +22,9 @@ func testGetNearestBuildings(t *testing.T) {
 	storage := repositories.NewBuildingRepo(dbpool)
 	nameEn := "test_building"
 	streetAddress := "test street"
-	_ = i.Building{
-		NameEn: &nameEn,
-		Address: i.Address{
-			StreetAddress:   streetAddress,
-			NeighbourhoodID: &savedNeighbour.ID,
-		},
+	type buildingInfo struct {
+		storedBuilding i.Building
+		isExpected bool
 	}
 	tests := []struct {
 		name    string
@@ -40,12 +39,80 @@ func testGetNearestBuildings(t *testing.T) {
 		{
 			"no buildings",
 			[]i.Building{},
-			10000,
+			100,
 			60.36,
 			24.75,
 			10,
 			0,
 			[]i.Building{},
+		},
+		{
+			"one building without coordinates",
+			[]i.Building{
+				{
+					NameEn: &nameEn,
+					Address: i.Address{
+						StreetAddress:   streetAddress,
+						NeighbourhoodID: &savedNeighbour.ID,
+					},
+				},
+			},
+			100,
+			60.36,
+			24.75,
+			10,
+			0,
+			[]i.Building{},
+		},
+		{
+			"one too far building",
+			[]i.Building{
+				{
+					NameEn: &nameEn,
+					Address: i.Address{
+						StreetAddress:   streetAddress,
+						NeighbourhoodID: &savedNeighbour.ID,
+					},
+					Latitude_WGS84: utils.GetPointer(float64(0.0)),
+					Longitude_WGS84: utils.GetPointer(float64(0.0)),
+				},
+			},
+			100,
+			60.36,
+			24.75,
+			10,
+			0,
+			[]i.Building{},
+		},
+		{
+			"one very close building",
+			[]i.Building{
+				{
+					NameEn: &nameEn,
+					Address: i.Address{
+						StreetAddress:   streetAddress,
+						NeighbourhoodID: &savedNeighbour.ID,
+					},
+					Latitude_WGS84: utils.GetPointer(float64(60.36)),
+					Longitude_WGS84: utils.GetPointer(float64(24.75)),
+				},
+			},
+			100,
+			60.36,
+			24.75,
+			10,
+			0,
+			[]i.Building{
+				{
+					NameEn: &nameEn,
+					Address: i.Address{
+						StreetAddress:   streetAddress,
+						NeighbourhoodID: &savedNeighbour.ID,
+					},
+					Latitude_WGS84: utils.GetPointer(float64(60.36)),
+					Longitude_WGS84: utils.GetPointer(float64(24.75)),
+				},
+			},
 		},
 	}
 	for _, tt := range tests {
@@ -64,7 +131,7 @@ func testGetNearestBuildings(t *testing.T) {
 			)
 			got, err := storage.Query(context.Background(), specification)
 			require.NoError(t, err)
-			require.Equal(t, tt.expectedBuildings, got)
+			require.Equal(t, cmp.Diff(tt.expectedBuildings, got), "")
 		})
 	}
 }
