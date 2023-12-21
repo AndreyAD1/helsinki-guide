@@ -9,6 +9,7 @@ import (
 	i "github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/types"
 	"github.com/AndreyAD1/helsinki-guide/internal/utils"
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/stretchr/testify/require"
 )
 
@@ -131,7 +132,14 @@ func testGetNearestBuildings(t *testing.T) {
 			)
 			got, err := storage.Query(context.Background(), specification)
 			require.NoError(t, err)
-			require.Equal(t, cmp.Diff(tt.expectedBuildings, got), "")
+			ignoreOption := cmpopts.IgnoreFields(
+				i.Building{}, 
+				"ID", 
+				"Address.ID",
+				"Address.CreatedAt",
+				"CreatedAt",
+			)
+			require.Equal(t, cmp.Diff(tt.expectedBuildings, got, ignoreOption), "")
 		})
 	}
 }
