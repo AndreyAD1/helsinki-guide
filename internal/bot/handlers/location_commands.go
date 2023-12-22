@@ -9,6 +9,8 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
+const DEFAULT_DISTANCE = 200
+
 func (h HandlerContainer) getNearestAddresses(ctx c.Context, message *tgbotapi.Message) error {
 	if message.Chat == nil {
 		return ErrNoChat
@@ -19,6 +21,7 @@ func (h HandlerContainer) getNearestAddresses(ctx c.Context, message *tgbotapi.M
 	}
 	buildings, err := h.buildingService.GetNearestBuildingPreviews(
 		ctx,
+		DEFAULT_DISTANCE,
 		location.Latitude,
 		location.Longitude,
 		defaultLimit,
