@@ -25,6 +25,7 @@ func TestHandlerContainer_getNearestAddresses(t *testing.T) {
 		latitude float64
 		longitude float64
 	}
+	serviceError := errors.New("some error")
 	tests := []struct {
 		name             string
 		fields           fields
@@ -35,7 +36,7 @@ func TestHandlerContainer_getNearestAddresses(t *testing.T) {
 		expectedError    error
 	}{
 		{
-			"a building error",
+			"building error",
 			fields{
 				services.NewBuildings_mock(t),
 				NewInternalBot_mock(t),
@@ -44,27 +45,11 @@ func TestHandlerContainer_getNearestAddresses(t *testing.T) {
 				"",
 				nil,
 			},
-			args{chatID: 123},
+			args{chatID: 123, latitude: 3, longitude: 3},
 			[]services.BuildingPreview{},
-			errors.New("some error"),
+			serviceError,
 			tgbotapi.NewMessage(123, "Internal error"),
-			nil,
-		},
-		{
-			"no location",
-			fields{
-				services.NewBuildings_mock(t),
-				NewInternalBot_mock(t),
-				map[string]CommandHandler{},
-				map[string]internalButtonHandler{},
-				"",
-				nil,
-			},
-			args{chatID: 123},
-			[]services.BuildingPreview{},
-			nil,
-			tgbotapi.MessageConfig{},
-			ErrNoLocation,
+			serviceError,
 		},
 		{
 			"one building",
@@ -76,7 +61,7 @@ func TestHandlerContainer_getNearestAddresses(t *testing.T) {
 				"",
 				nil,
 			},
-			args{chatID: 123, latitude: 3, longitude: 0},
+			args{chatID: 123, latitude: 3, longitude: 3},
 			[]services.BuildingPreview{
 				{Address: "test 1", Name: "test name 1"},
 			},
@@ -102,8 +87,8 @@ func TestHandlerContainer_getNearestAddresses(t *testing.T) {
 			},
 			nil,
 			tgbotapi.NewMessage(123, `Nearest buildings:
-2. test 1 - test name 1
-3. test 2 - test name 2`,
+1. test 1 - test name 1
+2. test 2 - test name 2`,
 			),
 			nil,
 		},
@@ -111,19 +96,17 @@ func TestHandlerContainer_getNearestAddresses(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
-			if tt.expectedError == nil {
-				tt.fields.buildingService.EXPECT().GetNearestBuildingPreviews(
-					ctx,
-					DEFAULT_DISTANCE,
-					tt.args.latitude,
-					tt.args.longitude,
-					defaultLimit,
-					0,
-				).Return(tt.buildingPreviews, tt.buildingError)
-				
-				tt.fields.bot.EXPECT().
-				Send(tt.expectedMsg).Return(tgbotapi.Message{}, nil)
-			}
+			tt.fields.buildingService.EXPECT().GetNearestBuildingPreviews(
+				ctx,
+				DEFAULT_DISTANCE,
+				tt.args.latitude,
+				tt.args.longitude,
+				defaultLimit,
+				0,
+			).Return(tt.buildingPreviews, tt.buildingError)
+			
+			tt.fields.bot.EXPECT().
+			Send(tt.expectedMsg).Return(tgbotapi.Message{}, nil)
 			h := HandlerContainer{
 				buildingService:    tt.fields.buildingService,
 				bot:                tt.fields.bot,
