@@ -107,12 +107,11 @@ func TestBuildingService_GetBuildingPreviews(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			matchSpec := func(s *spec.BuildingSpecificationByAlikeAddress) bool {
-				addressMatch := s.AddressPrefix == tt.args.addressPrefix
-				limitMatch := s.Limit == tt.args.limit
-				offsetMatch := s.Offset == tt.args.offset
-				return addressMatch && limitMatch && offsetMatch
-			}
+			matchSpec := spec.AlikeAddressSpecIsEqual(
+				tt.args.addressPrefix,
+				tt.args.limit,
+				tt.args.offset,
+			)
 			tt.fields.buildingCollection.EXPECT().Query(
 				tt.args.ctx,
 				mock.MatchedBy(matchSpec),
@@ -239,18 +238,14 @@ func TestBuildingService_GetBuildingsByAddress(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			buildingSpec := func(s *spec.BuildingSpecificationByAddress) bool {
-				return s.Address == tt.args.address
-			}
+			buildingSpecFunc := spec.BuildingByAddressIsEqual(tt.args.address)
 			tt.fields.buildingCollection.EXPECT().Query(
 				tt.args.ctx,
-				mock.MatchedBy(buildingSpec),
+				mock.MatchedBy(buildingSpecFunc),
 			).Return(tt.foundBuildings, tt.repositoryBuildingError)
 
 			if len(tt.foundBuildings) > 0 {
-				authorSpec := func(s *spec.ActorSpecificationByBuilding) bool {
-					return s.BuildingID == tt.foundBuildings[0].ID
-				}
+				authorSpec := spec.ActorByBuildingIsEqual(tt.foundBuildings[0].ID)
 				tt.fields.actorCollection.On(
 					"Query",
 					tt.args.ctx,
@@ -321,20 +316,13 @@ func TestBuildingService_GetBuildingsByAddress_ManyBuildings(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			buildingSpec := func(s *spec.BuildingSpecificationByAddress) bool {
-				return s.Address == tt.args.address
-			}
 			tt.fields.buildingCollection.EXPECT().Query(
 				tt.args.ctx,
-				mock.MatchedBy(buildingSpec),
+				mock.MatchedBy(spec.BuildingByAddressIsEqual(tt.args.address)),
 			).Return(tt.foundBuildings, nil)
 
-			authorSpec0 := func(s *spec.ActorSpecificationByBuilding) bool {
-				return s.BuildingID == tt.foundBuildings[0].ID
-			}
-			authorSpec1 := func(s *spec.ActorSpecificationByBuilding) bool {
-				return s.BuildingID == tt.foundBuildings[1].ID
-			}
+			authorSpec0 := spec.ActorByBuildingIsEqual(tt.foundBuildings[0].ID) 
+			authorSpec1 := spec.ActorByBuildingIsEqual(tt.foundBuildings[1].ID) 
 			tt.fields.actorCollection.EXPECT().Query(
 				tt.args.ctx,
 				mock.MatchedBy(authorSpec0),
