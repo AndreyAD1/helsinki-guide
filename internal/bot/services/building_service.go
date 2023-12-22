@@ -115,13 +115,14 @@ func (bs BuildingService) GetBuildingsByAddress(
 
 func (bs BuildingService) GetNearestBuildingPreviews(
 	ctx context.Context,
+	distanceMeters int,
 	latitude,
 	longitude float64,
 	limit,
 	offset int,
 ) ([]BuildingPreview, error) {
 	spec := s.NewBuildingSpecificationNearest(
-		10000,
+		distanceMeters,
 		latitude,
 		longitude,
 		limit,

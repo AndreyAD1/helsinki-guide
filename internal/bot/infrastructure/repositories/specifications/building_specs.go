@@ -52,11 +52,11 @@ func (b *BuildingSpecificationByAddress) ToSQL() (string, map[string]any) {
 }
 
 type BuildingSpecificationNearest struct {
-	DistanceMeters int
-	Latitude       string
-	Longitude      string
-	Limit          int
-	Offset         int
+	distanceMeters int
+	latitude       string
+	longitude      string
+	limit          int
+	offset         int
 }
 
 func NewBuildingSpecificationNearest(
@@ -94,11 +94,28 @@ func (b *BuildingSpecificationNearest) ToSQL() (string, map[string]any) {
 	JOIN addresses ON nearest_buildings.address_id = addresses.id 
 	LIMIT @limit OFFSET @offset;`
 	args := map[string]any{
-		"distance":  b.DistanceMeters,
-		"latitude":  b.Latitude,
-		"longitude": b.Longitude,
-		"limit":     b.Limit,
-		"offset":    b.Offset,
+		"distance":  b.distanceMeters,
+		"latitude":  b.latitude,
+		"longitude": b.longitude,
+		"limit":     b.limit,
+		"offset":    b.offset,
 	}
 	return queryTemplate, args
+}
+
+func NearestSpecIsEqual(
+	distanceMeters int,
+	latitude,
+	longitude float64,
+	limit,
+	offset int,
+) func(s *BuildingSpecificationNearest) bool {
+	return func(s *BuildingSpecificationNearest) bool {
+		distanceMatch := s.distanceMeters == distanceMeters
+		latMatch := s.latitude == fmt.Sprintf("%.2f", latitude)
+		lonMatch := s.longitude == fmt.Sprintf("%.2f", longitude)
+		limitMatch := s.limit == limit
+		offsetMatch := s.offset == offset
+		return distanceMatch && latMatch && lonMatch && limitMatch && offsetMatch
+	}
 }

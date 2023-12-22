@@ -12,6 +12,7 @@ type Buildings interface {
 	GetBuildingsByAddress(c context.Context, address string) ([]BuildingDTO, error)
 	GetNearestBuildingPreviews(
 		ctx context.Context,
+		distance int,
 		latitude,
 		longitude float64,
 		limit,
