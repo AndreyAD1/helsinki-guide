@@ -65,7 +65,7 @@ func TestMain(m *testing.M) {
 		&dockertest.BuildOptions{
 			Dockerfile: "./Dockerfile",
 			ContextDir: ".",
-			BuildArgs: []docker.BuildArg{{Name: "tag", Value: "guide_test_db"}},
+			BuildArgs:  []docker.BuildArg{{Name: "tag", Value: "guide_test_db"}},
 		},
 		&dockertest.RunOptions{
 			Name: "guide_test_db",
@@ -75,7 +75,7 @@ func TestMain(m *testing.M) {
 				"POSTGRES_DB=dbname",
 				"listen_addresses = '*'",
 			},
-		}, 
+		},
 		func(config *docker.HostConfig) {
 			config.AutoRemove = true
 			config.RestartPolicy = docker.RestartPolicy{Name: "no"}
@@ -163,6 +163,7 @@ var integrationTests = []integrationTest{
 	{"addBuildingAddressError", testAddNewBuildingAddressError},
 	{"addBuildingAuthorError", testAddNewBuildingAuthorError},
 	{"getNearestBuildings", testGetNearestBuildings},
-	{"updateBuildings", testUpdateBuildings},
+	{"updateAbsentBuilding", testUpdateAbsentBuilding},
+	{"updateDeletedBuilding", testManageRemovedBuilding},
 	{"runPopulator", testRunPopulator},
 }

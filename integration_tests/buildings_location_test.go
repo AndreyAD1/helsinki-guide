@@ -201,7 +201,7 @@ func testGetNearestBuildings(t *testing.T) {
 				defer func() {
 					if err := storage.Remove(ctx, *saved); err != nil {
 						log.Printf(
-							"after the test, can not remove a building '%v': %v", 
+							"can not remove a building '%v' after the test: %v", 
 							saved.ID, 
 							err,
 						)
