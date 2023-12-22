@@ -321,8 +321,8 @@ func TestBuildingService_GetBuildingsByAddress_ManyBuildings(t *testing.T) {
 				mock.MatchedBy(spec.BuildingByAddressIsEqual(tt.args.address)),
 			).Return(tt.foundBuildings, nil)
 
-			authorSpec0 := spec.ActorByBuildingIsEqual(tt.foundBuildings[0].ID) 
-			authorSpec1 := spec.ActorByBuildingIsEqual(tt.foundBuildings[1].ID) 
+			authorSpec0 := spec.ActorByBuildingIsEqual(tt.foundBuildings[0].ID)
+			authorSpec1 := spec.ActorByBuildingIsEqual(tt.foundBuildings[1].ID)
 			tt.fields.actorCollection.EXPECT().Query(
 				tt.args.ctx,
 				mock.MatchedBy(authorSpec0),

@@ -14,7 +14,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-
 func testGetNearestBuildings(t *testing.T) {
 	storageN := repositories.NewNeighbourhoodRepo(dbpool)
 	neighbourbourhood := i.Neighbourhood{Name: "test neighbourhood"}
@@ -29,16 +28,16 @@ func testGetNearestBuildings(t *testing.T) {
 	}
 	type buildingInfo struct {
 		storedBuilding i.Building
-		isExpected bool
+		isExpected     bool
 	}
 	tests := []struct {
-		name    string
-		storedBuildings []i.Building
-		distance int
-		latitude    float64
-		longitude float64
-		limit int
-		offset int
+		name              string
+		storedBuildings   []i.Building
+		distance          int
+		latitude          float64
+		longitude         float64
+		limit             int
+		offset            int
 		expectedBuildings []i.Building
 	}{
 		{
@@ -55,7 +54,7 @@ func testGetNearestBuildings(t *testing.T) {
 			"one building without coordinates",
 			[]i.Building{
 				{
-					NameEn: &nameEn,
+					NameEn:  &nameEn,
 					Address: address,
 				},
 			},
@@ -70,9 +69,9 @@ func testGetNearestBuildings(t *testing.T) {
 			"one too far building",
 			[]i.Building{
 				{
-					NameEn: &nameEn,
-					Address: address,
-					Latitude_WGS84: utils.GetPointer(float64(0.0)),
+					NameEn:          &nameEn,
+					Address:         address,
+					Latitude_WGS84:  utils.GetPointer(float64(0.0)),
 					Longitude_WGS84: utils.GetPointer(float64(0.0)),
 				},
 			},
@@ -87,9 +86,9 @@ func testGetNearestBuildings(t *testing.T) {
 			"one very close building",
 			[]i.Building{
 				{
-					NameEn: &nameEn,
-					Address: address,
-					Latitude_WGS84: utils.GetPointer(float64(60.36)),
+					NameEn:          &nameEn,
+					Address:         address,
+					Latitude_WGS84:  utils.GetPointer(float64(60.36)),
 					Longitude_WGS84: utils.GetPointer(float64(24.75)),
 				},
 			},
@@ -100,9 +99,9 @@ func testGetNearestBuildings(t *testing.T) {
 			0,
 			[]i.Building{
 				{
-					NameEn: &nameEn,
-					Address: address,
-					Latitude_WGS84: utils.GetPointer(float64(60.36)),
+					NameEn:          &nameEn,
+					Address:         address,
+					Latitude_WGS84:  utils.GetPointer(float64(60.36)),
 					Longitude_WGS84: utils.GetPointer(float64(24.75)),
 				},
 			},
@@ -111,21 +110,21 @@ func testGetNearestBuildings(t *testing.T) {
 			"one close and two far buildings",
 			[]i.Building{
 				{
-					NameEn: &nameEn,
-					Address: address,
-					Latitude_WGS84: utils.GetPointer(float64(0.0)),
+					NameEn:          &nameEn,
+					Address:         address,
+					Latitude_WGS84:  utils.GetPointer(float64(0.0)),
 					Longitude_WGS84: utils.GetPointer(float64(0.0)),
 				},
 				{
-					NameEn: &nameEn,
-					Address: address,
-					Latitude_WGS84: utils.GetPointer(float64(60.361)),
+					NameEn:          &nameEn,
+					Address:         address,
+					Latitude_WGS84:  utils.GetPointer(float64(60.361)),
 					Longitude_WGS84: utils.GetPointer(float64(24.751)),
 				},
 				{
-					NameEn: &nameEn,
-					Address: address,
-					Latitude_WGS84: utils.GetPointer(float64(10.0)),
+					NameEn:          &nameEn,
+					Address:         address,
+					Latitude_WGS84:  utils.GetPointer(float64(10.0)),
 					Longitude_WGS84: utils.GetPointer(float64(10.0)),
 				},
 			},
@@ -136,9 +135,9 @@ func testGetNearestBuildings(t *testing.T) {
 			0,
 			[]i.Building{
 				{
-					NameEn: &nameEn,
-					Address: address,
-					Latitude_WGS84: utils.GetPointer(float64(60.361)),
+					NameEn:          &nameEn,
+					Address:         address,
+					Latitude_WGS84:  utils.GetPointer(float64(60.361)),
 					Longitude_WGS84: utils.GetPointer(float64(24.751)),
 				},
 			},
@@ -147,27 +146,27 @@ func testGetNearestBuildings(t *testing.T) {
 			"two close and two far buildings",
 			[]i.Building{
 				{
-					NameEn: &nameEn,
-					Address: address,
-					Latitude_WGS84: utils.GetPointer(float64(0.0)),
+					NameEn:          &nameEn,
+					Address:         address,
+					Latitude_WGS84:  utils.GetPointer(float64(0.0)),
 					Longitude_WGS84: utils.GetPointer(float64(0.0)),
 				},
 				{
-					NameEn: utils.GetPointer("second closest"),
-					Address: address,
-					Latitude_WGS84: utils.GetPointer(float64(60.361)),
+					NameEn:          utils.GetPointer("second closest"),
+					Address:         address,
+					Latitude_WGS84:  utils.GetPointer(float64(60.361)),
 					Longitude_WGS84: utils.GetPointer(float64(24.751)),
 				},
 				{
-					NameEn: &nameEn,
-					Address: address,
-					Latitude_WGS84: utils.GetPointer(float64(10.0)),
+					NameEn:          &nameEn,
+					Address:         address,
+					Latitude_WGS84:  utils.GetPointer(float64(10.0)),
 					Longitude_WGS84: utils.GetPointer(float64(10.0)),
 				},
 				{
-					NameEn: utils.GetPointer("closest"),
-					Address: address,
-					Latitude_WGS84: utils.GetPointer(float64(60.3601)),
+					NameEn:          utils.GetPointer("closest"),
+					Address:         address,
+					Latitude_WGS84:  utils.GetPointer(float64(60.3601)),
 					Longitude_WGS84: utils.GetPointer(float64(24.7501)),
 				},
 			},
@@ -178,15 +177,15 @@ func testGetNearestBuildings(t *testing.T) {
 			0,
 			[]i.Building{
 				{
-					NameEn: utils.GetPointer("closest"),
-					Address: address,
-					Latitude_WGS84: utils.GetPointer(float64(60.3601)),
+					NameEn:          utils.GetPointer("closest"),
+					Address:         address,
+					Latitude_WGS84:  utils.GetPointer(float64(60.3601)),
 					Longitude_WGS84: utils.GetPointer(float64(24.7501)),
 				},
 				{
-					NameEn: utils.GetPointer("second closest"),
-					Address: address,
-					Latitude_WGS84: utils.GetPointer(float64(60.361)),
+					NameEn:          utils.GetPointer("second closest"),
+					Address:         address,
+					Latitude_WGS84:  utils.GetPointer(float64(60.361)),
 					Longitude_WGS84: utils.GetPointer(float64(24.751)),
 				},
 			},
@@ -201,8 +200,8 @@ func testGetNearestBuildings(t *testing.T) {
 				defer func() {
 					if err := storage.Remove(ctx, *saved); err != nil {
 						log.Printf(
-							"can not remove a building '%v' after the test: %v", 
-							saved.ID, 
+							"can not remove a building '%v' after the test: %v",
+							saved.ID,
 							err,
 						)
 					}
@@ -218,8 +217,8 @@ func testGetNearestBuildings(t *testing.T) {
 			got, err := storage.Query(context.Background(), specification)
 			require.NoError(t, err)
 			ignoreOption := cmpopts.IgnoreFields(
-				i.Building{}, 
-				"ID", 
+				i.Building{},
+				"ID",
 				"Address.ID",
 				"Address.CreatedAt",
 				"CreatedAt",

@@ -142,7 +142,7 @@ var (
 WHERE id = $46 AND deleted_at IS NULL
 RETURNING updated_at;`
 	deleteBuilding = `UPDATE buildings SET deleted_at=$1 WHERE id=$2 AND deleted_at IS NULL`
-	getAddress = `SELECT id, street_address, neighbourhood_id, created_at, 
+	getAddress     = `SELECT id, street_address, neighbourhood_id, created_at, 
 updated_at, deleted_at FROM addresses WHERE street_address = $1`
 	insertAddress = `INSERT INTO addresses (street_address, neighbourhood_id) 
 VALUES ($1, $2) RETURNING id, street_address, neighbourhood_id, created_at, 
