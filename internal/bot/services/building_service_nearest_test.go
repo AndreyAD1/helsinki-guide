@@ -19,12 +19,12 @@ func TestBuildingService_GetNearestPreviews(t *testing.T) {
 		actorCollection    *repositories.ActorRepository_mock
 	}
 	type args struct {
-		ctx           context.Context
-		distance int
-		latitude float64
+		ctx       context.Context
+		distance  int
+		latitude  float64
 		longitude float64
-		limit         int
-		offset        int
+		limit     int
+		offset    int
 	}
 	tests := []struct {
 		name            string

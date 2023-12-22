@@ -21,8 +21,8 @@ func TestHandlerContainer_getNearestAddresses(t *testing.T) {
 		metrics            *metrics.Metrics
 	}
 	type args struct {
-		chatID  int64
-		latitude float64
+		chatID    int64
+		latitude  float64
 		longitude float64
 	}
 	serviceError := errors.New("some error")
@@ -104,9 +104,9 @@ func TestHandlerContainer_getNearestAddresses(t *testing.T) {
 				defaultLimit,
 				0,
 			).Return(tt.buildingPreviews, tt.buildingError)
-			
+
 			tt.fields.bot.EXPECT().
-			Send(tt.expectedMsg).Return(tgbotapi.Message{}, nil)
+				Send(tt.expectedMsg).Return(tgbotapi.Message{}, nil)
 			h := HandlerContainer{
 				buildingService:    tt.fields.buildingService,
 				bot:                tt.fields.bot,
@@ -120,7 +120,7 @@ func TestHandlerContainer_getNearestAddresses(t *testing.T) {
 			}
 			if tt.args.latitude != 0 {
 				message.Location = &tgbotapi.Location{
-					Latitude: tt.args.latitude,
+					Latitude:  tt.args.latitude,
 					Longitude: tt.args.longitude,
 				}
 			}
