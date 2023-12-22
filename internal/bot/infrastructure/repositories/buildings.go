@@ -24,24 +24,30 @@ func NewBuildingRepo(dbPool *pgxpool.Pool) *BuildingStorage {
 	return &BuildingStorage{dbPool}
 }
 
-func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Building, error) {
+func (b *BuildingStorage) beginTransaction(ctx context.Context) (pgx.Tx, func(), error) {
 	transaction, err := b.dbPool.Begin(ctx)
 	if err != nil {
 		logMsg := "can not begin a transaction"
 		slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
-		return nil, err
+		return nil, nil, err
 	}
-	defer func() {
-		logMsg := fmt.Sprintf(
-			"finish a transaction for a building '%v'",
-			building.Address.StreetAddress,
-		)
+	closeFunc := func() {
+		logMsg := fmt.Sprintf("close a transaction")
 		slog.DebugContext(ctx, logMsg)
 		err := transaction.Rollback(ctx)
 		if err != nil && !errors.Is(err, pgx.ErrTxClosed) {
 			slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
 		}
-	}()
+	}
+	return transaction, closeFunc, nil
+}
+
+func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Building, error) {
+	transaction, closeTransaction, err := b.beginTransaction(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer closeTransaction()
 
 	address, err := b.getAddress(ctx, transaction, building.Address)
 	if err != nil {
@@ -169,23 +175,11 @@ func (b *BuildingStorage) Remove(ctx context.Context, building i.Building) error
 }
 
 func (b *BuildingStorage) Update(ctx context.Context, building i.Building) (*i.Building, error) {
-	transaction, err := b.dbPool.Begin(ctx)
+	transaction, closeTransaction, err := b.beginTransaction(ctx)
 	if err != nil {
-		logMsg := "can not begin a transaction"
-		slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
 		return nil, err
 	}
-	defer func() {
-		logMsg := fmt.Sprintf(
-			"finish a transaction for a building '%v'",
-			building.Address.StreetAddress,
-		)
-		slog.DebugContext(ctx, logMsg)
-		err := transaction.Rollback(ctx)
-		if err != nil && !errors.Is(err, pgx.ErrTxClosed) {
-			slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
-		}
-	}()
+	defer closeTransaction()
 
 	address, err := b.getAddress(ctx, transaction, building.Address)
 	if err != nil {
