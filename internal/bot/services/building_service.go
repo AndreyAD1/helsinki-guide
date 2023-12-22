@@ -102,7 +102,7 @@ func (bs BuildingService) GetBuildingsByAddress(
 	}
 	buildingsDto := make([]BuildingDTO, len(buildings))
 	for i, building := range buildings {
-		spec := s.NewActorSpecificationByBuilding(building.ID)
+		spec := s.NewAuthorSpecificationByBuilding(building.ID)
 		authors, err := bs.actorCollection.Query(ctx, spec)
 		if err != nil {
 			return nil, err
