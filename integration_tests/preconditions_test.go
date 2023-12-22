@@ -123,7 +123,7 @@ func TestMain(m *testing.M) {
 
 func TestDBInteractions(t *testing.T) {
 	log.Println("run DB tests")
-	m, err := migrate.New("file:"+MIGRATION_PATH, databaseUrl)
+	migrator, err := migrate.New("file:"+MIGRATION_PATH, databaseUrl)
 	require.NoErrorf(
 		t,
 		err,
@@ -132,9 +132,9 @@ func TestDBInteractions(t *testing.T) {
 		databaseUrl,
 		err,
 	)
-	t.Cleanup(func() { m.Drop() })
+	t.Cleanup(func() { migrator.Drop() })
 	for _, test := range integrationTests {
-		err = m.Up()
+		err = migrator.Up()
 		errCheck := func() bool {
 			if err == nil || errors.Is(err, migrate.ErrNoChange) {
 				return true
@@ -147,7 +147,7 @@ func TestDBInteractions(t *testing.T) {
 			fmt.Sprintf("a migration error for the test '%v': %v", test.name, err),
 		)
 		t.Run(test.name, test.function)
-		m.Down()
+		migrator.Down()
 	}
 }
 
@@ -164,6 +164,6 @@ var integrationTests = []integrationTest{
 	{"addBuildingAuthorError", testAddNewBuildingAuthorError},
 	{"getNearestBuildings", testGetNearestBuildings},
 	{"updateAbsentBuilding", testUpdateAbsentBuilding},
-	{"updateDeletedBuilding", testManageRemovedBuilding},
+	{"manageRemovedBuilding", testManageRemovedBuilding},
 	{"runPopulator", testRunPopulator},
 }
