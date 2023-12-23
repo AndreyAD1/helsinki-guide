@@ -145,8 +145,8 @@ func NearestSpecIsEqual(
 ) func(s *BuildingSpecificationNearest) bool {
 	return func(s *BuildingSpecificationNearest) bool {
 		distanceMatch := s.distanceMeters == distanceMeters
-		latMatch := s.latitude == fmt.Sprintf("%.2f", latitude)
-		lonMatch := s.longitude == fmt.Sprintf("%.2f", longitude)
+		latMatch := s.latitude == fmt.Sprintf("%.5f", latitude)
+		lonMatch := s.longitude == fmt.Sprintf("%.5f", longitude)
 		limitMatch := s.limit == limit
 		offsetMatch := s.offset == offset
 		return distanceMatch && latMatch && lonMatch && limitMatch && offsetMatch
