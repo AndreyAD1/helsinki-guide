@@ -29,11 +29,9 @@ jobs:
       
       - name: Copy a startup script
         run: scp -o StrictHostKeyChecking=no -i ~/env_key ./deployments${{ vars.SCRIPT_PATH}} ${{ secrets.USER}}@${{ secrets.HOST}}:${{ secrets.ROOT_PATH}}
-
-      - name: Setup Go environment
-        uses: actions/setup-go@v4
-        with:
-          go-version-file: ./go.mod
+      
+      - name: Install a migration tool
+        run: curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-amd64.tar.gz | tar xvz
       
       - name: Add a server CA certificate
         run: echo '${{ secrets.CA}}' > /usr/local/share/ca-certificates/guide_ca.crt; update-ca-certificates
@@ -42,10 +40,10 @@ jobs:
         run: mkdir ~/.postgresql; echo '${{ secrets.CLIENT_CERT}}' > ~/.postgresql/postgresql.crt
       
       - name: Add a client private key
-        run: echo '${{ secrets.CLIENT_TLS_KEY}}' > ~/.postgresql/postgresql.key
+        run: echo '${{ secrets.CLIENT_TLS_KEY}}' > ~/.postgresql/postgresql.key; chmod 600 ~/.postgresql/postgresql.key
 
       - name: Run migrations
-        run: migrate -database '${{ secrets.MIGRATION_URL}}' -path ./internal/bot/infrastructure/migrations up
+        run: ./migrate -database '${{ secrets.MIGRATION_URL}}' -path ./internal/bot/infrastructure/migrations up
 
       - name: Run the service
         env:
