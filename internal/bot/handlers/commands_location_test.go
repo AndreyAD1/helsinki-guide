@@ -66,7 +66,7 @@ func TestHandlerContainer_getNearestAddresses(t *testing.T) {
 				{Address: "test 1", Name: "test name 1"},
 			},
 			nil,
-			tgbotapi.NewMessage(123, `Nearest buildings:
+			tgbotapi.NewMessage(123, `Nearest buildings in 200 meters:
 1. test 1 - test name 1`),
 			nil,
 		},
@@ -86,7 +86,7 @@ func TestHandlerContainer_getNearestAddresses(t *testing.T) {
 				{Address: "test 2", Name: "test name 2"},
 			},
 			nil,
-			tgbotapi.NewMessage(123, `Nearest buildings:
+			tgbotapi.NewMessage(123, `Nearest buildings in 200 meters:
 1. test 1 - test name 1
 2. test 2 - test name 2`,
 			),
