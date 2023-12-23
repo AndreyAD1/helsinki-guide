@@ -34,6 +34,18 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version-file: ./go.mod
+      
+      - name: Add a server CA certificate
+        run: echo '${{ secrets.CA}}' > /usr/local/share/ca-certificates/guide_ca.crt; update-ca-certificates
+
+      - name: Add a client certificate
+        run: mkdir ~/.postgresql; echo '${{ secrets.CLIENT_CERT}}' > ~/.postgresql/postgresql.crt
+      
+      - name: Add a client private key
+        run: echo '${{ secrets.CLIENT_TLS_KEY}}' > ~/.postgresql/postgresql.key
+
+      - name: Run migrations
+        run: migrate -database '${{ secrets.MIGRATION_URL}}' -path ./internal/bot/infrastructure/migrations up
 
       - name: Run the service
         env:
