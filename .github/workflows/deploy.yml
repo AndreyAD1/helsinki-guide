@@ -30,6 +30,11 @@ jobs:
       - name: Copy a startup script
         run: scp -o StrictHostKeyChecking=no -i ~/env_key ./deployments${{ vars.SCRIPT_PATH}} ${{ secrets.USER}}@${{ secrets.HOST}}:${{ secrets.ROOT_PATH}}
 
+      - name: Setup Go environment
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: ./go.mod
+
       - name: Run the service
         env:
           RUN_COMMAND: "${{ secrets.ROOT_PATH}}${{ vars.SCRIPT_PATH}} \ 
