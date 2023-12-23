@@ -22,8 +22,12 @@ func testGetNearestBuildings(t *testing.T) {
 
 	storage := repositories.NewBuildingRepo(dbpool)
 	nameEn := "test_building"
-	address := i.Address{
-		StreetAddress:   "test street",
+	address1 := i.Address{
+		StreetAddress:   "test street1",
+		NeighbourhoodID: &savedNeighbour.ID,
+	}
+	address2 := i.Address{
+		StreetAddress:   "test street2",
 		NeighbourhoodID: &savedNeighbour.ID,
 	}
 	type buildingInfo struct {
@@ -55,7 +59,7 @@ func testGetNearestBuildings(t *testing.T) {
 			[]i.Building{
 				{
 					NameEn:  &nameEn,
-					Address: address,
+					Address: address1,
 				},
 			},
 			100,
@@ -70,7 +74,7 @@ func testGetNearestBuildings(t *testing.T) {
 			[]i.Building{
 				{
 					NameEn:          &nameEn,
-					Address:         address,
+					Address:         address1,
 					Latitude_WGS84:  utils.GetPointer(float64(0.0)),
 					Longitude_WGS84: utils.GetPointer(float64(0.0)),
 				},
@@ -87,7 +91,7 @@ func testGetNearestBuildings(t *testing.T) {
 			[]i.Building{
 				{
 					NameEn:          &nameEn,
-					Address:         address,
+					Address:         address1,
 					Latitude_WGS84:  utils.GetPointer(float64(60.36)),
 					Longitude_WGS84: utils.GetPointer(float64(24.75)),
 				},
@@ -100,7 +104,7 @@ func testGetNearestBuildings(t *testing.T) {
 			[]i.Building{
 				{
 					NameEn:          &nameEn,
-					Address:         address,
+					Address:         address1,
 					Latitude_WGS84:  utils.GetPointer(float64(60.36)),
 					Longitude_WGS84: utils.GetPointer(float64(24.75)),
 				},
@@ -111,19 +115,19 @@ func testGetNearestBuildings(t *testing.T) {
 			[]i.Building{
 				{
 					NameEn:          &nameEn,
-					Address:         address,
+					Address:         address1,
 					Latitude_WGS84:  utils.GetPointer(float64(0.0)),
 					Longitude_WGS84: utils.GetPointer(float64(0.0)),
 				},
 				{
 					NameEn:          &nameEn,
-					Address:         address,
+					Address:         address2,
 					Latitude_WGS84:  utils.GetPointer(float64(60.361)),
 					Longitude_WGS84: utils.GetPointer(float64(24.751)),
 				},
 				{
 					NameEn:          &nameEn,
-					Address:         address,
+					Address:         address1,
 					Latitude_WGS84:  utils.GetPointer(float64(10.0)),
 					Longitude_WGS84: utils.GetPointer(float64(10.0)),
 				},
@@ -136,7 +140,7 @@ func testGetNearestBuildings(t *testing.T) {
 			[]i.Building{
 				{
 					NameEn:          &nameEn,
-					Address:         address,
+					Address:         address2,
 					Latitude_WGS84:  utils.GetPointer(float64(60.361)),
 					Longitude_WGS84: utils.GetPointer(float64(24.751)),
 				},
@@ -147,25 +151,25 @@ func testGetNearestBuildings(t *testing.T) {
 			[]i.Building{
 				{
 					NameEn:          &nameEn,
-					Address:         address,
+					Address:         address1,
 					Latitude_WGS84:  utils.GetPointer(float64(0.0)),
 					Longitude_WGS84: utils.GetPointer(float64(0.0)),
 				},
 				{
 					NameEn:          utils.GetPointer("second closest"),
-					Address:         address,
+					Address:         address1,
 					Latitude_WGS84:  utils.GetPointer(float64(60.361)),
 					Longitude_WGS84: utils.GetPointer(float64(24.751)),
 				},
 				{
 					NameEn:          &nameEn,
-					Address:         address,
+					Address:         address2,
 					Latitude_WGS84:  utils.GetPointer(float64(10.0)),
 					Longitude_WGS84: utils.GetPointer(float64(10.0)),
 				},
 				{
 					NameEn:          utils.GetPointer("closest"),
-					Address:         address,
+					Address:         address2,
 					Latitude_WGS84:  utils.GetPointer(float64(60.3601)),
 					Longitude_WGS84: utils.GetPointer(float64(24.7501)),
 				},
@@ -178,13 +182,13 @@ func testGetNearestBuildings(t *testing.T) {
 			[]i.Building{
 				{
 					NameEn:          utils.GetPointer("closest"),
-					Address:         address,
+					Address:         address2,
 					Latitude_WGS84:  utils.GetPointer(float64(60.3601)),
 					Longitude_WGS84: utils.GetPointer(float64(24.7501)),
 				},
 				{
 					NameEn:          utils.GetPointer("second closest"),
-					Address:         address,
+					Address:         address1,
 					Latitude_WGS84:  utils.GetPointer(float64(60.361)),
 					Longitude_WGS84: utils.GetPointer(float64(24.751)),
 				},
