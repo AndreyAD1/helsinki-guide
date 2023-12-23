@@ -11,6 +11,7 @@ metrics_port=$6
 
 container_name=helsinki-guide
 image_name=andreyad/helsinki-guide:$tag
+docker pull $image_name
 
 running_container=$(docker ps --all --filter name=$container_name -q)
 if [ -n "$running_container" ]
@@ -19,7 +20,6 @@ if [ -n "$running_container" ]
         docker rm -v $container_name
 fi
 
-docker pull $image_name
 docker run \
 --env DEBUG=1 \
 --env DATABASE_URL=$database_url \
