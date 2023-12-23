@@ -9,8 +9,9 @@ import (
 var (
 	databaseURL  string
 	converterURL string
+	limit        int
+	offset       int
 	RootCmd      = &cobra.Command{
-		Use:   "convert",
 		Short: "Convert ETRS89/GK25FIN coordinates into WGS84 coordinates.",
 		Long: `This script gets projected coordinates from columns 'latitude_etrsgk25' and
 'longitude_etrsgk25' of the table 'buildings', converts them into
@@ -28,14 +29,28 @@ func init() {
 		"dburl",
 		"u",
 		"",
-		"A database URL.",
+		"A database URL",
 	)
 	RootCmd.Flags().StringVarP(
 		&converterURL,
 		"converter",
 		"c",
 		"https://epsg.io",
-		"A base URL for a converter service. Default: https://epsg.io",
+		"A base URL for a converter service",
+	)
+	RootCmd.Flags().IntVarP(
+		&limit,
+		"number",
+		"n",
+		100,
+		"A number of buildings to convert",
+	)
+	RootCmd.Flags().IntVarP(
+		&offset,
+		"offset",
+		"o",
+		0,
+		"A building offset for the table 'buildings' (default 0)",
 	)
 	RootCmd.MarkFlagRequired("dburl")
 }

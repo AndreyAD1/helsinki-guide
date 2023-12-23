@@ -5,6 +5,27 @@ import (
 	"strings"
 )
 
+type BuildingSpecificationAll struct {
+	limit int
+	offset int
+}
+
+func NewBuildingSpecificationAll(limit, offset int) Specification {
+	return &BuildingSpecificationAll{limit, offset}
+}
+
+func (b *BuildingSpecificationAll) ToSQL() (string, map[string]any) {
+	queryTemplate := `SELECT *
+	FROM (SELECT * FROM buildings WHERE deleted_at IS NULL) AS buildings
+	JOIN addresses ON buildings.address_id = addresses.id 
+	ORDER BY buildings.id LIMIT @limit OFFSET @offset;`
+	queryArgs := map[string]any{
+		"limit":          b.limit,
+		"offset":         b.offset,
+	}
+	return queryTemplate, queryArgs
+}
+
 type BuildingSpecificationByAlikeAddress struct {
 	addressPrefix string
 	limit         int
