@@ -102,32 +102,29 @@ func NewBuildingSpecificationNearest(
 	limit,
 	offset int,
 ) Specification {
-	lat := fmt.Sprintf("%.2f", latitude)
-	lon := fmt.Sprintf("%.2f", longitude)
+	lat := fmt.Sprintf("%.5f", latitude)
+	lon := fmt.Sprintf("%.5f", longitude)
 	return &BuildingSpecificationNearest{distanceMeters, lat, lon, limit, offset}
 }
 
 func (b *BuildingSpecificationNearest) ToSQL() (string, map[string]any) {
-	queryTemplate := `WITH nearest_buildings AS (
-		SELECT * FROM 
-		(SELECT * FROM buildings WHERE deleted_at IS NULL) AS buildings
-		WHERE earth_box(ll_to_earth(@latitude, @longitude), @distance) @> 
-		ll_to_earth(latitude_wgs84, longitude_wgs84) 
-		AND
-		earth_distance(
-			ll_to_earth(@latitude, @longitude), 
-			ll_to_earth(latitude_wgs84, longitude_wgs84)
-		) <= @distance
-		ORDER BY (
+	queryTemplate := `SELECT * FROM 
+	buildings JOIN addresses ON buildings.address_id = addresses.id 
+	WHERE 
+	buildings.deleted_at IS NULL
+	AND
+	earth_box(ll_to_earth(@latitude, @longitude), @distance) @> 
+	ll_to_earth(latitude_wgs84, longitude_wgs84) 
+	AND
+	earth_distance(
+		ll_to_earth(@latitude, @longitude), 
+		ll_to_earth(latitude_wgs84, longitude_wgs84)
+	) <= @distance
+	ORDER BY 
 			earth_distance(
 				ll_to_earth(@latitude, @longitude),
 				ll_to_earth(latitude_wgs84, longitude_wgs84)
 			)
-		)
-	)
-	SELECT *
-	FROM nearest_buildings
-	JOIN addresses ON nearest_buildings.address_id = addresses.id 
 	LIMIT @limit OFFSET @offset;`
 	args := map[string]any{
 		"distance":  b.distanceMeters,

@@ -32,7 +32,7 @@ func (h HandlerContainer) getNearestAddresses(ctx c.Context, message *tgbotapi.M
 		return errors.Join(sendErr, err)
 	}
 	items := make([]string, len(buildings)+1)
-	items[0] = "Nearest buildings:"
+	items[0] = fmt.Sprintf("Nearest buildings in %v meters:", DEFAULT_DISTANCE)
 	for i, building := range buildings {
 		items[i+1] = fmt.Sprintf(
 			lineTemplate,
