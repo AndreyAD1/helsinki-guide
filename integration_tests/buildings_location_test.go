@@ -5,9 +5,7 @@ import (
 	"log"
 	"testing"
 
-	"github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories"
-	s "github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/specifications"
-	i "github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/types"
+	r "github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories"
 	"github.com/AndreyAD1/helsinki-guide/internal/utils"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -15,48 +13,48 @@ import (
 )
 
 func testGetNearestBuildings(t *testing.T) {
-	storageN := repositories.NewNeighbourhoodRepo(dbpool)
-	neighbourbourhood := i.Neighbourhood{Name: "test neighbourhood"}
+	storageN := r.NewNeighbourhoodRepo(dbpool)
+	neighbourbourhood := r.Neighbourhood{Name: "test neighbourhood"}
 	savedNeighbour, err := storageN.Add(context.Background(), neighbourbourhood)
 	require.NoError(t, err)
 
-	storage := repositories.NewBuildingRepo(dbpool)
+	storage := r.NewBuildingRepo(dbpool)
 	nameEn := "test_building"
-	address1 := i.Address{
+	address1 := r.Address{
 		StreetAddress:   "test street1",
 		NeighbourhoodID: &savedNeighbour.ID,
 	}
-	address2 := i.Address{
+	address2 := r.Address{
 		StreetAddress:   "test street2",
 		NeighbourhoodID: &savedNeighbour.ID,
 	}
 	type buildingInfo struct {
-		storedBuilding i.Building
+		storedBuilding r.Building
 		isExpected     bool
 	}
 	tests := []struct {
 		name              string
-		storedBuildings   []i.Building
+		storedBuildings   []r.Building
 		distance          int
 		latitude          float64
 		longitude         float64
 		limit             int
 		offset            int
-		expectedBuildings []i.Building
+		expectedBuildings []r.Building
 	}{
 		{
 			"no buildings",
-			[]i.Building{},
+			[]r.Building{},
 			100,
 			60.36,
 			24.75,
 			10,
 			0,
-			[]i.Building{},
+			[]r.Building{},
 		},
 		{
 			"one building without coordinates",
-			[]i.Building{
+			[]r.Building{
 				{
 					NameEn:  &nameEn,
 					Address: address1,
@@ -67,11 +65,11 @@ func testGetNearestBuildings(t *testing.T) {
 			24.75,
 			10,
 			0,
-			[]i.Building{},
+			[]r.Building{},
 		},
 		{
 			"one too far building",
-			[]i.Building{
+			[]r.Building{
 				{
 					NameEn:          &nameEn,
 					Address:         address1,
@@ -84,11 +82,11 @@ func testGetNearestBuildings(t *testing.T) {
 			24.75,
 			10,
 			0,
-			[]i.Building{},
+			[]r.Building{},
 		},
 		{
 			"one very close building",
-			[]i.Building{
+			[]r.Building{
 				{
 					NameEn:          &nameEn,
 					Address:         address1,
@@ -101,7 +99,7 @@ func testGetNearestBuildings(t *testing.T) {
 			24.75,
 			10,
 			0,
-			[]i.Building{
+			[]r.Building{
 				{
 					NameEn:          &nameEn,
 					Address:         address1,
@@ -112,7 +110,7 @@ func testGetNearestBuildings(t *testing.T) {
 		},
 		{
 			"one close and two far buildings",
-			[]i.Building{
+			[]r.Building{
 				{
 					NameEn:          &nameEn,
 					Address:         address1,
@@ -137,7 +135,7 @@ func testGetNearestBuildings(t *testing.T) {
 			24.75,
 			10,
 			0,
-			[]i.Building{
+			[]r.Building{
 				{
 					NameEn:          &nameEn,
 					Address:         address2,
@@ -148,7 +146,7 @@ func testGetNearestBuildings(t *testing.T) {
 		},
 		{
 			"two close and two far buildings",
-			[]i.Building{
+			[]r.Building{
 				{
 					NameEn:          &nameEn,
 					Address:         address1,
@@ -179,7 +177,7 @@ func testGetNearestBuildings(t *testing.T) {
 			24.75,
 			10,
 			0,
-			[]i.Building{
+			[]r.Building{
 				{
 					NameEn:          utils.GetPointer("closest"),
 					Address:         address2,
@@ -211,7 +209,7 @@ func testGetNearestBuildings(t *testing.T) {
 					}
 				}()
 			}
-			specification := s.NewBuildingSpecificationNearest(
+			specification := r.NewBuildingSpecificationNearest(
 				tt.distance,
 				tt.latitude,
 				tt.longitude,
@@ -221,13 +219,22 @@ func testGetNearestBuildings(t *testing.T) {
 			got, err := storage.Query(context.Background(), specification)
 			require.NoError(t, err)
 			ignoreOption := cmpopts.IgnoreFields(
-				i.Building{},
+				r.Building{},
 				"ID",
 				"Address.ID",
 				"Address.CreatedAt",
 				"CreatedAt",
 			)
-			require.Equal(t, cmp.Diff(tt.expectedBuildings, got, ignoreOption), "")
+			require.Equal(
+				t, 
+				cmp.Diff(
+					tt.expectedBuildings, 
+					got,
+					cmpopts.IgnoreUnexported(r.Timestamps{}),
+					ignoreOption, 
+				),
+				"",
+			)
 		})
 	}
 }

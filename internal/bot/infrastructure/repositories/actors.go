@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"log/slog"
 
-	s "github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/specifications"
-	i "github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/types"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/logger"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
@@ -23,7 +21,7 @@ func NewActorRepo(dbPool *pgxpool.Pool) ActorRepository {
 	return &actorStorage{dbPool}
 }
 
-func (a *actorStorage) Add(ctx context.Context, actor i.Actor) (*i.Actor, error) {
+func (a *actorStorage) Add(ctx context.Context, actor Actor) (*Actor, error) {
 	selectQuery := `SELECT id, name, title_fi, title_en, title_ru,
 	created_at, updated_at, deleted_at FROM actors WHERE name = $1;`
 	insertQuery := `INSERT INTO actors (name, title_fi, title_en, title_ru)
@@ -42,7 +40,7 @@ func (a *actorStorage) Add(ctx context.Context, actor i.Actor) (*i.Actor, error)
 			if pgxError.Code == pgerrcode.UniqueViolation {
 				logMsg := fmt.Sprintf("actor duplication: %v", actor)
 				slog.WarnContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
-				var existingActor i.Actor
+				var existingActor Actor
 				err := a.dbPool.QueryRow(
 					ctx,
 					selectQuery,
@@ -55,7 +53,7 @@ func (a *actorStorage) Add(ctx context.Context, actor i.Actor) (*i.Actor, error)
 					&existingActor.TitleRu,
 					&existingActor.CreatedAt,
 					&existingActor.UpdatedAt,
-					&existingActor.DeletedAt,
+					&existingActor.deletedAt,
 				)
 				if err != nil {
 					logMsg := fmt.Sprintf("unexpected DB error for an actor %v", actor.Name)
@@ -73,15 +71,15 @@ func (a *actorStorage) Add(ctx context.Context, actor i.Actor) (*i.Actor, error)
 	return &actor, nil
 }
 
-func (a *actorStorage) Remove(ctx context.Context, actor i.Actor) error {
+func (a *actorStorage) Remove(ctx context.Context, actor Actor) error {
 	return ErrNotImplemented
 }
 
-func (a *actorStorage) Update(ctx context.Context, actor i.Actor) (*i.Actor, error) {
+func (a *actorStorage) Update(ctx context.Context, actor Actor) (*Actor, error) {
 	return nil, ErrNotImplemented
 }
 
-func (a *actorStorage) Query(ctx context.Context, spec s.Specification) ([]i.Actor, error) {
+func (a *actorStorage) Query(ctx context.Context, spec Specification) ([]Actor, error) {
 	query, queryArgs := spec.ToSQL()
 	slog.DebugContext(ctx, fmt.Sprintf("send the query %v: %v", query, queryArgs))
 	rows, err := a.dbPool.Query(ctx, query, pgx.NamedArgs(queryArgs))
@@ -91,9 +89,9 @@ func (a *actorStorage) Query(ctx context.Context, spec s.Specification) ([]i.Act
 		return nil, fmt.Errorf("%v: %w", logMsg, err)
 	}
 	defer rows.Close()
-	var actors []i.Actor
+	var actors []Actor
 	for rows.Next() {
-		var actor i.Actor
+		var actor Actor
 		if err := rows.Scan(
 			&actor.ID,
 			&actor.Name,
@@ -102,7 +100,7 @@ func (a *actorStorage) Query(ctx context.Context, spec s.Specification) ([]i.Act
 			&actor.TitleRu,
 			&actor.CreatedAt,
 			&actor.UpdatedAt,
-			&actor.DeletedAt,
+			&actor.deletedAt,
 		); err != nil {
 			msg := fmt.Sprintf(
 				"can not scan an actor from a query result: %v: %v",

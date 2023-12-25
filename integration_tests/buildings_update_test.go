@@ -4,45 +4,43 @@ import (
 	"context"
 	"testing"
 
-	"github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories"
-	s "github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/specifications"
-	i "github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/types"
+	r "github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories"
 	"github.com/stretchr/testify/require"
 )
 
 func testUpdateAbsentBuilding(t *testing.T) {
-	storageN := repositories.NewNeighbourhoodRepo(dbpool)
-	neighbourbourhood := i.Neighbourhood{Name: "test neighbourhood"}
+	storageN := r.NewNeighbourhoodRepo(dbpool)
+	neighbourbourhood := r.Neighbourhood{Name: "test neighbourhood"}
 	savedNeighbour, err := storageN.Add(context.Background(), neighbourbourhood)
 	require.NoError(t, err)
 
-	storage := repositories.NewBuildingRepo(dbpool)
+	storage := r.NewBuildingRepo(dbpool)
 	nameEn := "test_building"
 	streetAddress := "test street"
-	building := i.Building{
+	building := r.Building{
 		NameEn: &nameEn,
-		Address: i.Address{
+		Address: r.Address{
 			StreetAddress:   streetAddress,
 			NeighbourhoodID: &savedNeighbour.ID,
 		},
 	}
 	updated, err := storage.Update(context.Background(), building)
-	require.ErrorIs(t, err, repositories.ErrNotExist)
+	require.ErrorIs(t, err, r.ErrNotExist)
 	require.Nil(t, updated)
 }
 
 func testManageRemovedBuilding(t *testing.T) {
-	storageN := repositories.NewNeighbourhoodRepo(dbpool)
-	neighbourbourhood := i.Neighbourhood{Name: "test neighbourhood"}
+	storageN := r.NewNeighbourhoodRepo(dbpool)
+	neighbourbourhood := r.Neighbourhood{Name: "test neighbourhood"}
 	savedNeighbour, err := storageN.Add(context.Background(), neighbourbourhood)
 	require.NoError(t, err)
 
-	storage := repositories.NewBuildingRepo(dbpool)
+	storage := r.NewBuildingRepo(dbpool)
 	nameEn := "test_building"
 	streetAddress := "test street"
-	building := i.Building{
+	building := r.Building{
 		NameEn: &nameEn,
-		Address: i.Address{
+		Address: r.Address{
 			StreetAddress:   streetAddress,
 			NeighbourhoodID: &savedNeighbour.ID,
 		},
@@ -55,9 +53,9 @@ func testManageRemovedBuilding(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = storage.Update(ctx, building)
-	require.ErrorIs(t, err, repositories.ErrNotExist)
+	require.ErrorIs(t, err, r.ErrNotExist)
 
-	spec := s.NewBuildingSpecificationByAddress(streetAddress)
+	spec := r.NewBuildingSpecificationByAddress(streetAddress)
 	buildings, err := storage.Query(context.Background(), spec)
 	require.NoError(t, err)
 	require.Equalf(
