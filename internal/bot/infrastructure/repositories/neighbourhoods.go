@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"log/slog"
 
-	s "github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/specifications"
-	i "github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/types"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/logger"
 	l "github.com/AndreyAD1/helsinki-guide/internal/bot/logger"
 	"github.com/jackc/pgerrcode"
@@ -26,14 +24,14 @@ func NewNeighbourhoodRepo(dbPool *pgxpool.Pool) NeighbourhoodRepository {
 
 func (n *neighbourhoodStorage) Add(
 	ctx context.Context,
-	neighbourhood i.Neighbourhood,
-) (*i.Neighbourhood, error) {
+	neighbourhood Neighbourhood,
+) (*Neighbourhood, error) {
 	selectQuery := `SELECT id, name, municipality, created_at, updated_at,
 	deleted_at FROM neighbourhoods WHERE name = $1 AND `
 	insertQuery := `INSERT INTO neighbourhoods (name, municipality)
 	VALUES ($1, $2) RETURNING id, name, municipality, created_at, updated_at,
 	deleted_at;`
-	var saved i.Neighbourhood
+	var saved Neighbourhood
 	err := n.dbPool.QueryRow(
 		ctx,
 		insertQuery,
@@ -45,7 +43,7 @@ func (n *neighbourhoodStorage) Add(
 		&saved.Municipality,
 		&saved.CreatedAt,
 		&saved.UpdatedAt,
-		&saved.DeletedAt,
+		&saved.deletedAt,
 	)
 	if err == nil {
 		return &saved, nil
@@ -97,7 +95,7 @@ func (n *neighbourhoodStorage) Add(
 		&saved.Municipality,
 		&saved.CreatedAt,
 		&saved.UpdatedAt,
-		&saved.DeletedAt,
+		&saved.deletedAt,
 	)
 	if err != nil {
 		slog.WarnContext(ctx, unexpectedMsg, slog.Any(logger.ErrorKey, err))
@@ -106,15 +104,15 @@ func (n *neighbourhoodStorage) Add(
 	return &saved, ErrDuplicate
 }
 
-func (n *neighbourhoodStorage) Remove(ctx context.Context, neighbourhood i.Neighbourhood) error {
+func (n *neighbourhoodStorage) Remove(ctx context.Context, neighbourhood Neighbourhood) error {
 	return ErrNotImplemented
 }
 
-func (n *neighbourhoodStorage) Update(ctx context.Context, neighbourhood i.Neighbourhood) (*i.Neighbourhood, error) {
+func (n *neighbourhoodStorage) Update(ctx context.Context, neighbourhood Neighbourhood) (*Neighbourhood, error) {
 	return nil, ErrNotImplemented
 }
 
-func (n *neighbourhoodStorage) Query(ctx context.Context, spec s.Specification) ([]i.Neighbourhood, error) {
+func (n *neighbourhoodStorage) Query(ctx context.Context, spec Specification) ([]Neighbourhood, error) {
 	query, queryArgs := spec.ToSQL()
 	slog.DebugContext(ctx, fmt.Sprintf("send the query %v: %v", query, queryArgs))
 	rows, err := n.dbPool.Query(ctx, query, pgx.NamedArgs(queryArgs))
@@ -124,16 +122,16 @@ func (n *neighbourhoodStorage) Query(ctx context.Context, spec s.Specification) 
 		return nil, fmt.Errorf("%v: %w", logMsg, err)
 	}
 	defer rows.Close()
-	var neigbourhoods []i.Neighbourhood
+	var neigbourhoods []Neighbourhood
 	for rows.Next() {
-		var neigbourhood i.Neighbourhood
+		var neigbourhood Neighbourhood
 		if err := rows.Scan(
 			&neigbourhood.ID,
 			&neigbourhood.Name,
 			&neigbourhood.Municipality,
 			&neigbourhood.CreatedAt,
 			&neigbourhood.UpdatedAt,
-			&neigbourhood.DeletedAt,
+			&neigbourhood.deletedAt,
 		); err != nil {
 			msg := fmt.Sprintf(
 				"can not scan an actor from a query result: %v: %v",

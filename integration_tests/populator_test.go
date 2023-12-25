@@ -6,9 +6,7 @@ import (
 	"testing"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/configuration"
-	"github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories"
-	s "github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/specifications"
-	"github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/types"
+	r "github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories"
 	"github.com/AndreyAD1/helsinki-guide/internal/populator"
 	u "github.com/AndreyAD1/helsinki-guide/internal/utils"
 	"github.com/stretchr/testify/require"
@@ -20,7 +18,7 @@ var (
 	enFilename = filepath.Join(".", "testdata", "test_en.xlsx")
 	ruFilename = filepath.Join(".", "testdata", "test_ru.xlsx")
 
-	expectedNeighbourhoods = []types.Neighbourhood{
+	expectedNeighbourhoods = []r.Neighbourhood{
 		{Name: "Lauttasaari", Municipality: u.GetPointer("Helsinki")},
 		{Name: "Munkkiniemi", Municipality: u.GetPointer("Helsinki")},
 	}
@@ -28,20 +26,20 @@ var (
 	architectFi     = "Arkkitehti"
 	architectEn     = "Architect"
 	architectRu     = "Архитектор"
-	expectedAuthors = []types.Actor{
+	expectedAuthors = []r.Actor{
 		{Name: "Claus Tandefelt", TitleFi: &architectFi, TitleEn: &architectEn, TitleRu: &architectRu},
 		{Name: "Kauko Kokko", TitleFi: &architectFi, TitleEn: &architectEn, TitleRu: &architectRu},
 		{Name: "Niilo Kokko", TitleFi: &architectFi, TitleEn: &architectEn, TitleRu: &architectRu},
 		{Name: "Rudolf Lanste"},
 	}
-	expectedBuildings = []types.Building{
+	expectedBuildings = []r.Building{
 		{
 			ID:     int64(1),
 			Code:   u.GetPointer("09103100030008001"),
 			NameFi: u.GetPointer("As Oy Meripuistotie 5"),
 			NameEn: u.GetPointer("As Oy Meripuistotie 5"),
 			NameRu: u.GetPointer("As Oy Meripuistotie 5"),
-			Address: types.Address{
+			Address: r.Address{
 				ID:              int64(1),
 				StreetAddress:   "Meripuistotie 5",
 				NeighbourhoodID: u.GetPointer(int64(1)),
@@ -49,7 +47,7 @@ var (
 			ConstructionStartYear: u.GetPointer(1954),
 			CompletionYear:        u.GetPointer(1955),
 			AuthorIDs:             []int64{1},
-			InitialUses: []types.UseType{
+			InitialUses: []r.UseType{
 				{
 					ID:     1,
 					NameFi: "kerrostalot",
@@ -57,7 +55,7 @@ var (
 					NameRu: "многоквартирные дома",
 				},
 			},
-			CurrentUses: []types.UseType{
+			CurrentUses: []r.UseType{
 				{
 					ID:     1,
 					NameFi: "kerrostalot",
@@ -92,7 +90,7 @@ var (
 			NameFi: u.GetPointer("Gården Sjöallen 7"),
 			NameEn: u.GetPointer("Gården Sjöallen 7"),
 			NameRu: u.GetPointer("Gården Sjöallen 7"),
-			Address: types.Address{
+			Address: r.Address{
 				ID:              int64(2),
 				StreetAddress:   "Meripuistotie 7",
 				NeighbourhoodID: u.GetPointer(int64(2)),
@@ -100,7 +98,7 @@ var (
 			ConstructionStartYear: nil,
 			CompletionYear:        u.GetPointer(1978),
 			AuthorIDs:             []int64{2},
-			InitialUses: []types.UseType{
+			InitialUses: []r.UseType{
 				{
 					ID:     1,
 					NameFi: "kerrostalot",
@@ -114,7 +112,7 @@ var (
 					NameRu: "детские сады",
 				},
 			},
-			CurrentUses: []types.UseType{
+			CurrentUses: []r.UseType{
 				{
 					ID:     2,
 					NameFi: "päiväkodit",
@@ -143,7 +141,7 @@ var (
 			NameFi: u.GetPointer("As Oy Pohjoiskaari 8"),
 			NameEn: u.GetPointer("As Oy Pohjoiskaari 8"),
 			NameRu: u.GetPointer("As Oy Pohjoiskaari 8"),
-			Address: types.Address{
+			Address: r.Address{
 				ID:              int64(3),
 				StreetAddress:   "Pohjoiskaari 8",
 				NeighbourhoodID: u.GetPointer(int64(1)),
@@ -151,7 +149,7 @@ var (
 			ConstructionStartYear: u.GetPointer(1952),
 			CompletionYear:        u.GetPointer(1955),
 			AuthorIDs:             []int64{3, 4},
-			InitialUses: []types.UseType{
+			InitialUses: []r.UseType{
 				{
 					ID:     1,
 					NameFi: "kerrostalot",
@@ -159,7 +157,7 @@ var (
 					NameRu: "многоквартирные дома",
 				},
 			},
-			CurrentUses: []types.UseType{
+			CurrentUses: []r.UseType{
 				{
 					ID:     1,
 					NameFi: "kerrostalot",
@@ -205,8 +203,8 @@ func testRunPopulator(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	neigbourhoodRepo := repositories.NewNeighbourhoodRepo(dbpool)
-	spec := s.NewNeighbourhoodSpecificationAll(100, 0)
+	neigbourhoodRepo := r.NewNeighbourhoodRepo(dbpool)
+	spec := r.NewNeighbourhoodSpecificationAll(100, 0)
 	storedNeighbourhoods, err := neigbourhoodRepo.Query(ctx, spec)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(storedNeighbourhoods))
@@ -219,8 +217,8 @@ func testRunPopulator(t *testing.T) {
 		require.Equal(t, expected.Municipality, storedNeighbourhoods[i].Municipality)
 	}
 
-	actorRepo := repositories.NewActorRepo(dbpool)
-	spec = s.NewActorSpecificationAll(100, 0)
+	actorRepo := r.NewActorRepo(dbpool)
+	spec = r.NewActorSpecificationAll(100, 0)
 	authors, err := actorRepo.Query(ctx, spec)
 	require.NoError(t, err)
 	require.Equal(t, 4, len(authors))
@@ -236,8 +234,8 @@ func testRunPopulator(t *testing.T) {
 		require.Equal(t, *expected.TitleEn, *authors[i].TitleEn)
 		require.Equal(t, *expected.TitleRu, *authors[i].TitleRu)
 	}
-	buildingRepo := repositories.NewBuildingRepo(dbpool)
-	spec = s.NewBuildingSpecificationByAlikeAddress("", 100, 0)
+	buildingRepo := r.NewBuildingRepo(dbpool)
+	spec = r.NewBuildingSpecificationByAlikeAddress("", 100, 0)
 	buildings, err := buildingRepo.Query(ctx, spec)
 	require.NoError(t, err)
 	require.Equalf(

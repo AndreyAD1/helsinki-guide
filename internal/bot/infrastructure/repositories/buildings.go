@@ -7,8 +7,6 @@ import (
 	"log/slog"
 	"time"
 
-	s "github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/specifications"
-	i "github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/types"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/logger"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
@@ -42,7 +40,7 @@ func (b *BuildingStorage) beginTransaction(ctx context.Context) (pgx.Tx, func(),
 	return transaction, closeFunc, nil
 }
 
-func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Building, error) {
+func (b *BuildingStorage) Add(ctx context.Context, building Building) (*Building, error) {
 	transaction, closeTransaction, err := b.beginTransaction(ctx)
 	if err != nil {
 		return nil, err
@@ -165,7 +163,7 @@ func (b *BuildingStorage) Add(ctx context.Context, building i.Building) (*i.Buil
 	return &building, nil
 }
 
-func (b *BuildingStorage) Remove(ctx context.Context, building i.Building) error {
+func (b *BuildingStorage) Remove(ctx context.Context, building Building) error {
 	_, err := b.dbPool.Exec(ctx, deleteBuilding, time.Now(), building.ID)
 	if err != nil {
 		itemName := fmt.Sprintf("building %v", building.ID)
@@ -174,7 +172,7 @@ func (b *BuildingStorage) Remove(ctx context.Context, building i.Building) error
 	return nil
 }
 
-func (b *BuildingStorage) Update(ctx context.Context, building i.Building) (*i.Building, error) {
+func (b *BuildingStorage) Update(ctx context.Context, building Building) (*Building, error) {
 	transaction, closeTransaction, err := b.beginTransaction(ctx)
 	if err != nil {
 		return nil, err
@@ -315,8 +313,8 @@ func (b *BuildingStorage) Update(ctx context.Context, building i.Building) (*i.B
 
 func (b *BuildingStorage) Query(
 	ctx context.Context,
-	spec s.Specification,
-) ([]i.Building, error) {
+	spec Specification,
+) ([]Building, error) {
 	query, queryArgs := spec.ToSQL()
 	slog.DebugContext(ctx, fmt.Sprintf("send the query %v: %v", query, queryArgs))
 	rows, err := b.dbPool.Query(ctx, query, pgx.NamedArgs(queryArgs))
@@ -326,10 +324,10 @@ func (b *BuildingStorage) Query(
 		return nil, fmt.Errorf("%v: %w", logMsg, err)
 	}
 	defer rows.Close()
-	buildings := []i.Building{}
+	buildings := []Building{}
 	for rows.Next() {
-		var building i.Building
-		var address i.Address
+		var building Building
+		var address Address
 		if err := rows.Scan(
 			&building.ID,
 			&building.Code,
@@ -376,7 +374,7 @@ func (b *BuildingStorage) Query(
 			&building.Longitude_ETRSGK25,
 			&building.CreatedAt,
 			&building.UpdatedAt,
-			&building.DeletedAt,
+			&building.deletedAt,
 			&building.Latitude_WGS84,
 			&building.Longitude_WGS84,
 			&address.ID,
@@ -384,7 +382,7 @@ func (b *BuildingStorage) Query(
 			&address.NeighbourhoodID,
 			&address.CreatedAt,
 			&address.UpdatedAt,
-			&address.DeletedAt,
+			&address.deletedAt,
 		); err != nil {
 			slog.ErrorContext(
 				ctx,
@@ -482,7 +480,7 @@ func (b *BuildingStorage) getUses(
 	ctx context.Context,
 	table_name UseTableNames,
 	buildingID int64,
-) ([]i.UseType, error) {
+) ([]UseType, error) {
 	query := fmt.Sprintf(`SELECT id, name_fi, name_en, name_ru, 
 	created_at,updated_at, deleted_at FROM use_types JOIN %v
 	ON id = use_type_id WHERE building_id = $1;`, table_name)
@@ -493,9 +491,9 @@ func (b *BuildingStorage) getUses(
 		return nil, fmt.Errorf("%v: %w", logMsg, err)
 	}
 	defer rows.Close()
-	var uses []i.UseType
+	var uses []UseType
 	for rows.Next() {
-		var use i.UseType
+		var use UseType
 		if err := rows.Scan(
 			&use.ID,
 			&use.NameFi,
@@ -503,7 +501,7 @@ func (b *BuildingStorage) getUses(
 			&use.NameRu,
 			&use.CreatedAt,
 			&use.UpdatedAt,
-			&use.DeletedAt,
+			&use.deletedAt,
 		); err != nil {
 			msg := fmt.Sprintf(
 				"can not scan %v for a building '%v'",
@@ -521,8 +519,8 @@ func (b *BuildingStorage) getUses(
 func (b *BuildingStorage) getAddress(
 	ctx context.Context,
 	transaction pgx.Tx,
-	address i.Address,
-) (i.Address, error) {
+	address Address,
+) (Address, error) {
 	err := transaction.QueryRow(
 		ctx,
 		getAddress,
@@ -533,12 +531,12 @@ func (b *BuildingStorage) getAddress(
 		&address.NeighbourhoodID,
 		&address.CreatedAt,
 		&address.UpdatedAt,
-		&address.DeletedAt,
+		&address.deletedAt,
 	)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		logMsg := fmt.Sprintf("can not get an address: %v", address)
 		slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
-		return i.Address{}, err
+		return Address{}, err
 	}
 	if errors.Is(err, pgx.ErrNoRows) {
 		if err := transaction.QueryRow(
@@ -552,14 +550,14 @@ func (b *BuildingStorage) getAddress(
 			&address.NeighbourhoodID,
 			&address.CreatedAt,
 			&address.UpdatedAt,
-			&address.DeletedAt,
+			&address.deletedAt,
 		); err != nil {
 			itemName := fmt.Sprintf(
 				"address: '%v-%v'",
 				address.StreetAddress,
 				*address.NeighbourhoodID,
 			)
-			return i.Address{}, processPostgresError(ctx, itemName, err)
+			return Address{}, processPostgresError(ctx, itemName, err)
 		}
 	}
 	return address, nil
@@ -570,9 +568,9 @@ func (b *BuildingStorage) setUses(
 	transaction pgx.Tx,
 	insertQuery string,
 	buildingID int64,
-	uses []i.UseType,
-) ([]i.UseType, error) {
-	storedUseTypes := []i.UseType{}
+	uses []UseType,
+) ([]UseType, error) {
+	storedUseTypes := []UseType{}
 	for _, useType := range uses {
 		err := transaction.QueryRow(ctx, getUseType, useType.NameEn).Scan(
 			&useType.ID,
@@ -581,7 +579,7 @@ func (b *BuildingStorage) setUses(
 			&useType.NameRu,
 			&useType.CreatedAt,
 			&useType.UpdatedAt,
-			&useType.DeletedAt,
+			&useType.deletedAt,
 		)
 		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 			logMsg := fmt.Sprintf("can not get a use type: %v", useType.NameEn)
@@ -602,7 +600,7 @@ func (b *BuildingStorage) setUses(
 				&useType.NameRu,
 				&useType.CreatedAt,
 				&useType.UpdatedAt,
-				&useType.DeletedAt,
+				&useType.deletedAt,
 			); err != nil {
 				itemName := fmt.Sprintf("use type: %v", useType.NameEn)
 				return storedUseTypes, processPostgresError(ctx, itemName, err)

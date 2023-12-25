@@ -7,8 +7,7 @@ import (
 	"strings"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories"
-	s "github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/specifications"
-	i "github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/types"
+	r "github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/logger"
 )
 
@@ -24,7 +23,7 @@ func NewBuildingService(
 	return BuildingService{buildingCollection, actorCollection}
 }
 
-func NewBuildingDTO(b i.Building, authors []i.Actor, address string) BuildingDTO {
+func NewBuildingDTO(b r.Building, authors []r.Actor, address string) BuildingDTO {
 	var authorNames []string
 	for _, author := range authors {
 		authorNames = append(authorNames, author.Name)
@@ -68,7 +67,7 @@ func (bs BuildingService) GetBuildingPreviews(
 	offset int,
 ) ([]BuildingPreview, error) {
 	addressPrefix = strings.TrimLeft(addressPrefix, " ")
-	spec := s.NewBuildingSpecificationByAlikeAddress(addressPrefix, limit, offset)
+	spec := r.NewBuildingSpecificationByAlikeAddress(addressPrefix, limit, offset)
 	buildings, err := bs.buildingCollection.Query(ctx, spec)
 	if err != nil {
 		slog.ErrorContext(
@@ -95,14 +94,14 @@ func (bs BuildingService) GetBuildingsByAddress(
 	address string,
 ) ([]BuildingDTO, error) {
 	address = strings.TrimSpace(address)
-	spec := s.NewBuildingSpecificationByAddress(address)
+	spec := r.NewBuildingSpecificationByAddress(address)
 	buildings, err := bs.buildingCollection.Query(ctx, spec)
 	if err != nil {
 		return nil, err
 	}
 	buildingsDto := make([]BuildingDTO, len(buildings))
 	for i, building := range buildings {
-		spec := s.NewAuthorSpecificationByBuilding(building.ID)
+		spec := r.NewAuthorSpecificationByBuilding(building.ID)
 		authors, err := bs.actorCollection.Query(ctx, spec)
 		if err != nil {
 			return nil, err
@@ -121,7 +120,7 @@ func (bs BuildingService) GetNearestBuildingPreviews(
 	limit,
 	offset int,
 ) ([]BuildingPreview, error) {
-	spec := s.NewBuildingSpecificationNearest(
+	spec := r.NewBuildingSpecificationNearest(
 		distanceMeters,
 		latitude,
 		longitude,

@@ -13,7 +13,6 @@ import (
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/configuration"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories"
-	"github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/types"
 )
 
 type Populator struct {
@@ -151,7 +150,7 @@ func (p *Populator) Run(
 			authorIDs = append(authorIDs, savedAuthor.ID)
 		}
 
-		building := types.Building{
+		building := repositories.Building{
 			Code:                  getPointerStr(strings.Trim(fiRow[codeIdx], "'")),
 			Address:               address,
 			NameFi:                getPointerStr(fiRow[nameIdx]),
@@ -225,12 +224,12 @@ func getPointerFloat32(s string) (*float32, error) {
 	return &f32, nil
 }
 
-func (p *Populator) getAddress(row []string) (types.Address, error) {
+func (p *Populator) getAddress(row []string) (repositories.Address, error) {
 	municipality := &row[municipalityIdx]
 	if *municipality == "" {
 		municipality = nil
 	}
-	neighbourbourhood := types.Neighbourhood{
+	neighbourbourhood := repositories.Neighbourhood{
 		Name:         row[neighbourhoodIdx],
 		Municipality: municipality,
 	}
@@ -245,19 +244,19 @@ func (p *Populator) getAddress(row []string) (types.Address, error) {
 			neighbourbourhood.Name,
 			municipalStr,
 		)
-		return types.Address{}, err
+		return repositories.Address{}, err
 	}
-	address := types.Address{
+	address := repositories.Address{
 		StreetAddress:   row[streetIdx],
 		NeighbourhoodID: &saved.ID,
 	}
 	return address, nil
 }
 
-func getAuthors(fiRow, enRow, ruRow []string) []types.Actor {
+func getAuthors(fiRow, enRow, ruRow []string) []repositories.Actor {
 	authorNames := strings.Split(fiRow[authorIdx], " ja ")
 
-	authors := []types.Actor{}
+	authors := []repositories.Actor{}
 	for _, useFi := range authorNames {
 		authorName := strings.TrimSpace(useFi)
 		if authorName == "" {
@@ -266,7 +265,7 @@ func getAuthors(fiRow, enRow, ruRow []string) []types.Actor {
 		titleFi := getPointerStr(fiRow[authorTitleIdx])
 		titleEn := getPointerStr(enRow[authorTitleIdx])
 		titleRu := getPointerStr(ruRow[authorTitleIdx])
-		author := types.Actor{
+		author := repositories.Actor{
 			Name:    authorName,
 			TitleFi: titleFi,
 			TitleEn: titleEn,
@@ -289,7 +288,7 @@ func getYear(year string) (*int, error) {
 	return &yearInt, nil
 }
 
-func getUses(usesFi, usesEn, usesRu string) ([]types.UseType, error) {
+func getUses(usesFi, usesEn, usesRu string) ([]repositories.UseType, error) {
 	useFiList := strings.Split(usesFi, ",")
 	useEnList := strings.Split(usesEn, ",")
 	useRuList := strings.Split(usesRu, ",")
@@ -302,7 +301,7 @@ func getUses(usesFi, usesEn, usesRu string) ([]types.UseType, error) {
 		)
 	}
 
-	uses := []types.UseType{}
+	uses := []repositories.UseType{}
 	for i, useFi := range useFiList {
 		useFi := strings.ToLower(strings.TrimSpace(useFi))
 		if useFi == "" {
@@ -310,7 +309,7 @@ func getUses(usesFi, usesEn, usesRu string) ([]types.UseType, error) {
 		}
 		useEn := strings.ToLower(strings.TrimSpace(useEnList[i]))
 		useRu := strings.ToLower(strings.TrimSpace(useRuList[i]))
-		useType := types.UseType{NameFi: useFi, NameEn: useEn, NameRu: useRu}
+		useType := repositories.UseType{NameFi: useFi, NameEn: useEn, NameRu: useRu}
 		uses = append(uses, useType)
 	}
 	return uses, nil

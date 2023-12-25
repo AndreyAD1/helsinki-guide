@@ -5,20 +5,18 @@ import (
 	"testing"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories"
-	"github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/specifications"
-	"github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/types"
 	"github.com/stretchr/testify/require"
 )
 
 func testActorRepository(t *testing.T) {
 	storage := repositories.NewActorRepo(dbpool)
 	titleEn := "test title en"
-	actor := types.Actor{Name: "test", TitleEn: &titleEn}
+	actor := repositories.Actor{Name: "test", TitleEn: &titleEn}
 	saved, err := storage.Add(context.Background(), actor)
 	require.NoError(t, err)
 	require.NotEqualValues(t, 0, saved.ID)
 
-	spec := specifications.NewActorSpecificationByName(actor)
+	spec := repositories.NewActorSpecificationByName(actor)
 	stored, err := storage.Query(context.Background(), spec)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(stored))

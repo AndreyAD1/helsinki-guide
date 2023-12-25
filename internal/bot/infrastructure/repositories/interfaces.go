@@ -1,29 +1,28 @@
 package repositories
 
-import (
-	"context"
-
-	s "github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/specifications"
-	i "github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/types"
-)
+import "context"
 
 type BuildingRepository interface {
-	Add(context.Context, i.Building) (*i.Building, error)
-	Remove(context.Context, i.Building) error
-	Update(context.Context, i.Building) (*i.Building, error)
-	Query(context.Context, s.Specification) ([]i.Building, error)
+	Add(context.Context, Building) (*Building, error)
+	Remove(context.Context, Building) error
+	Update(context.Context, Building) (*Building, error)
+	Query(context.Context, Specification) ([]Building, error)
 }
 
 type NeighbourhoodRepository interface {
-	Add(context.Context, i.Neighbourhood) (*i.Neighbourhood, error)
-	Remove(context.Context, i.Neighbourhood) error
-	Update(context.Context, i.Neighbourhood) (*i.Neighbourhood, error)
-	Query(context.Context, s.Specification) ([]i.Neighbourhood, error)
+	Add(context.Context, Neighbourhood) (*Neighbourhood, error)
+	Remove(context.Context, Neighbourhood) error
+	Update(context.Context, Neighbourhood) (*Neighbourhood, error)
+	Query(context.Context, Specification) ([]Neighbourhood, error)
 }
 
 type ActorRepository interface {
-	Add(context.Context, i.Actor) (*i.Actor, error)
-	Remove(context.Context, i.Actor) error
-	Update(context.Context, i.Actor) (*i.Actor, error)
-	Query(context.Context, s.Specification) ([]i.Actor, error)
+	Add(context.Context, Actor) (*Actor, error)
+	Remove(context.Context, Actor) error
+	Update(context.Context, Actor) (*Actor, error)
+	Query(context.Context, Specification) ([]Actor, error)
+}
+
+type Specification interface {
+	ToSQL() (string, map[string]any)
 }

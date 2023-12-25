@@ -1,11 +1,11 @@
-package types
+package repositories
 
 import "time"
 
 type Timestamps struct {
 	CreatedAt time.Time
 	UpdatedAt *time.Time
-	DeletedAt *time.Time
+	deletedAt *time.Time
 }
 
 type Neighbourhood struct {

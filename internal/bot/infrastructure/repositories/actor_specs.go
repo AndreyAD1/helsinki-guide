@@ -1,6 +1,4 @@
-package specifications
-
-import "github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/types"
+package repositories
 
 type ActorSpecificationByBuilding struct {
 	buildingID int64
@@ -24,10 +22,10 @@ func ActorByBuildingIsEqual(buildingID int64) func(s *ActorSpecificationByBuildi
 }
 
 type ActorSpecificationByName struct {
-	actor types.Actor
+	actor Actor
 }
 
-func NewActorSpecificationByName(a types.Actor) Specification {
+func NewActorSpecificationByName(a Actor) Specification {
 	return &ActorSpecificationByName{a}
 }
 

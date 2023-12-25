@@ -6,8 +6,6 @@ import (
 	"testing"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories"
-	spec "github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/specifications"
-	"github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/types"
 	"github.com/AndreyAD1/helsinki-guide/internal/utils"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -30,7 +28,7 @@ func TestBuildingService_GetNearestPreviews(t *testing.T) {
 		name            string
 		fields          fields
 		args            args
-		foundBuildings  []types.Building
+		foundBuildings  []repositories.Building
 		repositoryError error
 		want            []BuildingPreview
 	}{
@@ -41,7 +39,7 @@ func TestBuildingService_GetNearestPreviews(t *testing.T) {
 				repositories.NewActorRepository_mock(t),
 			},
 			args{},
-			[]types.Building{},
+			[]repositories.Building{},
 			nil,
 			[]BuildingPreview{},
 		},
@@ -52,7 +50,7 @@ func TestBuildingService_GetNearestPreviews(t *testing.T) {
 				repositories.NewActorRepository_mock(t),
 			},
 			args{context.Background(), 100, 0.0, 0.0, 5, 10},
-			[]types.Building{},
+			[]repositories.Building{},
 			nil,
 			[]BuildingPreview{},
 		},
@@ -63,7 +61,7 @@ func TestBuildingService_GetNearestPreviews(t *testing.T) {
 				repositories.NewActorRepository_mock(t),
 			},
 			args{},
-			[]types.Building{},
+			[]repositories.Building{},
 			errors.New("test error"),
 			[]BuildingPreview{},
 		},
@@ -74,10 +72,10 @@ func TestBuildingService_GetNearestPreviews(t *testing.T) {
 				repositories.NewActorRepository_mock(t),
 			},
 			args{context.Background(), 100, 0.0, 0.0, 5, 10},
-			[]types.Building{
+			[]repositories.Building{
 				{
 					NameFi:  utils.GetPointer("test name"),
-					Address: types.Address{StreetAddress: "test address"},
+					Address: repositories.Address{StreetAddress: "test address"},
 				},
 			},
 			nil,
@@ -90,14 +88,14 @@ func TestBuildingService_GetNearestPreviews(t *testing.T) {
 				repositories.NewActorRepository_mock(t),
 			},
 			args{context.Background(), 100, 0.0, 0.0, 5, 10},
-			[]types.Building{
+			[]repositories.Building{
 				{
 					NameFi:  utils.GetPointer("test name 1"),
-					Address: types.Address{StreetAddress: "test address 1"},
+					Address: repositories.Address{StreetAddress: "test address 1"},
 				},
 				{
 					NameFi:  utils.GetPointer("test name 2"),
-					Address: types.Address{StreetAddress: "test address 2"},
+					Address: repositories.Address{StreetAddress: "test address 2"},
 				},
 			},
 			nil,
@@ -109,7 +107,7 @@ func TestBuildingService_GetNearestPreviews(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			matchSpecFunc := spec.NearestSpecIsEqual(
+			matchSpecFunc := repositories.NearestSpecIsEqual(
 				tt.args.distance,
 				tt.args.latitude,
 				tt.args.longitude,

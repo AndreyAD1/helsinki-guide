@@ -7,7 +7,6 @@ import (
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/clients"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories"
-	"github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/specifications"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -31,7 +30,7 @@ func run() error {
 	}
 	buildingRepo := repositories.NewBuildingRepo(dbpool)
 	converterClient := clients.NewEPSGClient(converterURL, 10)
-	spec := specifications.NewBuildingSpecificationAll(limit, offset)
+	spec := repositories.NewBuildingSpecificationAll(limit, offset)
 	buildings, err := buildingRepo.Query(ctx, spec)
 	if err != nil {
 		return err

@@ -1,4 +1,4 @@
-package specifications
+package repositories
 
 import (
 	"fmt"
@@ -152,3 +152,59 @@ func NearestSpecIsEqual(
 		return distanceMatch && latMatch && lonMatch && limitMatch && offsetMatch
 	}
 }
+
+const selectAllBuildingFields = `SELECT
+	code, 
+	name_fi, 
+	name_en, 
+	name_ru, 
+	address_id, 
+	construction_start_year,
+	completion_year, 
+	complex_fi, 
+	complex_en, 
+	complex_ru, 
+	history_fi,
+	history_en, 
+	history_ru, 
+	reasoning_fi, 
+	reasoning_en, 
+	reasoning_ru,
+	protection_status_fi, 
+	protection_status_en, 
+	protection_status_ru,
+	info_source_fi,
+	info_source_en,
+	info_source_ru,
+	surroundings_fi,
+	surroundings_en,
+	surroundings_ru,
+	foundation_fi,
+	foundation_en,
+	foundation_ru,
+	frame_fi,
+	frame_en,
+	frame_ru,
+	floor_description_fi,
+	floor_description_en,
+	floor_description_ru,
+	facades_fi,
+	facades_en,
+	facades_ru,
+	special_features_fi,
+	special_features_en,
+	special_features_ru,
+	latitude_etrsgk25,
+	longitude_etrsgk25,
+	buildings.created_at,
+	buildings.updated_at,
+	buildings.deleted_at
+	latitude_wgs84,
+	longitude_wgs84,
+	addresses.id,
+	addresses.street_address,
+	addresses.neighbourhood_id,
+	addresses.created_at,
+	addresses.updated_at,
+	addresses.deleted_at
+`

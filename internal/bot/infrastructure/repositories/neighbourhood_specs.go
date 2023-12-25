@@ -1,12 +1,10 @@
-package specifications
-
-import "github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories/types"
+package repositories
 
 type NeighbourhoodSpecificationByName struct {
-	neigbourhood types.Neighbourhood
+	neigbourhood Neighbourhood
 }
 
-func NewNeighbourhoodSpecificationByName(n types.Neighbourhood) Specification {
+func NewNeighbourhoodSpecificationByName(n Neighbourhood) Specification {
 	return &NeighbourhoodSpecificationByName{n}
 }
 
