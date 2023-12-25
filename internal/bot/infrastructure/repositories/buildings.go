@@ -334,7 +334,6 @@ func (b *BuildingStorage) Query(
 			&building.NameFi,
 			&building.NameEn,
 			&building.NameRu,
-			&address.ID,
 			&building.ConstructionStartYear,
 			&building.CompletionYear,
 			&building.ComplexFi,
