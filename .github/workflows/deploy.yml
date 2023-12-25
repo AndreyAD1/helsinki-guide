@@ -34,7 +34,10 @@ jobs:
         run: curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-amd64.tar.gz | tar xvz
       
       - name: Add a server CA certificate
-        run: sudo echo '${{ secrets.CA}}' > /usr/local/share/ca-certificates/guide_ca.crt; sudo update-ca-certificates
+        run: | 
+          echo '${{ secrets.CA}}' > ~/guide_ca.crt;
+            sudo cp ~/guide_ca.crt /usr/local/share/ca-certificates/; \
+            sudo update-ca-certificates
 
       - name: Add a client certificate
         run: mkdir ~/.postgresql; echo '${{ secrets.CLIENT_CERT}}' > ~/.postgresql/postgresql.crt
