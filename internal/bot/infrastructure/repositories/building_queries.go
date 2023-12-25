@@ -141,7 +141,7 @@ var (
 	updated_at = $45
 WHERE id = $46 AND deleted_at IS NULL
 RETURNING updated_at;`
-selectAllBuildingFields = `SELECT
+	selectAllBuildingFields = `SELECT
 	buildings.id,
 	buildings.code, 
 	buildings.name_fi, 
