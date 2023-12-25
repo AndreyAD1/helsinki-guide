@@ -6,7 +6,7 @@ import (
 )
 
 type BuildingSpecificationAll struct {
-	limit int
+	limit  int
 	offset int
 }
 
@@ -20,8 +20,8 @@ func (b *BuildingSpecificationAll) ToSQL() (string, map[string]any) {
 	JOIN addresses ON buildings.address_id = addresses.id 
 	ORDER BY buildings.id LIMIT @limit OFFSET @offset;`
 	queryArgs := map[string]any{
-		"limit":          b.limit,
-		"offset":         b.offset,
+		"limit":  b.limit,
+		"offset": b.offset,
 	}
 	return queryTemplate, queryArgs
 }

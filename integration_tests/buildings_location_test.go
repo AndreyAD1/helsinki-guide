@@ -226,12 +226,12 @@ func testGetNearestBuildings(t *testing.T) {
 				"CreatedAt",
 			)
 			require.Equal(
-				t, 
+				t,
 				cmp.Diff(
-					tt.expectedBuildings, 
+					tt.expectedBuildings,
 					got,
 					cmpopts.IgnoreUnexported(r.Timestamps{}),
-					ignoreOption, 
+					ignoreOption,
 				),
 				"",
 			)
