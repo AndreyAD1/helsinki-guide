@@ -12,4 +12,5 @@ type StartupConfig struct {
 
 type PopulatorConfig struct {
 	DatabaseURL string `env:"DATABASE_URL,required,notEmpty"`
+	ConverterURL string `env:"CONVERTER_URL" envDefault:"https://epsg.io"`
 }

@@ -12,13 +12,16 @@ import (
 	"github.com/xuri/excelize/v2"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/configuration"
+	"github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/clients"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories"
+	"github.com/AndreyAD1/helsinki-guide/internal/utils"
 )
 
 type Populator struct {
 	buildingRepo      repositories.BuildingRepository
 	actorRepo         repositories.ActorRepository
 	neighbourhoodRepo repositories.NeighbourhoodRepository
+	converterClient   clients.CoordinateConverter
 }
 
 func NewPopulator(ctx context.Context, config configuration.PopulatorConfig) (*Populator, error) {
@@ -47,6 +50,7 @@ func NewPopulator(ctx context.Context, config configuration.PopulatorConfig) (*P
 		repositories.NewBuildingRepo(dbpool),
 		repositories.NewActorRepo(dbpool),
 		repositories.NewNeighbourhoodRepo(dbpool),
+		clients.NewEPSGClient(config.ConverterURL, 10),
 	}
 	return &populator, nil
 }
@@ -140,6 +144,25 @@ func (p *Populator) Run(
 		if err != nil {
 			return nil
 		}
+		var latitudeWGS84, longitudeWGS84 *float64
+		if latitude != nil && longitude != nil {
+			latWGS84, longWGS84, err := p.converterClient.ConvertETRSGK24toWGS84(
+				ctx,
+				*latitude,
+				*longitude,
+			)
+			if err != nil {
+				log.Printf(
+					"can not get WGS84 coordinates for a building '%v' because of the client error '%v'",
+					i,
+					err,
+				)
+				latitudeWGS84, longitudeWGS84 = nil, nil
+			} else {
+				latitudeWGS84 = utils.GetPointer(latWGS84)
+				longitudeWGS84 = utils.GetPointer(longWGS84)
+			}
+		}
 
 		authorIDs := []int64{}
 		for _, author := range getAuthors(fiRow, enRow, ruRow) {
@@ -193,6 +216,8 @@ func (p *Populator) Run(
 			SpecialFeaturesRu:     getPointerStr(ruRow[specialFeaturesIdx]),
 			Latitude_ETRSGK25:     latitude,
 			Longitude_ETRSGK25:    longitude,
+			Latitude_WGS84:        latitudeWGS84,
+			Longitude_WGS84:       longitudeWGS84,
 			AuthorIDs:             authorIDs,
 			InitialUses:           initialUses,
 			CurrentUses:           currentuses,
