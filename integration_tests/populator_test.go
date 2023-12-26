@@ -2,6 +2,9 @@ package integrationtests
 
 import (
 	"context"
+	"io"
+	"net/http"
+	"net/http/httptest"
 	"path/filepath"
 	"testing"
 
@@ -83,6 +86,8 @@ var (
 			FacadesRu:          u.GetPointer("facade ru 1"),
 			Latitude_ETRSGK25:  u.GetPointer(float32(6671929)),
 			Longitude_ETRSGK25: u.GetPointer(float32(25493834)),
+			Latitude_WGS84:     u.GetPointer(float64(60.16022272243622)),
+			Longitude_WGS84:    u.GetPointer(float64(24.888960819722016)),
 		},
 		{
 			ID:     int64(2),
@@ -134,6 +139,8 @@ var (
 			FacadesRu:          u.GetPointer("facade ru 2"),
 			Latitude_ETRSGK25:  u.GetPointer(float32(6671951)),
 			Longitude_ETRSGK25: u.GetPointer(float32(25493874)),
+			Latitude_WGS84:     u.GetPointer(float64(60.16042078357607)),
+			Longitude_WGS84:    u.GetPointer(float64(24.889680488482533)),
 		},
 		{
 			ID:     int64(3),
@@ -185,13 +192,50 @@ var (
 			FacadesRu:          u.GetPointer("facade ru 3"),
 			Latitude_ETRSGK25:  u.GetPointer(float32(6671911)),
 			Longitude_ETRSGK25: u.GetPointer(float32(25494008)),
+			Latitude_WGS84:     u.GetPointer(float64(60.16006375290611)),
+			Longitude_WGS84:    u.GetPointer(float64(24.8920947869381)),
+		},
+	}
+	converterMockConfig = []struct {
+		expectedQuery string
+		response      string
+	}{
+		{
+			"x=25493834.00&y=6671929.00&s_srs=3879&t_srs=4326",
+			`{"x":"24.888960819722016","y":"60.16022272243622","z":"0.0"}`,
+		},
+		{
+			"x=25493874.00&y=6671951.00&s_srs=3879&t_srs=4326",
+			`{"x":"24.889680488482533","y":"60.16042078357607","z":"0.0"}`,
+		},
+		{
+			"x=25494008.00&y=6671911.00&s_srs=3879&t_srs=4326",
+			`{"x":"24.8920947869381","y":"60.16006375290611","z":"0.0"}`,
 		},
 	}
 )
 
 func testRunPopulator(t *testing.T) {
+	callNumber := 0
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		require.Equal(t, r.URL.Path, "/trans")
+		require.Less(t, callNumber, len(converterMockConfig))
+		require.Equal(
+			t,
+			r.URL.RawQuery,
+			converterMockConfig[callNumber].expectedQuery,
+		)
+		w.Header().Set("Content-Type", "application/json")
+		io.WriteString(w, converterMockConfig[callNumber].response)
+		callNumber++
+	}))
+	defer ts.Close()
+
 	ctx := context.Background()
-	config := configuration.PopulatorConfig{DatabaseURL: databaseUrl}
+	config := configuration.PopulatorConfig{
+		DatabaseURL:  databaseUrl,
+		ConverterURL: ts.URL,
+	}
 	populator, err := populator.NewPopulator(ctx, config)
 	require.NoError(t, err)
 	err = populator.Run(
@@ -292,6 +336,8 @@ func testRunPopulator(t *testing.T) {
 		validatePointerField(t, expected.SpecialFeaturesRu, actual.SpecialFeaturesRu)
 		validatePointerField(t, expected.Latitude_ETRSGK25, actual.Latitude_ETRSGK25)
 		validatePointerField(t, expected.Longitude_ETRSGK25, actual.Longitude_ETRSGK25)
+		validatePointerField(t, expected.Latitude_WGS84, actual.Latitude_WGS84)
+		validatePointerField(t, expected.Longitude_WGS84, actual.Longitude_WGS84)
 		require.Equal(t, expected.AuthorIDs, actual.AuthorIDs)
 		require.Equal(t, len(expected.InitialUses), len(actual.InitialUses))
 		for i, expectedUse := range expected.InitialUses {
@@ -312,7 +358,7 @@ func testRunPopulator(t *testing.T) {
 	}
 }
 
-func validatePointerField[P string | int | int64 | float32](
+func validatePointerField[P string | int | int64 | float32 | float64](
 	t *testing.T,
 	expected,
 	actual *P,

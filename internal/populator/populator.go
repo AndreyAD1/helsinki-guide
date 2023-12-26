@@ -14,7 +14,6 @@ import (
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/configuration"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/clients"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories"
-	"github.com/AndreyAD1/helsinki-guide/internal/utils"
 )
 
 type Populator struct {
@@ -151,16 +150,15 @@ func (p *Populator) Run(
 				*latitude,
 				*longitude,
 			)
-			if err != nil {
+			if err == nil {
+				latitudeWGS84 = &latWGS84
+				longitudeWGS84 = &longWGS84
+			} else {
 				log.Printf(
-					"can not get WGS84 coordinates for a building '%v' because of the client error '%v'",
+					"can not get WGS84 coordinates for a line '%v' because of the client error '%v'",
 					i,
 					err,
 				)
-				latitudeWGS84, longitudeWGS84 = nil, nil
-			} else {
-				latitudeWGS84 = utils.GetPointer(latWGS84)
-				longitudeWGS84 = utils.GetPointer(longWGS84)
 			}
 		}
 

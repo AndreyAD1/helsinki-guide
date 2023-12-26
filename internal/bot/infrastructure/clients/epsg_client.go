@@ -85,11 +85,11 @@ func (c *EPSGClient) ConvertETRSGK24toWGS84(
 		)
 		return 0, 0, err
 	}
-	convertedLatitude, err := strconv.ParseFloat(point.Latitude, 32)
+	convertedLatitude, err := strconv.ParseFloat(point.Latitude, 64)
 	if err != nil {
 		return 0, 0, err
 	}
-	convertedLongitude, err := strconv.ParseFloat(point.Longitude, 32)
+	convertedLongitude, err := strconv.ParseFloat(point.Longitude, 64)
 	if err != nil {
 		return 0, 0, err
 	}
