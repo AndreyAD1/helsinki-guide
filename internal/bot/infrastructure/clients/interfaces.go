@@ -13,5 +13,5 @@ type CoordinateConverter interface {
 		ctx context.Context,
 		latitude float32,
 		longitude float32,
-	) (latitudeWGS84 float32, longitudeWGS84 float32, err error)
+	) (float64, float64, error)
 }
