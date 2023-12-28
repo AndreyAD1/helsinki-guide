@@ -15,6 +15,7 @@ import (
 func TestHandlerContainer_next_positive(t *testing.T) {
 	type fields struct {
 		buildingService *services.Buildings_mock
+		settingService  *services.Settings_mock
 		bot             *InternalBot_mock
 	}
 	type args struct {
@@ -34,6 +35,7 @@ func TestHandlerContainer_next_positive(t *testing.T) {
 			"valid text",
 			fields{
 				services.NewBuildings_mock(t),
+				services.NewSettings_mock(t),
 				NewInternalBot_mock(t),
 			},
 			args{
@@ -66,6 +68,7 @@ func TestHandlerContainer_next_positive(t *testing.T) {
 
 			h := HandlerContainer{
 				tt.fields.buildingService,
+				tt.fields.settingService,
 				tt.fields.bot,
 				map[string]CommandHandler{},
 				map[string]internalButtonHandler{},
@@ -81,6 +84,7 @@ func TestHandlerContainer_next_positive(t *testing.T) {
 func TestHandlerContainer_next_negative(t *testing.T) {
 	type fields struct {
 		buildingService *services.Buildings_mock
+		settingService  *services.Settings_mock
 		bot             *InternalBot_mock
 	}
 	type args struct {
@@ -97,6 +101,7 @@ func TestHandlerContainer_next_negative(t *testing.T) {
 			"empty callback query",
 			fields{
 				services.NewBuildings_mock(t),
+				services.NewSettings_mock(t),
 				NewInternalBot_mock(t),
 			},
 			args{
@@ -109,6 +114,7 @@ func TestHandlerContainer_next_negative(t *testing.T) {
 			"invalid callback data",
 			fields{
 				services.NewBuildings_mock(t),
+				services.NewSettings_mock(t),
 				NewInternalBot_mock(t),
 			},
 			args{
@@ -124,6 +130,7 @@ func TestHandlerContainer_next_negative(t *testing.T) {
 			"invalid callback text",
 			fields{
 				services.NewBuildings_mock(t),
+				services.NewSettings_mock(t),
 				NewInternalBot_mock(t),
 			},
 			args{
@@ -143,6 +150,7 @@ func TestHandlerContainer_next_negative(t *testing.T) {
 			"valid text",
 			fields{
 				services.NewBuildings_mock(t),
+				services.NewSettings_mock(t),
 				NewInternalBot_mock(t),
 			},
 			args{
@@ -165,6 +173,7 @@ func TestHandlerContainer_next_negative(t *testing.T) {
 				Request(tgbotapi.NewCallback(tt.queryID, "")).Return(nil, nil)
 			h := HandlerContainer{
 				tt.fields.buildingService,
+				tt.fields.settingService,
 				tt.fields.bot,
 				map[string]CommandHandler{},
 				map[string]internalButtonHandler{},

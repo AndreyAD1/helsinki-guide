@@ -90,3 +90,9 @@ type Building struct {
 	CurrentUses           []UseType
 	Timestamps
 }
+
+type Settings struct {
+	ID             int64
+	UserTelegramID int64
+	Timestamps
+}

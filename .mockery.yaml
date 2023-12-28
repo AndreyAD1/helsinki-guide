@@ -8,9 +8,11 @@ packages:
       BuildingRepository:
       NeighbourhoodRepository:
       ActorRepository:
+      SettingRepository:
   github.com/AndreyAD1/helsinki-guide/internal/bot/handlers:
     interfaces:
       InternalBot:
   github.com/AndreyAD1/helsinki-guide/internal/bot/services:
     interfaces:
       Buildings:
+      Settings:

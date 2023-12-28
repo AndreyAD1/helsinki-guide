@@ -3,13 +3,14 @@ package metrics
 import "github.com/prometheus/client_golang/prometheus"
 
 type Metrics struct {
-	ChatUpdates            prometheus.Counter
-	UnexpectedUpdates      *prometheus.CounterVec
-	UnexpectedNextCallback *prometheus.CounterVec
-	CommandDuration        *prometheus.HistogramVec
-	ButtonDuration         *prometheus.HistogramVec
-	RequestDuration        *prometheus.HistogramVec
-	HandlerErrors          *prometheus.CounterVec
+	ChatUpdates                prometheus.Counter
+	UnexpectedUpdates          *prometheus.CounterVec
+	UnexpectedNextCallback     *prometheus.CounterVec
+	UnexpectedLanguageCallback *prometheus.CounterVec
+	CommandDuration            *prometheus.HistogramVec
+	ButtonDuration             *prometheus.HistogramVec
+	RequestDuration            *prometheus.HistogramVec
+	HandlerErrors              *prometheus.CounterVec
 }
 
 func NewMetrics(registerer prometheus.Registerer) *Metrics {
@@ -27,6 +28,11 @@ func NewMetrics(registerer prometheus.Registerer) *Metrics {
 		prometheus.NewCounterVec(prometheus.CounterOpts{
 			Namespace: "helsinki_guide",
 			Name:      "unexpected_next_callback",
+			Help:      "number of unexpected callbacks",
+		}, []string{"error"}),
+		prometheus.NewCounterVec(prometheus.CounterOpts{
+			Namespace: "helsinki_guide",
+			Name:      "unexpected_language_callback",
 			Help:      "number of unexpected callbacks",
 		}, []string{"error"}),
 		prometheus.NewHistogramVec(prometheus.HistogramOpts{
@@ -57,6 +63,7 @@ func NewMetrics(registerer prometheus.Registerer) *Metrics {
 		metrics.ChatUpdates,
 		metrics.UnexpectedUpdates,
 		metrics.UnexpectedNextCallback,
+		metrics.UnexpectedLanguageCallback,
 		metrics.CommandDuration,
 		metrics.ButtonDuration,
 		metrics.RequestDuration,
