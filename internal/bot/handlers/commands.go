@@ -145,8 +145,50 @@ func (h HandlerContainer) help(ctx c.Context, message *tgbotapi.Message) error {
 }
 
 func (h HandlerContainer) settings(ctx c.Context, message *tgbotapi.Message) error {
-	settingsMsg := "I have no settings yet. Some configurations will appear soon."
-	return h.SendMessage(ctx, message.Chat.ID, settingsMsg, "")
+	if message.Chat == nil {
+		return ErrNoChat
+	}
+	chatID := message.Chat.ID
+
+	msg := tgbotapi.NewMessage(chatID, "Choose a preferable language:")
+	buttons := []tgbotapi.InlineKeyboardButton{}
+	languageButtons := []LanguageButton{
+		{Button{"Finnish", "language"}, "fi"},
+		{Button{"English", "language"}, "en"},
+		{Button{"Russian", "language"}, "ru"},
+	}
+	for _, button := range languageButtons {
+		buttonCallbackData, err := json.Marshal(button)
+		if err != nil {
+			slog.ErrorContext(
+				ctx,
+				fmt.Sprintf("can not create a button %v", button),
+				slog.Any(logger.ErrorKey, err),
+			)
+			sendErr := h.SendMessage(ctx, chatID, "Internal error", "")
+			return errors.Join(sendErr, err)
+		}
+		buttons = append(
+			buttons, 
+			tgbotapi.NewInlineKeyboardButtonData(
+				button.label,
+				string(buttonCallbackData),
+			),
+		)
+	}
+	settingsMenuMarkup := tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(buttons...),
+	)
+	msg.ReplyMarkup = settingsMenuMarkup
+	_, err := h.bot.Send(msg)
+	if err != nil {
+		slog.WarnContext(
+			ctx,
+			fmt.Sprintf("can not send a settings keyboard to: %v", chatID),
+			slog.Any(logger.ErrorKey, err),
+		)
+	}
+	return err
 }
 
 func (h HandlerContainer) getAllAdresses(ctx c.Context, message *tgbotapi.Message) error {
@@ -188,8 +230,11 @@ func (h HandlerContainer) returnAddresses(
 	}
 
 	msg := tgbotapi.NewMessage(chatID, response)
-	buttonLabel := fmt.Sprintf("Next %v buildings", limit)
-	button := Button{buttonLabel, "next", limit, offset + len(buildings)}
+	button := NextButton{
+		Button{fmt.Sprintf("Next %v buildings", limit), "next"}, 
+		limit, 
+		offset + len(buildings),
+	}
 	buttonCallbackData, err := json.Marshal(button)
 	if err != nil {
 		slog.ErrorContext(
@@ -301,7 +346,7 @@ func (h HandlerContainer) next(ctx c.Context, query *tgbotapi.CallbackQuery) err
 		).Inc()
 		return nil
 	}
-	var button Button
+	var button NextButton
 	if err := json.Unmarshal([]byte(query.Data), &button); err != nil {
 		logMsg := fmt.Sprintf(
 			"unexpected callback data %v from a message %v and the chat %v",

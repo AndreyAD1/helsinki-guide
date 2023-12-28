@@ -27,8 +27,15 @@ type HandlerContainer struct {
 type Button struct {
 	label  string
 	Name   string `json:"name"`
+}
+type NextButton struct {
+	Button
 	Limit  int    `json:"limit,omitempty"`
 	Offset int    `json:"offset,omitempty"`
+}
+type LanguageButton struct {
+	Button
+	Value string `json:"value"`
 }
 type BotWithMetrics struct {
 	clientName string
