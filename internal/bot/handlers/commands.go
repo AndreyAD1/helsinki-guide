@@ -119,7 +119,7 @@ func (h HandlerContainer) start(ctx c.Context, message *tgbotapi.Message) error 
 	startMsg := "Hello! I'm a bot that provides information about Helsinki buildings."
 	msg := tgbotapi.NewMessage(
 		chatID,
-		startMsg,
+		startMsg + "\n\n" + helpMessage,
 	)
 	locationButton := tgbotapi.NewKeyboardButtonLocation(
 		"Share my location and get the nearest buildings",
@@ -140,12 +140,11 @@ func (h HandlerContainer) start(ctx c.Context, message *tgbotapi.Message) error 
 }
 
 func (h HandlerContainer) help(ctx c.Context, message *tgbotapi.Message) error {
-	helpMsg := fmt.Sprintf("Available commands: %s", h.commandsForHelp)
-	return h.SendMessage(ctx, message.Chat.ID, helpMsg)
+	return h.SendMessage(ctx, message.Chat.ID, helpMessage)
 }
 
 func (h HandlerContainer) settings(ctx c.Context, message *tgbotapi.Message) error {
-	settingsMsg := "No settings yet."
+	settingsMsg := "I have no settings yet. Some configurations will appear soon."
 	return h.SendMessage(ctx, message.Chat.ID, settingsMsg)
 }
 
