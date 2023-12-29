@@ -121,7 +121,9 @@ func (h HandlerContainer) start(ctx c.Context, message *tgbotapi.Message) error 
 		chatID,
 		startMsg,
 	)
-	locationButton := tgbotapi.NewKeyboardButtonLocation("Share my location and get nearest buildings")
+	locationButton := tgbotapi.NewKeyboardButtonLocation(
+		"Share my location and get the nearest buildings",
+	)
 	keyboardMarkup := tgbotapi.NewOneTimeReplyKeyboard(
 		[]tgbotapi.KeyboardButton{locationButton},
 	)
