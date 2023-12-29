@@ -28,7 +28,7 @@ func (h HandlerContainer) getNearestAddresses(ctx c.Context, message *tgbotapi.M
 		0,
 	)
 	if err != nil {
-		sendErr := h.SendMessage(ctx, message.Chat.ID, "Internal error")
+		sendErr := h.SendMessage(ctx, message.Chat.ID, "Internal error", "")
 		return errors.Join(sendErr, err)
 	}
 	items := make([]string, len(buildings)+1)
@@ -42,5 +42,5 @@ func (h HandlerContainer) getNearestAddresses(ctx c.Context, message *tgbotapi.M
 		)
 	}
 	response := strings.Join(items, "\n")
-	return h.SendMessage(ctx, message.Chat.ID, response)
+	return h.SendMessage(ctx, message.Chat.ID, response, "")
 }

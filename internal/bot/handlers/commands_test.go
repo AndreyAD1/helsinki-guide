@@ -191,6 +191,7 @@ func TestHandlerContainer_getBuilding(t *testing.T) {
 		buildings     []services.BuildingDTO
 		buildingError error
 		expectedMsg   string
+		expectedParseMode string
 	}{
 		{
 			"no address",
@@ -216,6 +217,7 @@ func TestHandlerContainer_getBuilding(t *testing.T) {
 			[]services.BuildingDTO{},
 			nil,
 			"Please add an address to this command.",
+			"",
 		},
 		{
 			"service error",
@@ -241,6 +243,7 @@ func TestHandlerContainer_getBuilding(t *testing.T) {
 			[]services.BuildingDTO{},
 			errors.New("building error"),
 			"Internal error.",
+			"",
 		},
 		{
 			"no buildings",
@@ -266,6 +269,7 @@ func TestHandlerContainer_getBuilding(t *testing.T) {
 			[]services.BuildingDTO{},
 			nil,
 			"Unfortunately, I don't know this address.",
+			tgbotapi.ModeHTML,
 		},
 		{
 			"one building en",
@@ -295,16 +299,17 @@ func TestHandlerContainer_getBuilding(t *testing.T) {
 				},
 			},
 			nil,
-			`Name: test building
-Address: test address
-Description: no data
-Completion year: no data
-Authors: no data
-Building history: no data
-Notable features: no data
-Facades: no data
-Interesting details: no data
-Surroundings: no data`,
+			`<b>Name:</b> test building
+<b>Address:</b> test address
+<b>Description:</b> no data
+<b>Completion year:</b> no data
+<b>Authors:</b> no data
+<b>Facades:</b> no data
+<b>Interesting details:</b> no data
+<b>Notable features:</b> no data
+<b>Surroundings:</b> no data
+<b>Building history:</b> no data`,
+			tgbotapi.ModeHTML,
 		},
 		{
 			"one building ru",
@@ -336,19 +341,20 @@ Surroundings: no data`,
 				},
 			},
 			nil,
-			`Имя: тестовое имя
-Адрес: test address
-Описание: нет данных
-Год постройки: нет данных
-Авторы: нет данных
-История здания: нет данных
-Примечательные особенности: нет данных
-Фасады: нет данных
-Интересные детали: нет данных
-Окрестности: нет данных`,
+			`<b>Имя:</b> тестовое имя
+<b>Адрес:</b> test address
+<b>Описание:</b> нет данных
+<b>Год постройки:</b> нет данных
+<b>Авторы:</b> нет данных
+<b>Фасады:</b> нет данных
+<b>Интересные детали:</b> нет данных
+<b>Примечательные особенности:</b> нет данных
+<b>Окрестности:</b> нет данных
+<b>История здания:</b> нет данных`,
+			tgbotapi.ModeHTML,
 		},
 		{
-			"one building ru",
+			"one building fi",
 			fields{
 				services.NewBuildings_mock(t),
 				NewInternalBot_mock(t),
@@ -378,16 +384,17 @@ Surroundings: no data`,
 				},
 			},
 			nil,
-			`Nimi: testi rakennus
-Katuosoite: test address
-Kerrosluku: no data
-Käyttöönottovuosi: no data
-Suunnittelijat: no data
-Rakennushistoria: no data
-Huomattavia ominaisuuksia: no data
-Julkisivut: no data
-Erityispiirteet: no data
-Ymparistonkuvaus: no data`,
+			`<b>Nimi:</b> testi rakennus
+<b>Katuosoite:</b> test address
+<b>Kerrosluku:</b> no data
+<b>Käyttöönottovuosi:</b> no data
+<b>Suunnittelijat:</b> no data
+<b>Julkisivut:</b> no data
+<b>Erityispiirteet:</b> no data
+<b>Huomattavia ominaisuuksia:</b> no data
+<b>Ymparistonkuvaus:</b> no data
+<b>Rakennushistoria:</b> no data`,
+			tgbotapi.ModeHTML,
 		},
 		{
 			"two buildings",
@@ -422,27 +429,28 @@ Ymparistonkuvaus: no data`,
 				},
 			},
 			nil,
-			`Name: test building
-Address: test address
-Description: no data
-Completion year: no data
-Authors: no data
-Building history: no data
-Notable features: no data
-Facades: no data
-Interesting details: no data
-Surroundings: no data
+			`<b>Name:</b> test building
+<b>Address:</b> test address
+<b>Description:</b> no data
+<b>Completion year:</b> no data
+<b>Authors:</b> no data
+<b>Facades:</b> no data
+<b>Interesting details:</b> no data
+<b>Notable features:</b> no data
+<b>Surroundings:</b> no data
+<b>Building history:</b> no data
 
-Name: test building 2
-Address: test address 2
-Description: no data
-Completion year: 1973
-Authors: no data
-Building history: no data
-Notable features: no data
-Facades: no data
-Interesting details: no data
-Surroundings: no data`,
+<b>Name:</b> test building 2
+<b>Address:</b> test address 2
+<b>Description:</b> no data
+<b>Completion year:</b> 1973
+<b>Authors:</b> no data
+<b>Facades:</b> no data
+<b>Interesting details:</b> no data
+<b>Notable features:</b> no data
+<b>Surroundings:</b> no data
+<b>Building history:</b> no data`,
+	tgbotapi.ModeHTML,
 		},
 	}
 	for _, tt := range tests {
@@ -452,9 +460,10 @@ Surroundings: no data`,
 					GetBuildingsByAddress(tt.args.ctx, tt.address).
 					Return(tt.buildings, tt.buildingError)
 			}
-
+			expectedMessage := tgbotapi.NewMessage(tt.args.message.Chat.ID, tt.expectedMsg)
+			expectedMessage.ParseMode = tt.expectedParseMode
 			tt.fields.bot.EXPECT().
-				Send(tgbotapi.NewMessage(tt.args.message.Chat.ID, tt.expectedMsg)).
+				Send(expectedMessage).
 				Return(tgbotapi.Message{}, nil)
 			h := HandlerContainer{
 				buildingService:    tt.fields.buildingService,
