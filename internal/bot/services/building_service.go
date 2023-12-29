@@ -23,7 +23,7 @@ func NewBuildingService(
 	return BuildingService{buildingCollection, actorCollection}
 }
 
-func NewBuildingDTO(b r.Building, authors []r.Actor, address string) BuildingDTO {
+func NewBuildingDTO(b r.Building, authors []r.Actor) BuildingDTO {
 	var authorNames []string
 	for _, author := range authors {
 		authorNames = append(authorNames, author.Name)
@@ -36,7 +36,7 @@ func NewBuildingDTO(b r.Building, authors []r.Actor, address string) BuildingDTO
 		NameFi:            b.NameFi,
 		NameEn:            b.NameEn,
 		NameRu:            b.NameRu,
-		Address:           address,
+		Address:           b.Address.StreetAddress,
 		DescriptionFi:     b.FloorDescriptionFi,
 		DescriptionEn:     b.FloorDescriptionEn,
 		DescriptionRu:     b.FloorDescriptionRu,
@@ -106,7 +106,7 @@ func (bs BuildingService) GetBuildingsByAddress(
 		if err != nil {
 			return nil, err
 		}
-		buildingsDto[i] = NewBuildingDTO(building, authors, address)
+		buildingsDto[i] = NewBuildingDTO(building, authors)
 	}
 
 	return buildingsDto, nil

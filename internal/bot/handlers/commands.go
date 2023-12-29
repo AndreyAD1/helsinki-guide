@@ -100,6 +100,7 @@ func (h HandlerContainer) GetButtonHandler(buttonName string) (ButtonHandler, bo
 
 func (h HandlerContainer) SendMessage(ctx c.Context, chatId int64, msgText string) error {
 	msg := tgbotapi.NewMessage(chatId, msgText)
+	msg.ParseMode = tgbotapi.ModeHTML
 	_, err := h.bot.Send(msg)
 	if err != nil {
 		slog.WarnContext(

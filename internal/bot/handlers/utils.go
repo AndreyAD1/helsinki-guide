@@ -103,7 +103,7 @@ func SerializeIntoMessage(object any, outputLanguage outputLanguage) (string, er
 			)
 		}
 		cleanName := strings.ReplaceAll(featureName, "_", " ")
-		result = append(result, fmt.Sprintf("%s: %s", cleanName, featureValue))
+		result = append(result, fmt.Sprintf("<b>%s:</b> %s", cleanName, featureValue))
 	}
 
 	return strings.Join(result, "\n"), nil
