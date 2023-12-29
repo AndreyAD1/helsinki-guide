@@ -98,9 +98,9 @@ func (h HandlerContainer) GetButtonHandler(buttonName string) (ButtonHandler, bo
 	return metricWrapper, ok
 }
 
-func (h HandlerContainer) SendMessage(ctx c.Context, chatId int64, msgText string) error {
+func (h HandlerContainer) SendMessage(ctx c.Context, chatId int64, msgText string, parseMode string) error {
 	msg := tgbotapi.NewMessage(chatId, msgText)
-	msg.ParseMode = tgbotapi.ModeHTML
+	msg.ParseMode = parseMode
 	_, err := h.bot.Send(msg)
 	if err != nil {
 		slog.WarnContext(
@@ -141,12 +141,12 @@ func (h HandlerContainer) start(ctx c.Context, message *tgbotapi.Message) error 
 }
 
 func (h HandlerContainer) help(ctx c.Context, message *tgbotapi.Message) error {
-	return h.SendMessage(ctx, message.Chat.ID, helpMessage)
+	return h.SendMessage(ctx, message.Chat.ID, helpMessage, "")
 }
 
 func (h HandlerContainer) settings(ctx c.Context, message *tgbotapi.Message) error {
 	settingsMsg := "I have no settings yet. Some configurations will appear soon."
-	return h.SendMessage(ctx, message.Chat.ID, settingsMsg)
+	return h.SendMessage(ctx, message.Chat.ID, settingsMsg, "")
 }
 
 func (h HandlerContainer) getAllAdresses(ctx c.Context, message *tgbotapi.Message) error {
@@ -168,7 +168,7 @@ func (h HandlerContainer) returnAddresses(
 		offset,
 	)
 	if err != nil {
-		sendErr := h.SendMessage(ctx, chatID, "Internal error")
+		sendErr := h.SendMessage(ctx, chatID, "Internal error", "")
 		return errors.Join(sendErr, err)
 	}
 	items := make([]string, len(buildings)+1)
@@ -184,7 +184,7 @@ func (h HandlerContainer) returnAddresses(
 	response := strings.Join(items, "\n")
 	if len(buildings) < limit {
 		response += "\nEnd"
-		return h.SendMessage(ctx, chatID, response)
+		return h.SendMessage(ctx, chatID, response, "")
 	}
 
 	msg := tgbotapi.NewMessage(chatID, response)
@@ -225,6 +225,7 @@ func (h HandlerContainer) getBuilding(ctx c.Context, message *tgbotapi.Message) 
 			ctx,
 			message.Chat.ID,
 			"Please add an address to this command.",
+			"",
 		)
 	}
 	buildings, err := h.buildingService.GetBuildingsByAddress(ctx, address)
@@ -234,7 +235,7 @@ func (h HandlerContainer) getBuilding(ctx c.Context, message *tgbotapi.Message) 
 			fmt.Sprintf("can not get building by address '%s'", address),
 			slog.Any(logger.ErrorKey, err),
 		)
-		sendErr := h.SendMessage(ctx, message.Chat.ID, "Internal error.")
+		sendErr := h.SendMessage(ctx, message.Chat.ID, "Internal error.", "")
 		return errors.Join(sendErr, err)
 	}
 	userLanguage := English
@@ -264,7 +265,7 @@ func (h HandlerContainer) getBuilding(ctx c.Context, message *tgbotapi.Message) 
 	if len(items) > 0 {
 		response = strings.Join(items, "\n\n")
 	}
-	return h.SendMessage(ctx, message.Chat.ID, response)
+	return h.SendMessage(ctx, message.Chat.ID, response, tgbotapi.ModeHTML)
 }
 
 func (h HandlerContainer) next(ctx c.Context, query *tgbotapi.CallbackQuery) error {
