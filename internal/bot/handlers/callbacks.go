@@ -81,7 +81,25 @@ func (h HandlerContainer) next(ctx c.Context, query *tgbotapi.CallbackQuery) err
 		return nil
 	}
 	address = strings.TrimSpace(address)
-	return h.returnAddresses(ctx, chat.ID, address, button.Limit, button.Offset)
+	if err := h.returnAddresses(ctx, chat.ID, address, button.Limit, button.Offset); err != nil {
+		return err
+	}
+	editedMessage := tgbotapi.NewEditMessageReplyMarkup(
+		chat.ID, 
+		msgID,
+		tgbotapi.InlineKeyboardMarkup{
+			InlineKeyboard: [][]tgbotapi.InlineKeyboardButton{},
+		},
+	)
+	_, err := h.bot.Send(editedMessage)
+	if err != nil {
+		slog.WarnContext(
+			ctx,
+			fmt.Sprintf("can not edit a message %v: %v", chat.ID, msgID),
+			slog.Any(logger.ErrorKey, err),
+		)
+	}
+	return err
 }
 
 func (h HandlerContainer) language(ctx c.Context, query *tgbotapi.CallbackQuery) error {
