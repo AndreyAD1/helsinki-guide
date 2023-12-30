@@ -85,7 +85,7 @@ func (h HandlerContainer) next(ctx c.Context, query *tgbotapi.CallbackQuery) err
 		return err
 	}
 	editedMessage := tgbotapi.NewEditMessageReplyMarkup(
-		chat.ID, 
+		chat.ID,
 		msgID,
 		tgbotapi.InlineKeyboardMarkup{
 			InlineKeyboard: [][]tgbotapi.InlineKeyboardButton{},
@@ -170,11 +170,11 @@ func (h HandlerContainer) language(ctx c.Context, query *tgbotapi.CallbackQuery)
 		return errors.Join(sendErr, err)
 	}
 	approve := fmt.Sprintf(
-		"I will return building information in %s.", 
+		"I will return building information in %s.",
 		languageCodes[button.Language],
 	)
 	editedMessage := tgbotapi.NewEditMessageTextAndMarkup(
-		chat.ID, 
+		chat.ID,
 		msgID,
 		approve,
 		tgbotapi.InlineKeyboardMarkup{

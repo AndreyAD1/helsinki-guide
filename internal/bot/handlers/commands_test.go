@@ -184,13 +184,13 @@ func TestHandlerContainer_getBuilding(t *testing.T) {
 		message *tgbotapi.Message
 	}
 	tests := []struct {
-		name          string
-		fields        fields
-		args          args
-		address       string
-		buildings     []services.BuildingDTO
-		buildingError error
-		expectedMsg   string
+		name              string
+		fields            fields
+		args              args
+		address           string
+		buildings         []services.BuildingDTO
+		buildingError     error
+		expectedMsg       string
 		expectedParseMode string
 	}{
 		{
@@ -450,7 +450,7 @@ func TestHandlerContainer_getBuilding(t *testing.T) {
 <b>Notable features:</b> no data
 <b>Surroundings:</b> no data
 <b>Building history:</b> no data`,
-	tgbotapi.ModeHTML,
+			tgbotapi.ModeHTML,
 		},
 	}
 	for _, tt := range tests {

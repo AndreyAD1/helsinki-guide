@@ -123,7 +123,7 @@ func (h HandlerContainer) start(ctx c.Context, message *tgbotapi.Message) error 
 	startMsg := "Hello! I'm a bot that provides information about Helsinki buildings."
 	msg := tgbotapi.NewMessage(
 		chatID,
-		startMsg + "\n\n" + helpMessage,
+		startMsg+"\n\n"+helpMessage,
 	)
 	locationButton := tgbotapi.NewKeyboardButtonLocation(
 		"Share my location and get the nearest buildings",
