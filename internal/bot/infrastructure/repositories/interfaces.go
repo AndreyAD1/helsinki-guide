@@ -25,6 +25,7 @@ type ActorRepository interface {
 
 type UserRepository interface {
 	Add(context.Context, User) (*User, error)
+	AddOrUpdate(context.Context, User) (*User, error)
 	Remove(context.Context, User) error
 	Update(context.Context, User) (*User, error)
 	Query(context.Context, Specification) ([]User, error)

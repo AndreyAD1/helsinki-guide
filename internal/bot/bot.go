@@ -64,7 +64,7 @@ func NewServer(ctx context.Context, config configuration.StartupConfig) (*Server
 	actorRepo := repositories.NewActorRepo(dbpool)
 	userRepo := repositories.NewUserRepo(dbpool)
 	buildingService := services.NewBuildingService(buildingRepo, actorRepo)
-	userService := services.NewUsersService(userRepo)
+	userService := services.NewUserService(userRepo)
 
 	registry := prom.NewRegistry()
 	registry.MustRegister(

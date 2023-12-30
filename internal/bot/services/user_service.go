@@ -10,10 +10,12 @@ type UserService struct {
 	userCollection repositories.UserRepository
 }
 
-func NewUsersService(userCollection repositories.UserRepository) UserService {
+func NewUserService(userCollection repositories.UserRepository) UserService {
 	return UserService{userCollection}
 }
 
 func (s UserService) SetLanguage(ctx context.Context, userID int64, language string) error {
-	return nil
+	user := repositories.User{TelegramID: userID, PreferredLanguage: language}
+	_, err := s.userCollection.AddOrUpdate(ctx, user)
+	return err
 }
