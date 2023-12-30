@@ -21,3 +21,8 @@ var handlersPerCommand = map[string]CommandHandler{
 	"addresses": {HandlerContainer.getAllAdresses, "Get all available addresses"},
 	"building":  {HandlerContainer.getBuilding, "Get building by address"},
 }
+var languageCodes = map[string]string{
+	"fi": "Finnish",
+	"en": "English",
+	"ru": "Russian",
+}

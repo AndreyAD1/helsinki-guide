@@ -148,9 +148,28 @@ func (h HandlerContainer) language(ctx c.Context, query *tgbotapi.CallbackQuery)
 		h.metrics.UnexpectedLanguageCallback.With(
 			prometheus.Labels{"error": "internal error"},
 		).Inc()
-		sendErr := h.SendMessage(ctx, chat.ID, "Internal error")
+		sendErr := h.SendMessage(ctx, chat.ID, "Internal error", "")
 		return errors.Join(sendErr, err)
 	}
-	// TODO update an original message to remove buttons
-	return nil
+	approve := fmt.Sprintf(
+		"I will return building information in %s.", 
+		languageCodes[button.Language],
+	)
+	editedMessage := tgbotapi.NewEditMessageTextAndMarkup(
+		chat.ID, 
+		msgID,
+		approve,
+		tgbotapi.InlineKeyboardMarkup{
+			InlineKeyboard: [][]tgbotapi.InlineKeyboardButton{},
+		},
+	)
+	_, err := h.bot.Send(editedMessage)
+	if err != nil {
+		slog.WarnContext(
+			ctx,
+			fmt.Sprintf("can not edit a message %v: %v", chat.ID, msgID),
+			slog.Any(logger.ErrorKey, err),
+		)
+	}
+	return err
 }
