@@ -91,8 +91,9 @@ type Building struct {
 	Timestamps
 }
 
-type Settings struct {
-	ID             int64
-	UserTelegramID int64
+type User struct {
+	ID                int64
+	TelegramID        int64
+	PreferredLanguage string
 	Timestamps
 }

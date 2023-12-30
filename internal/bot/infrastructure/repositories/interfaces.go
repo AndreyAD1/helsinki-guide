@@ -23,11 +23,11 @@ type ActorRepository interface {
 	Query(context.Context, Specification) ([]Actor, error)
 }
 
-type SettingRepository interface {
-	Add(context.Context, Settings) (*Settings, error)
-	Remove(context.Context, Settings) error
-	Update(context.Context, Settings) (*Settings, error)
-	Query(context.Context, Specification) ([]Settings, error)
+type UserRepository interface {
+	Add(context.Context, User) (*User, error)
+	Remove(context.Context, User) error
+	Update(context.Context, User) (*User, error)
+	Query(context.Context, Specification) ([]User, error)
 }
 
 type Specification interface {

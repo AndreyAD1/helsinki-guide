@@ -140,7 +140,7 @@ func (h HandlerContainer) language(ctx c.Context, query *tgbotapi.CallbackQuery)
 		).Inc()
 		return nil
 	}
-	if err := h.settingService.SetLanguage(
+	if err := h.userService.SetLanguage(
 		ctx,
 		query.From.ID,
 		button.Language,

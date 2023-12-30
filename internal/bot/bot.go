@@ -62,9 +62,9 @@ func NewServer(ctx context.Context, config configuration.StartupConfig) (*Server
 	}
 	buildingRepo := repositories.NewBuildingRepo(dbpool)
 	actorRepo := repositories.NewActorRepo(dbpool)
-	settingRepo := repositories.NewSettingRepo(dbpool)
+	userRepo := repositories.NewUserRepo(dbpool)
 	buildingService := services.NewBuildingService(buildingRepo, actorRepo)
-	settingService := services.NewSettingsService(settingRepo)
+	userService := services.NewUsersService(userRepo)
 
 	registry := prom.NewRegistry()
 	registry.MustRegister(
@@ -94,7 +94,7 @@ func NewServer(ctx context.Context, config configuration.StartupConfig) (*Server
 	handlerContainer := handlers.NewCommandContainer(
 		botWithMetrics,
 		buildingService,
-		settingService,
+		userService,
 		registeredMetrics,
 	)
 	server := Server{

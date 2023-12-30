@@ -19,6 +19,6 @@ type Buildings interface {
 		offset int,
 	) ([]BuildingPreview, error)
 }
-type Settings interface {
+type Users interface {
 	SetLanguage(ctx context.Context, userID int64, language string) error
 }

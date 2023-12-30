@@ -26,7 +26,7 @@ const (
 func NewCommandContainer(
 	bot InternalBot,
 	service services.BuildingService,
-	settingService services.SettingService,
+	userService services.UserService,
 	metricsContainer *metrics.Metrics,
 ) HandlerContainer {
 	handlersPerButton := map[string]internalButtonHandler{
@@ -49,7 +49,7 @@ func NewCommandContainer(
 	}
 	return HandlerContainer{
 		service,
-		settingService,
+		userService,
 		bot,
 		handlersPerCommand,
 		handlersPerButton,
