@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/logger"
+	"github.com/AndreyAD1/helsinki-guide/internal/bot/services"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/prometheus/client_golang/prometheus"
 )
@@ -158,7 +159,7 @@ func (h HandlerContainer) language(ctx c.Context, query *tgbotapi.CallbackQuery)
 		).Inc()
 		return nil
 	}
-	language, ok := codePerLanguage[button.Language]
+	language, ok := services.GetLanguagePerCode(button.Language)
 	if !ok {
 		slog.ErrorContext(
 			ctx,

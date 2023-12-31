@@ -9,11 +9,6 @@ import (
 	s "github.com/AndreyAD1/helsinki-guide/internal/bot/services"
 )
 
-var codePerLanguage = map[string]s.Language{
-	"fi": s.Finnish,
-	"en": s.English,
-	"ru": s.Russian,
-}
 var tagPerLanguage = map[s.Language]string{
 	s.Finnish: "nameFi",
 	s.English: "nameEn",

@@ -294,8 +294,11 @@ func (h HandlerContainer) getBuilding(ctx c.Context, message *tgbotapi.Message) 
 		case "ru":
 			userLanguage = services.Russian
 		}
-		preferredLanguage, err := h.userService.GetPreferredLanguage(ctx, user.ID)
-		if err == nil || preferredLanguage != nil {
+		preferredLanguage, err := h.userService.GetPreferredLanguage(
+			ctx,
+			user.ID,
+		)
+		if err == nil && preferredLanguage != nil {
 			userLanguage = *preferredLanguage
 		}
 	}
