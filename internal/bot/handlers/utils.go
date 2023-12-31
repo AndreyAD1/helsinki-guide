@@ -5,32 +5,31 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+
+	s "github.com/AndreyAD1/helsinki-guide/internal/bot/services"
 )
 
-type outputLanguage string
-
-var (
-	Finnish = outputLanguage("fi")
-	English = outputLanguage("en")
-	Russian = outputLanguage("ru")
-)
-
-var tagPerLanguage = map[outputLanguage]string{
-	Finnish: "nameFi",
-	English: "nameEn",
-	Russian: "nameRu",
+var codePerLanguage = map[string]s.Language{
+	"fi": s.Finnish,
+	"en": s.English,
+	"ru": s.Russian,
 }
-var noDataPerLanguages = map[outputLanguage]string{
-	Finnish: "no data",
-	English: "no data",
-	Russian: "нет данных",
+var tagPerLanguage = map[s.Language]string{
+	s.Finnish: "nameFi",
+	s.English: "nameEn",
+	s.Russian: "nameRu",
+}
+var noDataPerLanguages = map[s.Language]string{
+	s.Finnish: "no data",
+	s.English: "no data",
+	s.Russian: "нет данных",
 }
 var ErrUnexpectedType error = errors.New("unexpected input type")
 var ErrUnexpectedFieldType error = errors.New("unexpected field type")
 var ErrNoFieldTag error = errors.New("no expected field tag")
 var ErrNoNameTag error = errors.New("no name tag")
 
-func SerializeIntoMessage(object any, outputLanguage outputLanguage) (string, error) {
+func SerializeIntoMessage(object any, outputLanguage s.Language) (string, error) {
 	objectValue := reflect.ValueOf(object)
 	if objectValue.Kind() != reflect.Struct {
 		return "", fmt.Errorf("not a structure: %v: %w", object, ErrUnexpectedType)

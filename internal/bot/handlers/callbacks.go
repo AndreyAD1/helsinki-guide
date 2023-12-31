@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/logger"
+	"github.com/AndreyAD1/helsinki-guide/internal/bot/services"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/prometheus/client_golang/prometheus"
 )
@@ -158,10 +159,18 @@ func (h HandlerContainer) language(ctx c.Context, query *tgbotapi.CallbackQuery)
 		).Inc()
 		return nil
 	}
+	language, ok := codePerLanguage[button.Language]
+	if !ok {
+		slog.ErrorContext(
+			ctx, 
+			fmt.Sprintf("unexpected button language '%v': %v", button, msgID),
+		)
+		return h.SendMessage(ctx, chat.ID, "Internal error", "")
+	}
 	if err := h.userService.SetLanguage(
 		ctx,
 		query.From.ID,
-		button.Language,
+		language,
 	); err != nil {
 		h.metrics.UnexpectedLanguageCallback.With(
 			prometheus.Labels{"error": "internal error"},

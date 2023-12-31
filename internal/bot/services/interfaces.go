@@ -20,5 +20,6 @@ type Buildings interface {
 	) ([]BuildingPreview, error)
 }
 type Users interface {
-	SetLanguage(ctx context.Context, userID int64, language string) error
+	GetPreferredLanguage(ctx context.Context, userID int64) (*Language, error)
+	SetLanguage(ctx context.Context, userID int64, language Language) error
 }

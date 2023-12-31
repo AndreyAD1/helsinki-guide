@@ -286,13 +286,17 @@ func (h HandlerContainer) getBuilding(ctx c.Context, message *tgbotapi.Message) 
 		sendErr := h.SendMessage(ctx, message.Chat.ID, "Internal error.", "")
 		return errors.Join(sendErr, err)
 	}
-	userLanguage := English
+	userLanguage := services.English
 	if user := message.From; user != nil {
 		switch user.LanguageCode {
 		case "fi":
-			userLanguage = Finnish
+			userLanguage = services.Finnish
 		case "ru":
-			userLanguage = Russian
+			userLanguage = services.Russian
+		}
+		preferredLanguage, err := h.userService.GetPreferredLanguage(ctx, user.ID)
+		if err == nil || preferredLanguage != nil {
+			userLanguage = *preferredLanguage
 		}
 	}
 	items := make([]string, len(buildings))

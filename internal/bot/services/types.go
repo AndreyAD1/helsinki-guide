@@ -1,5 +1,13 @@
 package services
 
+type Language string
+
+var (
+	Finnish = Language("fi")
+	English = Language("en")
+	Russian = Language("ru")
+)
+
 type BuildingPreview struct {
 	Address string
 	Name    string
