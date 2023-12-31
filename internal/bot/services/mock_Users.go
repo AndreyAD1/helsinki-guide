@@ -21,8 +21,67 @@ func (_m *Users_mock) EXPECT() *Users_mock_Expecter {
 	return &Users_mock_Expecter{mock: &_m.Mock}
 }
 
+// GetPreferredLanguage provides a mock function with given fields: ctx, userID
+func (_m *Users_mock) GetPreferredLanguage(ctx context.Context, userID int64) (*Language, error) {
+	ret := _m.Called(ctx, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPreferredLanguage")
+	}
+
+	var r0 *Language
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, int64) (*Language, error)); ok {
+		return rf(ctx, userID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, int64) *Language); ok {
+		r0 = rf(ctx, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*Language)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, int64) error); ok {
+		r1 = rf(ctx, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Users_mock_GetPreferredLanguage_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetPreferredLanguage'
+type Users_mock_GetPreferredLanguage_Call struct {
+	*mock.Call
+}
+
+// GetPreferredLanguage is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID int64
+func (_e *Users_mock_Expecter) GetPreferredLanguage(ctx interface{}, userID interface{}) *Users_mock_GetPreferredLanguage_Call {
+	return &Users_mock_GetPreferredLanguage_Call{Call: _e.mock.On("GetPreferredLanguage", ctx, userID)}
+}
+
+func (_c *Users_mock_GetPreferredLanguage_Call) Run(run func(ctx context.Context, userID int64)) *Users_mock_GetPreferredLanguage_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(int64))
+	})
+	return _c
+}
+
+func (_c *Users_mock_GetPreferredLanguage_Call) Return(_a0 *Language, _a1 error) *Users_mock_GetPreferredLanguage_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Users_mock_GetPreferredLanguage_Call) RunAndReturn(run func(context.Context, int64) (*Language, error)) *Users_mock_GetPreferredLanguage_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SetLanguage provides a mock function with given fields: ctx, userID, language
-func (_m *Users_mock) SetLanguage(ctx context.Context, userID int64, language string) error {
+func (_m *Users_mock) SetLanguage(ctx context.Context, userID int64, language Language) error {
 	ret := _m.Called(ctx, userID, language)
 
 	if len(ret) == 0 {
@@ -30,7 +89,7 @@ func (_m *Users_mock) SetLanguage(ctx context.Context, userID int64, language st
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, int64, string) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, int64, Language) error); ok {
 		r0 = rf(ctx, userID, language)
 	} else {
 		r0 = ret.Error(0)
@@ -47,14 +106,14 @@ type Users_mock_SetLanguage_Call struct {
 // SetLanguage is a helper method to define mock.On call
 //   - ctx context.Context
 //   - userID int64
-//   - language string
+//   - language Language
 func (_e *Users_mock_Expecter) SetLanguage(ctx interface{}, userID interface{}, language interface{}) *Users_mock_SetLanguage_Call {
 	return &Users_mock_SetLanguage_Call{Call: _e.mock.On("SetLanguage", ctx, userID, language)}
 }
 
-func (_c *Users_mock_SetLanguage_Call) Run(run func(ctx context.Context, userID int64, language string)) *Users_mock_SetLanguage_Call {
+func (_c *Users_mock_SetLanguage_Call) Run(run func(ctx context.Context, userID int64, language Language)) *Users_mock_SetLanguage_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(int64), args[2].(string))
+		run(args[0].(context.Context), args[1].(int64), args[2].(Language))
 	})
 	return _c
 }
@@ -64,7 +123,7 @@ func (_c *Users_mock_SetLanguage_Call) Return(_a0 error) *Users_mock_SetLanguage
 	return _c
 }
 
-func (_c *Users_mock_SetLanguage_Call) RunAndReturn(run func(context.Context, int64, string) error) *Users_mock_SetLanguage_Call {
+func (_c *Users_mock_SetLanguage_Call) RunAndReturn(run func(context.Context, int64, Language) error) *Users_mock_SetLanguage_Call {
 	_c.Call.Return(run)
 	return _c
 }
