@@ -1,3 +1,4 @@
+BEGIN;
 DROP TABLE users;
 
 CREATE TABLE users (
@@ -7,4 +8,6 @@ CREATE TABLE users (
     created_at timestamp with time zone NOT NULL DEFAULT now(),
     updated_at timestamp with time zone,
     deleted_at timestamp with time zone
-)
+);
+
+COMMIT;

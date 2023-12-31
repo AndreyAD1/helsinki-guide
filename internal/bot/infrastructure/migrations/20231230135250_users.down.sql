@@ -1,3 +1,4 @@
+BEGIN;
 DROP TABLE users;
 
 CREATE TABLE "users" (
@@ -9,3 +10,4 @@ CREATE TABLE "users" (
   "role" varchar,
   "language" varchar
 );
+COMMIT;
