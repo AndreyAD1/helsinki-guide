@@ -6,6 +6,7 @@ import (
 	"log/slog"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/logger"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -53,5 +54,35 @@ func (s *userStorage) Update(ctx context.Context, user User) (*User, error) {
 }
 
 func (s *userStorage) Query(ctx context.Context, spec Specification) ([]User, error) {
-	return nil, ErrNotImplemented
+	query, queryArgs := spec.ToSQL()
+	slog.DebugContext(ctx, fmt.Sprintf("send the query %v: %v", query, queryArgs))
+	rows, err := s.dbPool.Query(ctx, query, pgx.NamedArgs(queryArgs))
+	if err != nil {
+		logMsg := fmt.Sprintf("a query error: '%v'", query)
+		slog.WarnContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
+		return nil, fmt.Errorf("%v: %w", logMsg, err)
+	}
+	defer rows.Close()
+	var users []User
+	for rows.Next() {
+		var user User
+		if err := rows.Scan(
+			&user.ID,
+			&user.TelegramID,
+			&user.PreferredLanguage,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+			&user.deletedAt,
+		); err != nil {
+			msg := fmt.Sprintf(
+				"can not scan an actor from a query result: %v: %v",
+				query,
+				queryArgs,
+			)
+			slog.ErrorContext(ctx, msg, slog.Any(logger.ErrorKey, err))
+			return nil, err
+		}
+		users = append(users, user)
+	}
+	return users, nil
 }
