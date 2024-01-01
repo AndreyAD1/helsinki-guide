@@ -14,19 +14,23 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-func (h HandlerContainer) next(ctx c.Context, query *tgbotapi.CallbackQuery) error {
-	// Telegram asks a bot server to explicitly answer every callback call
-	defer func() {
-		callbackAnswer := tgbotapi.NewCallback(query.ID, "")
+// Telegram requires bots to explicitly answer every callback call
+func (h HandlerContainer) getCallbackAnswerFunc(ctx c.Context, queryID string) func() {
+	return func() {
+		callbackAnswer := tgbotapi.NewCallback(queryID, "")
 		_, err := h.bot.Request(callbackAnswer)
 		if err != nil {
 			slog.WarnContext(
 				ctx,
-				fmt.Sprintf("could not answer to a callback %v", query.ID),
+				fmt.Sprintf("could not answer to a callback %v", queryID),
 				slog.Any(logger.ErrorKey, err),
 			)
 		}
-	}()
+	}
+}
+
+func (h HandlerContainer) next(ctx c.Context, query *tgbotapi.CallbackQuery) error {
+	defer h.getCallbackAnswerFunc(ctx, query.ID)()
 
 	message := query.Message
 	if message == nil {
@@ -104,19 +108,7 @@ func (h HandlerContainer) next(ctx c.Context, query *tgbotapi.CallbackQuery) err
 }
 
 func (h HandlerContainer) language(ctx c.Context, query *tgbotapi.CallbackQuery) error {
-	// Telegram asks a bot server to explicitly answer every callback call
-	defer func() {
-		callbackAnswer := tgbotapi.NewCallback(query.ID, "")
-		_, err := h.bot.Request(callbackAnswer)
-		if err != nil {
-			slog.WarnContext(
-				ctx,
-				fmt.Sprintf("could not answer to a callback %v", query.ID),
-				slog.Any(logger.ErrorKey, err),
-			)
-		}
-	}()
-
+	defer h.getCallbackAnswerFunc(ctx, query.ID)()
 	message := query.Message
 	if message == nil {
 		errMsg := fmt.Sprintf("a callback has no message %v", query.ID)
