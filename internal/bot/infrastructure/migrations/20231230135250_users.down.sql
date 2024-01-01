@@ -1,5 +1,6 @@
 BEGIN;
 DROP TABLE users;
+DROP TYPE language;
 
 CREATE TABLE "users" (
   "id" SERIAL PRIMARY KEY,
