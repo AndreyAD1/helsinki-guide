@@ -286,6 +286,10 @@ func (h HandlerContainer) getBuilding(ctx c.Context, message *tgbotapi.Message) 
 		sendErr := h.SendMessage(ctx, message.Chat.ID, "Internal error.", "")
 		return errors.Join(sendErr, err)
 	}
+	if len(buildings) == 0 {
+		response := "Unfortunately, I don't know this address."
+		return h.SendMessage(ctx, message.Chat.ID, response, tgbotapi.ModeHTML)
+	}
 	userLanguage := services.English
 	if user := message.From; user != nil {
 		switch user.LanguageCode {
@@ -316,9 +320,6 @@ func (h HandlerContainer) getBuilding(ctx c.Context, message *tgbotapi.Message) 
 		}
 		items[i] = serializedItem
 	}
-	response := "Unfortunately, I don't know this address."
-	if len(items) > 0 {
-		response = strings.Join(items, "\n\n")
-	}
+	response := strings.Join(items, "\n\n")
 	return h.SendMessage(ctx, message.Chat.ID, response, tgbotapi.ModeHTML)
 }
