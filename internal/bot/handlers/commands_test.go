@@ -340,7 +340,7 @@ func TestHandlerContainer_getBuilding_noLanguageCheck(t *testing.T) {
 func TestHandlerContainer_getBuilding_withLanguageCheck(t *testing.T) {
 	type fields struct {
 		buildingService    *services.Buildings_mock
-		userService       *services.Users_mock
+		userService        *services.Users_mock
 		bot                *InternalBot_mock
 		HandlersPerCommand map[string]CommandHandler
 		handlersPerButton  map[string]internalButtonHandler
@@ -556,6 +556,96 @@ func TestHandlerContainer_getBuilding_withLanguageCheck(t *testing.T) {
 <b>Notable features:</b> no data
 <b>Surroundings:</b> no data
 <b>Building history:</b> no data`,
+			tgbotapi.ModeHTML,
+		},
+		{
+			"one building, preferred fi",
+			fields{
+				services.NewBuildings_mock(t),
+				services.NewUsers_mock(t),
+				NewInternalBot_mock(t),
+				map[string]CommandHandler{},
+				map[string]internalButtonHandler{},
+				"",
+				nil,
+			},
+			args{
+				context.Background(),
+				&tgbotapi.Message{
+					From: &tgbotapi.User{LanguageCode: "en"},
+					Text: "\\address test address",
+					Entities: []tgbotapi.MessageEntity{
+						{Type: "bot_command", Length: 8},
+					},
+					Chat: &tgbotapi.Chat{ID: 123},
+				},
+			},
+			"test address",
+			[]services.BuildingDTO{
+				{
+					NameFi:  utils.GetPointer("testi rakennus"),
+					NameEn:  utils.GetPointer("test building"),
+					Address: "test address",
+				},
+			},
+			nil,
+			&services.Finnish,
+			nil,
+			`<b>Nimi:</b> testi rakennus
+<b>Katuosoite:</b> test address
+<b>Kerrosluku:</b> no data
+<b>Käyttöönottovuosi:</b> no data
+<b>Suunnittelijat:</b> no data
+<b>Julkisivut:</b> no data
+<b>Erityispiirteet:</b> no data
+<b>Huomattavia ominaisuuksia:</b> no data
+<b>Ymparistonkuvaus:</b> no data
+<b>Rakennushistoria:</b> no data`,
+			tgbotapi.ModeHTML,
+		},
+		{
+			"one building, default ru, a language service",
+			fields{
+				services.NewBuildings_mock(t),
+				services.NewUsers_mock(t),
+				NewInternalBot_mock(t),
+				map[string]CommandHandler{},
+				map[string]internalButtonHandler{},
+				"",
+				nil,
+			},
+			args{
+				context.Background(),
+				&tgbotapi.Message{
+					From: &tgbotapi.User{LanguageCode: "ru"},
+					Text: "\\address test address",
+					Entities: []tgbotapi.MessageEntity{
+						{Type: "bot_command", Length: 8},
+					},
+					Chat: &tgbotapi.Chat{ID: 123},
+				},
+			},
+			"test address",
+			[]services.BuildingDTO{
+				{
+					NameEn:  utils.GetPointer("test building"),
+					NameRu:  utils.GetPointer("тестовое имя"),
+					Address: "test address",
+				},
+			},
+			nil,
+			nil,
+			errors.New("some language error"),
+			`<b>Имя:</b> тестовое имя
+<b>Адрес:</b> test address
+<b>Описание:</b> нет данных
+<b>Год постройки:</b> нет данных
+<b>Авторы:</b> нет данных
+<b>Фасады:</b> нет данных
+<b>Интересные детали:</b> нет данных
+<b>Примечательные особенности:</b> нет данных
+<b>Окрестности:</b> нет данных
+<b>История здания:</b> нет данных`,
 			tgbotapi.ModeHTML,
 		},
 	}
