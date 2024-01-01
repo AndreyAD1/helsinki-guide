@@ -166,4 +166,5 @@ var integrationTests = []integrationTest{
 	{"updateAbsentBuilding", testUpdateAbsentBuilding},
 	{"manageRemovedBuilding", testManageRemovedBuilding},
 	{"runPopulator", testRunPopulator},
+	{"addUser", testUserRepository},
 }
