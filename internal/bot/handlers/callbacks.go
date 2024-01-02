@@ -101,7 +101,7 @@ func (h HandlerContainer) language(ctx c.Context, query *tgbotapi.CallbackQuery)
 	}
 	msgID := query.Message.MessageID
 	if query.From == nil {
-		err := fmt.Errorf("a callback has no chat %v", query.ID)
+		err := fmt.Errorf("a callback has no sender %v", query.ID)
 		slog.WarnContext(ctx, err.Error())
 		return errors.Join(err, ErrUnexpectedCallback)
 	}
@@ -125,11 +125,13 @@ func (h HandlerContainer) language(ctx c.Context, query *tgbotapi.CallbackQuery)
 	}
 	language, ok := services.GetLanguagePerCode(button.Language)
 	if !ok {
+		err := fmt.Errorf("unexpected button language '%v': %v", button, msgID)
 		slog.ErrorContext(
 			ctx,
-			fmt.Sprintf("unexpected button language '%v': %v", button, msgID),
+			err.Error(),
 		)
-		return h.SendMessage(ctx, chat.ID, "Internal error", "")
+		sendErr := h.SendMessage(ctx, chat.ID, "Internal error", "")
+		return errors.Join(sendErr, err)
 	}
 	if err := h.userService.SetLanguage(
 		ctx,
