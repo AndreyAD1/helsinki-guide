@@ -11,7 +11,6 @@ import (
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/logger"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/services"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 // Telegram requires bots to explicitly answer every callback call
@@ -34,22 +33,16 @@ func (h HandlerContainer) next(ctx c.Context, query *tgbotapi.CallbackQuery) err
 
 	message := query.Message
 	if message == nil {
-		errMsg := fmt.Sprintf("a callback has no message %v", query.ID)
-		slog.WarnContext(ctx, errMsg)
-		h.metrics.UnexpectedNextCallback.With(
-			prometheus.Labels{"error": "a callback has no message"},
-		).Inc()
-		return nil
+		err := fmt.Errorf("a callback has no message %v", query.ID)
+		slog.WarnContext(ctx, err.Error())
+		return errors.Join(err, ErrUnexpectedCallback)
 	}
 	msgID := query.Message.MessageID
 	chat := query.Message.Chat
 	if chat == nil {
-		errMsg := fmt.Sprintf("a callback has no chat %v", query.ID)
-		slog.WarnContext(ctx, errMsg)
-		h.metrics.UnexpectedNextCallback.With(
-			prometheus.Labels{"error": "a callback has no chat"},
-		).Inc()
-		return nil
+		err := fmt.Errorf("a callback has no chat %v", query.ID)
+		slog.WarnContext(ctx, err.Error())
+		return errors.Join(err, ErrUnexpectedCallback)
 	}
 	var button NextButton
 	if err := json.Unmarshal([]byte(query.Data), &button); err != nil {
@@ -60,10 +53,7 @@ func (h HandlerContainer) next(ctx c.Context, query *tgbotapi.CallbackQuery) err
 			chat.ID,
 		)
 		slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
-		h.metrics.UnexpectedNextCallback.With(
-			prometheus.Labels{"error": "unexpected callback data"},
-		).Inc()
-		return nil
+		return errors.Join(err, ErrUnexpectedCallback)
 	}
 	// I need to extract an address from a message text
 	//  instead of using query data because the Telegram API specifies that
@@ -72,18 +62,12 @@ func (h HandlerContainer) next(ctx c.Context, query *tgbotapi.CallbackQuery) err
 	logMsg := fmt.Sprintf(unexpectedTextTmpl, query.Message.Text, msgID, chat.ID)
 	if !found {
 		slog.ErrorContext(ctx, logMsg)
-		h.metrics.UnexpectedNextCallback.With(
-			prometheus.Labels{"error": "unexpected callback message"},
-		).Inc()
-		return nil
+		return fmt.Errorf("%v: %w", logMsg, ErrUnexpectedCallback)
 	}
 	_, address, found := strings.Cut(firstRow, ":")
 	if !found {
 		slog.ErrorContext(ctx, logMsg)
-		h.metrics.UnexpectedNextCallback.With(
-			prometheus.Labels{"error": "unexpected callback message"},
-		).Inc()
-		return nil
+		return fmt.Errorf("%v: %w", logMsg, ErrUnexpectedCallback)
 	}
 	address = strings.TrimSpace(address)
 	if err := h.returnAddresses(ctx, chat.ID, address, button.Limit, button.Offset); err != nil {
@@ -111,31 +95,22 @@ func (h HandlerContainer) language(ctx c.Context, query *tgbotapi.CallbackQuery)
 	defer h.getCallbackAnswerFunc(ctx, query.ID)()
 	message := query.Message
 	if message == nil {
-		errMsg := fmt.Sprintf("a callback has no message %v", query.ID)
-		slog.WarnContext(ctx, errMsg)
-		h.metrics.UnexpectedLanguageCallback.With(
-			prometheus.Labels{"error": "a callback has no message"},
-		).Inc()
-		return nil
+		err := fmt.Errorf("a callback has no message %v", query.ID)
+		slog.WarnContext(ctx, err.Error())
+		return errors.Join(err, ErrUnexpectedCallback)
 	}
 	msgID := query.Message.MessageID
 	if query.From == nil {
-		errMsg := fmt.Sprintf("a callback has no chat %v", query.ID)
-		slog.WarnContext(ctx, errMsg)
-		h.metrics.UnexpectedLanguageCallback.With(
-			prometheus.Labels{"error": "a callback has no user"},
-		).Inc()
-		return nil
+		err := fmt.Errorf("a callback has no chat %v", query.ID)
+		slog.WarnContext(ctx, err.Error())
+		return errors.Join(err, ErrUnexpectedCallback)
 	}
 
 	chat := query.Message.Chat
 	if chat == nil {
 		errMsg := fmt.Sprintf("a callback has no chat %v", query.ID)
 		slog.WarnContext(ctx, errMsg)
-		h.metrics.UnexpectedLanguageCallback.With(
-			prometheus.Labels{"error": "a callback has no chat"},
-		).Inc()
-		return nil
+		return fmt.Errorf("%v: %w", errMsg, ErrUnexpectedCallback)
 	}
 	var button LanguageButton
 	if err := json.Unmarshal([]byte(query.Data), &button); err != nil {
@@ -146,10 +121,7 @@ func (h HandlerContainer) language(ctx c.Context, query *tgbotapi.CallbackQuery)
 			chat.ID,
 		)
 		slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
-		h.metrics.UnexpectedLanguageCallback.With(
-			prometheus.Labels{"error": "unexpected callback data"},
-		).Inc()
-		return nil
+		return fmt.Errorf("%v: %w", logMsg, ErrUnexpectedCallback)
 	}
 	language, ok := services.GetLanguagePerCode(button.Language)
 	if !ok {
@@ -164,9 +136,6 @@ func (h HandlerContainer) language(ctx c.Context, query *tgbotapi.CallbackQuery)
 		query.From.ID,
 		language,
 	); err != nil {
-		h.metrics.UnexpectedLanguageCallback.With(
-			prometheus.Labels{"error": "internal error"},
-		).Inc()
 		sendErr := h.SendMessage(ctx, chat.ID, "Internal error", "")
 		return errors.Join(sendErr, err)
 	}
