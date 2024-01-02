@@ -3,12 +3,12 @@ package metrics
 import "github.com/prometheus/client_golang/prometheus"
 
 type Metrics struct {
-	ChatUpdates                prometheus.Counter
-	UnexpectedUpdates          *prometheus.CounterVec
-	CommandDuration            *prometheus.HistogramVec
-	ButtonDuration             *prometheus.HistogramVec
-	RequestDuration            *prometheus.HistogramVec
-	HandlerErrors              *prometheus.CounterVec
+	ChatUpdates       prometheus.Counter
+	UnexpectedUpdates *prometheus.CounterVec
+	CommandDuration   *prometheus.HistogramVec
+	ButtonDuration    *prometheus.HistogramVec
+	RequestDuration   *prometheus.HistogramVec
+	HandlerErrors     *prometheus.CounterVec
 }
 
 func NewMetrics(registerer prometheus.Registerer) *Metrics {
