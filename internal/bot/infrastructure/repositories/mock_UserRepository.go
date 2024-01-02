@@ -58,7 +58,7 @@ type UserRepository_mock_Add_Call struct {
 
 // Add is a helper method to define mock.On call
 //   - _a0 context.Context
-//   - _a1 Settings
+//   - _a1 User
 func (_e *UserRepository_mock_Expecter) Add(_a0 interface{}, _a1 interface{}) *UserRepository_mock_Add_Call {
 	return &UserRepository_mock_Add_Call{Call: _e.mock.On("Add", _a0, _a1)}
 }
@@ -76,6 +76,65 @@ func (_c *UserRepository_mock_Add_Call) Return(_a0 *User, _a1 error) *UserReposi
 }
 
 func (_c *UserRepository_mock_Add_Call) RunAndReturn(run func(context.Context, User) (*User, error)) *UserRepository_mock_Add_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// AddOrUpdate provides a mock function with given fields: _a0, _a1
+func (_m *UserRepository_mock) AddOrUpdate(_a0 context.Context, _a1 User) (*User, error) {
+	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AddOrUpdate")
+	}
+
+	var r0 *User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, User) (*User, error)); ok {
+		return rf(_a0, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, User) *User); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, User) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UserRepository_mock_AddOrUpdate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddOrUpdate'
+type UserRepository_mock_AddOrUpdate_Call struct {
+	*mock.Call
+}
+
+// AddOrUpdate is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 User
+func (_e *UserRepository_mock_Expecter) AddOrUpdate(_a0 interface{}, _a1 interface{}) *UserRepository_mock_AddOrUpdate_Call {
+	return &UserRepository_mock_AddOrUpdate_Call{Call: _e.mock.On("AddOrUpdate", _a0, _a1)}
+}
+
+func (_c *UserRepository_mock_AddOrUpdate_Call) Run(run func(_a0 context.Context, _a1 User)) *UserRepository_mock_AddOrUpdate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(User))
+	})
+	return _c
+}
+
+func (_c *UserRepository_mock_AddOrUpdate_Call) Return(_a0 *User, _a1 error) *UserRepository_mock_AddOrUpdate_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *UserRepository_mock_AddOrUpdate_Call) RunAndReturn(run func(context.Context, User) (*User, error)) *UserRepository_mock_AddOrUpdate_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -164,7 +223,7 @@ type UserRepository_mock_Remove_Call struct {
 
 // Remove is a helper method to define mock.On call
 //   - _a0 context.Context
-//   - _a1 Settings
+//   - _a1 User
 func (_e *UserRepository_mock_Expecter) Remove(_a0 interface{}, _a1 interface{}) *UserRepository_mock_Remove_Call {
 	return &UserRepository_mock_Remove_Call{Call: _e.mock.On("Remove", _a0, _a1)}
 }
@@ -223,7 +282,7 @@ type UserRepository_mock_Update_Call struct {
 
 // Update is a helper method to define mock.On call
 //   - _a0 context.Context
-//   - _a1 Settings
+//   - _a1 User
 func (_e *UserRepository_mock_Expecter) Update(_a0 interface{}, _a1 interface{}) *UserRepository_mock_Update_Call {
 	return &UserRepository_mock_Update_Call{Call: _e.mock.On("Update", _a0, _a1)}
 }

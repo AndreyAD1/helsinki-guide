@@ -91,7 +91,7 @@ func TestMain(m *testing.M) {
 		hostAndPort,
 	)
 
-	log.Println("Connecting to database on url: ", databaseUrl)
+	log.Println("Connecting to the database on url: ", databaseUrl)
 
 	resource.Expire(120)
 
@@ -114,6 +114,7 @@ func TestMain(m *testing.M) {
 	}
 	code := m.Run()
 
+	log.Printf("a test exit code: %v; cleaning up", code)
 	if err := dockerPool.Purge(resource); err != nil {
 		log.Fatalf("Could not purge a docker resource: %s", err)
 	}

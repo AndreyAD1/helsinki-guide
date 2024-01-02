@@ -29,13 +29,13 @@ func (s UserService) GetPreferredLanguage(ctx context.Context, userID int64) (*L
 	language, ok := GetLanguagePerCode(users[0].PreferredLanguage)
 	if !ok {
 		err = fmt.Errorf(
-			"an unexpected DB language code '%v' for a user '%v'",
+			"an unexpected language code '%v' for a user '%v'",
 			users[0].PreferredLanguage,
 			userID,
 		)
 		slog.ErrorContext(
 			ctx,
-			"an unexpected DB language code",
+			"an unexpected language code",
 			slog.Any(logger.ErrorKey, err),
 		)
 		return nil, err
