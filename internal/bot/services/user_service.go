@@ -2,11 +2,8 @@ package services
 
 import (
 	"context"
-	"fmt"
-	"log/slog"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/infrastructure/repositories"
-	"github.com/AndreyAD1/helsinki-guide/internal/bot/logger"
 )
 
 type UserService struct {
@@ -28,17 +25,7 @@ func (s UserService) GetPreferredLanguage(ctx context.Context, userID int64) (*L
 	}
 	language, ok := GetLanguagePerCode(users[0].PreferredLanguage)
 	if !ok {
-		err = fmt.Errorf(
-			"an unexpected language code '%v' for a user '%v'",
-			users[0].PreferredLanguage,
-			userID,
-		)
-		slog.ErrorContext(
-			ctx,
-			"an unexpected language code",
-			slog.Any(logger.ErrorKey, err),
-		)
-		return nil, err
+		return nil, nil
 	}
 	return &language, nil
 }
