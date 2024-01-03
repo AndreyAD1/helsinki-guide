@@ -17,6 +17,7 @@ type internalButtonHandler func(HandlerContainer, c.Context, *tgbotapi.CallbackQ
 type ButtonHandler func(c.Context, *tgbotapi.CallbackQuery) error
 type HandlerContainer struct {
 	buildingService    services.Buildings
+	userService        services.Users
 	bot                InternalBot
 	HandlersPerCommand map[string]CommandHandler
 	handlersPerButton  map[string]internalButtonHandler
@@ -25,10 +26,17 @@ type HandlerContainer struct {
 	allHandlers        map[string]CommandHandler
 }
 type Button struct {
-	label  string
-	Name   string `json:"name"`
-	Limit  int    `json:"limit,omitempty"`
-	Offset int    `json:"offset,omitempty"`
+	label string
+	Name  string `json:"name"`
+}
+type NextButton struct {
+	Button
+	Limit  int `json:"limit,omitempty"`
+	Offset int `json:"offset,omitempty"`
+}
+type LanguageButton struct {
+	Button
+	Language string `json:"value"`
 }
 type BotWithMetrics struct {
 	clientName string

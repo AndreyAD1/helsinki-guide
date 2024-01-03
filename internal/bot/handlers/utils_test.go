@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/services"
+	s "github.com/AndreyAD1/helsinki-guide/internal/bot/services"
 	"github.com/AndreyAD1/helsinki-guide/internal/utils"
 	"github.com/stretchr/testify/require"
 )
@@ -39,7 +40,7 @@ func TestSerializeIntoMessage_positive(t *testing.T) {
 	dummyBuilding := services.BuildingDTO{Address: "osoite"}
 	type args struct {
 		object         any
-		outputLanguage outputLanguage
+		outputLanguage s.Language
 	}
 	tests := []struct {
 		name     string
@@ -48,7 +49,7 @@ func TestSerializeIntoMessage_positive(t *testing.T) {
 	}{
 		{
 			"dummy fi",
-			args{dummyBuilding, Finnish},
+			args{dummyBuilding, s.Finnish},
 			`<b>Nimi:</b> no data
 <b>Katuosoite:</b> osoite
 <b>Kerrosluku:</b> no data
@@ -62,7 +63,7 @@ func TestSerializeIntoMessage_positive(t *testing.T) {
 		},
 		{
 			"dummy en",
-			args{dummyBuilding, English},
+			args{dummyBuilding, s.English},
 			`<b>Name:</b> no data
 <b>Address:</b> osoite
 <b>Description:</b> no data
@@ -76,7 +77,7 @@ func TestSerializeIntoMessage_positive(t *testing.T) {
 		},
 		{
 			"dummy ru",
-			args{dummyBuilding, Russian},
+			args{dummyBuilding, s.Russian},
 			`<b>Имя:</b> нет данных
 <b>Адрес:</b> osoite
 <b>Описание:</b> нет данных
@@ -90,7 +91,7 @@ func TestSerializeIntoMessage_positive(t *testing.T) {
 		},
 		{
 			"extended fi",
-			args{extendedBuilding, Finnish},
+			args{extendedBuilding, s.Finnish},
 			`<b>Nimi:</b> name fi
 <b>Katuosoite:</b> test address
 <b>Kerrosluku:</b> description fi
@@ -104,7 +105,7 @@ func TestSerializeIntoMessage_positive(t *testing.T) {
 		},
 		{
 			"extended en",
-			args{extendedBuilding, English},
+			args{extendedBuilding, s.English},
 			`<b>Name:</b> name en
 <b>Address:</b> test address
 <b>Description:</b> description en
@@ -118,7 +119,7 @@ func TestSerializeIntoMessage_positive(t *testing.T) {
 		},
 		{
 			"extended ru",
-			args{extendedBuilding, Russian},
+			args{extendedBuilding, s.Russian},
 			`<b>Имя:</b> name ru
 <b>Адрес:</b> test address
 <b>Описание:</b> description ru
@@ -152,7 +153,7 @@ func TestSerializeIntoMessage_negative(t *testing.T) {
 	}
 	type args struct {
 		object         any
-		outputLanguage outputLanguage
+		outputLanguage s.Language
 	}
 	tests := []struct {
 		name          string
@@ -161,27 +162,27 @@ func TestSerializeIntoMessage_negative(t *testing.T) {
 	}{
 		{
 			"not a structure",
-			args{123, English},
+			args{123, s.English},
 			ErrUnexpectedType,
 		},
 		{
 			"a structure with no field tags",
-			args{args{}, English},
+			args{args{}, s.English},
 			ErrNoFieldTag,
 		},
 		{
 			"a structure with no name tag",
-			args{testTagStruct{"test"}, English},
+			args{testTagStruct{"test"}, s.English},
 			ErrNoNameTag,
 		},
 		{
 			"a structure with an unexpected field type",
-			args{testTypeStruct{'A'}, English},
+			args{testTypeStruct{'A'}, s.English},
 			ErrUnexpectedFieldType,
 		},
 		{
 			"a structure with an unexpected pointer field type",
-			args{testPointerTypeStruct{utils.GetPointer('T')}, English},
+			args{testPointerTypeStruct{utils.GetPointer('T')}, s.English},
 			ErrUnexpectedFieldType,
 		},
 	}

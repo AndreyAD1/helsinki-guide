@@ -131,7 +131,6 @@ func TestBuildingService_GetBuildingPreviews(t *testing.T) {
 				require.ErrorIs(t, err, tt.repositoryError)
 				require.Nil(t, got)
 			}
-
 		})
 	}
 }

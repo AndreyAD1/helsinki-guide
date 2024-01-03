@@ -62,7 +62,9 @@ func NewServer(ctx context.Context, config configuration.StartupConfig) (*Server
 	}
 	buildingRepo := repositories.NewBuildingRepo(dbpool)
 	actorRepo := repositories.NewActorRepo(dbpool)
+	userRepo := repositories.NewUserRepo(dbpool)
 	buildingService := services.NewBuildingService(buildingRepo, actorRepo)
+	userService := services.NewUserService(userRepo)
 
 	registry := prom.NewRegistry()
 	registry.MustRegister(
@@ -92,6 +94,7 @@ func NewServer(ctx context.Context, config configuration.StartupConfig) (*Server
 	handlerContainer := handlers.NewCommandContainer(
 		botWithMetrics,
 		buildingService,
+		userService,
 		registeredMetrics,
 	)
 	server := Server{
@@ -269,7 +272,7 @@ func (s *Server) handleMessage(ctx context.Context, message *tgbotapi.Message) {
 }
 
 func (s *Server) handleButton(ctx context.Context, query *tgbotapi.CallbackQuery) {
-	var queryData handlers.Button
+	var queryData handlers.NextButton
 	if err := json.Unmarshal([]byte(query.Data), &queryData); err != nil {
 		slog.WarnContext(
 			ctx,
@@ -285,7 +288,7 @@ func (s *Server) handleButton(ctx context.Context, query *tgbotapi.CallbackQuery
 	if !ok {
 		logMsg := fmt.Sprintf(
 			"the unexpected button name %v from the chat %v: initial message %v",
-			queryData,
+			queryData.Name,
 			query.Message.Chat.ID,
 			query.Message.MessageID,
 		)

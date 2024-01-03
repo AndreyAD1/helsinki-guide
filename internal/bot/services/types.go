@@ -1,5 +1,24 @@
 package services
 
+type Language string
+
+var (
+	Finnish = Language("fi")
+	English = Language("en")
+	Russian = Language("ru")
+)
+
+var codePerLanguage = map[string]Language{
+	"fi": Finnish,
+	"en": English,
+	"ru": Russian,
+}
+
+func GetLanguagePerCode(code string) (Language, bool) {
+	language, ok := codePerLanguage[code]
+	return language, ok
+}
+
 type BuildingPreview struct {
 	Address string
 	Name    string

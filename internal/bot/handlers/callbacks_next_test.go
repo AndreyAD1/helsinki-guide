@@ -2,7 +2,6 @@ package handlers
 
 import (
 	c "context"
-	"errors"
 	"testing"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/metrics"
@@ -10,11 +9,13 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func TestHandlerContainer_next_positive(t *testing.T) {
 	type fields struct {
 		buildingService *services.Buildings_mock
+		userService     *services.Users_mock
 		bot             *InternalBot_mock
 	}
 	type args struct {
@@ -34,6 +35,7 @@ func TestHandlerContainer_next_positive(t *testing.T) {
 			"valid text",
 			fields{
 				services.NewBuildings_mock(t),
+				services.NewUsers_mock(t),
 				NewInternalBot_mock(t),
 			},
 			args{
@@ -57,15 +59,18 @@ func TestHandlerContainer_next_positive(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.fields.buildingService.EXPECT().
 				GetBuildingPreviews(tt.args.ctx, tt.address, tt.limit, tt.offset).
-				Return([]services.BuildingPreview{}, errors.New("test"))
+				Return([]services.BuildingPreview{}, nil)
 
 			tt.fields.bot.EXPECT().
 				Request(tgbotapi.NewCallback(tt.queryID, "")).Return(nil, nil).
 				On("Send", mock.AnythingOfType("tgbotapi.MessageConfig")).
+				Return(tgbotapi.Message{}, nil).
+				On("Send", mock.AnythingOfType("tgbotapi.EditMessageReplyMarkupConfig")).
 				Return(tgbotapi.Message{}, nil)
 
 			h := HandlerContainer{
 				tt.fields.buildingService,
+				tt.fields.userService,
 				tt.fields.bot,
 				map[string]CommandHandler{},
 				map[string]internalButtonHandler{},
@@ -73,7 +78,8 @@ func TestHandlerContainer_next_positive(t *testing.T) {
 				metrics.NewMetrics(prometheus.NewRegistry()),
 				map[string]CommandHandler{},
 			}
-			h.next(tt.args.ctx, tt.args.query)
+			err := h.next(tt.args.ctx, tt.args.query)
+			require.NoError(t, err)
 		})
 	}
 }
@@ -81,6 +87,7 @@ func TestHandlerContainer_next_positive(t *testing.T) {
 func TestHandlerContainer_next_negative(t *testing.T) {
 	type fields struct {
 		buildingService *services.Buildings_mock
+		userService     *services.Users_mock
 		bot             *InternalBot_mock
 	}
 	type args struct {
@@ -97,6 +104,7 @@ func TestHandlerContainer_next_negative(t *testing.T) {
 			"empty callback query",
 			fields{
 				services.NewBuildings_mock(t),
+				services.NewUsers_mock(t),
 				NewInternalBot_mock(t),
 			},
 			args{
@@ -109,6 +117,7 @@ func TestHandlerContainer_next_negative(t *testing.T) {
 			"invalid callback data",
 			fields{
 				services.NewBuildings_mock(t),
+				services.NewUsers_mock(t),
 				NewInternalBot_mock(t),
 			},
 			args{
@@ -124,6 +133,7 @@ func TestHandlerContainer_next_negative(t *testing.T) {
 			"invalid callback text",
 			fields{
 				services.NewBuildings_mock(t),
+				services.NewUsers_mock(t),
 				NewInternalBot_mock(t),
 			},
 			args{
@@ -143,6 +153,7 @@ func TestHandlerContainer_next_negative(t *testing.T) {
 			"valid text",
 			fields{
 				services.NewBuildings_mock(t),
+				services.NewUsers_mock(t),
 				NewInternalBot_mock(t),
 			},
 			args{
@@ -165,6 +176,7 @@ func TestHandlerContainer_next_negative(t *testing.T) {
 				Request(tgbotapi.NewCallback(tt.queryID, "")).Return(nil, nil)
 			h := HandlerContainer{
 				tt.fields.buildingService,
+				tt.fields.userService,
 				tt.fields.bot,
 				map[string]CommandHandler{},
 				map[string]internalButtonHandler{},
@@ -172,7 +184,8 @@ func TestHandlerContainer_next_negative(t *testing.T) {
 				metrics.NewMetrics(prometheus.NewRegistry()),
 				map[string]CommandHandler{},
 			}
-			h.next(tt.args.ctx, tt.args.query)
+			err := h.next(tt.args.ctx, tt.args.query)
+			require.Error(t, err)
 		})
 	}
 }

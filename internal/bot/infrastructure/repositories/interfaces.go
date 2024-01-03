@@ -23,6 +23,14 @@ type ActorRepository interface {
 	Query(context.Context, Specification) ([]Actor, error)
 }
 
+type UserRepository interface {
+	Add(context.Context, User) (*User, error)
+	AddOrUpdate(context.Context, User) (*User, error)
+	Remove(context.Context, User) error
+	Update(context.Context, User) (*User, error)
+	Query(context.Context, Specification) ([]User, error)
+}
+
 type Specification interface {
 	ToSQL() (string, map[string]any)
 }

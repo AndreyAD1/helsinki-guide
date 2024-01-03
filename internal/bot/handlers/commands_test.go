@@ -170,7 +170,7 @@ Available building addresses and names:
 	}
 }
 
-func TestHandlerContainer_getBuilding(t *testing.T) {
+func TestHandlerContainer_getBuilding_noLanguageCheck(t *testing.T) {
 	type fields struct {
 		buildingService    *services.Buildings_mock
 		bot                *InternalBot_mock
@@ -184,13 +184,13 @@ func TestHandlerContainer_getBuilding(t *testing.T) {
 		message *tgbotapi.Message
 	}
 	tests := []struct {
-		name          string
-		fields        fields
-		args          args
-		address       string
-		buildings     []services.BuildingDTO
-		buildingError error
-		expectedMsg   string
+		name              string
+		fields            fields
+		args              args
+		address           string
+		buildings         []services.BuildingDTO
+		buildingError     error
+		expectedMsg       string
 		expectedParseMode string
 	}{
 		{
@@ -311,10 +311,107 @@ func TestHandlerContainer_getBuilding(t *testing.T) {
 <b>Building history:</b> no data`,
 			tgbotapi.ModeHTML,
 		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.address != "" {
+				tt.fields.buildingService.EXPECT().
+					GetBuildingsByAddress(tt.args.ctx, tt.address).
+					Return(tt.buildings, tt.buildingError)
+			}
+			expectedMessage := tgbotapi.NewMessage(tt.args.message.Chat.ID, tt.expectedMsg)
+			expectedMessage.ParseMode = tt.expectedParseMode
+			tt.fields.bot.EXPECT().
+				Send(expectedMessage).
+				Return(tgbotapi.Message{}, nil)
+			h := HandlerContainer{
+				buildingService:    tt.fields.buildingService,
+				bot:                tt.fields.bot,
+				HandlersPerCommand: tt.fields.HandlersPerCommand,
+				handlersPerButton:  tt.fields.handlersPerButton,
+				commandsForHelp:    tt.fields.commandsForHelp,
+				metrics:            tt.fields.metrics,
+			}
+			h.getBuilding(tt.args.ctx, tt.args.message)
+		})
+	}
+}
+
+func TestHandlerContainer_getBuilding_withLanguageCheck(t *testing.T) {
+	type fields struct {
+		buildingService    *services.Buildings_mock
+		userService        *services.Users_mock
+		bot                *InternalBot_mock
+		HandlersPerCommand map[string]CommandHandler
+		handlersPerButton  map[string]internalButtonHandler
+		commandsForHelp    string
+		metrics            *metrics.Metrics
+	}
+	type args struct {
+		ctx     c.Context
+		message *tgbotapi.Message
+	}
+	tests := []struct {
+		name              string
+		fields            fields
+		args              args
+		address           string
+		buildings         []services.BuildingDTO
+		buildingError     error
+		preferredLanguage *services.Language
+		languageError     error
+		expectedMsg       string
+		expectedParseMode string
+	}{
 		{
-			"one building ru",
+			"one building, default en",
 			fields{
 				services.NewBuildings_mock(t),
+				services.NewUsers_mock(t),
+				NewInternalBot_mock(t),
+				map[string]CommandHandler{},
+				map[string]internalButtonHandler{},
+				"",
+				nil,
+			},
+			args{
+				context.Background(),
+				&tgbotapi.Message{
+					From: &tgbotapi.User{LanguageCode: "en"},
+					Text: "\\address test address",
+					Entities: []tgbotapi.MessageEntity{
+						{Type: "bot_command", Length: 8},
+					},
+					Chat: &tgbotapi.Chat{ID: 123},
+				},
+			},
+			"test address",
+			[]services.BuildingDTO{
+				{
+					NameEn:  utils.GetPointer("test building"),
+					Address: "test address",
+				},
+			},
+			nil,
+			nil,
+			nil,
+			`<b>Name:</b> test building
+<b>Address:</b> test address
+<b>Description:</b> no data
+<b>Completion year:</b> no data
+<b>Authors:</b> no data
+<b>Facades:</b> no data
+<b>Interesting details:</b> no data
+<b>Notable features:</b> no data
+<b>Surroundings:</b> no data
+<b>Building history:</b> no data`,
+			tgbotapi.ModeHTML,
+		},
+		{
+			"one building, default ru",
+			fields{
+				services.NewBuildings_mock(t),
+				services.NewUsers_mock(t),
 				NewInternalBot_mock(t),
 				map[string]CommandHandler{},
 				map[string]internalButtonHandler{},
@@ -341,6 +438,8 @@ func TestHandlerContainer_getBuilding(t *testing.T) {
 				},
 			},
 			nil,
+			nil,
+			nil,
 			`<b>Имя:</b> тестовое имя
 <b>Адрес:</b> test address
 <b>Описание:</b> нет данных
@@ -354,9 +453,10 @@ func TestHandlerContainer_getBuilding(t *testing.T) {
 			tgbotapi.ModeHTML,
 		},
 		{
-			"one building fi",
+			"one building, default fi",
 			fields{
 				services.NewBuildings_mock(t),
+				services.NewUsers_mock(t),
 				NewInternalBot_mock(t),
 				map[string]CommandHandler{},
 				map[string]internalButtonHandler{},
@@ -384,6 +484,8 @@ func TestHandlerContainer_getBuilding(t *testing.T) {
 				},
 			},
 			nil,
+			nil,
+			nil,
 			`<b>Nimi:</b> testi rakennus
 <b>Katuosoite:</b> test address
 <b>Kerrosluku:</b> no data
@@ -397,9 +499,10 @@ func TestHandlerContainer_getBuilding(t *testing.T) {
 			tgbotapi.ModeHTML,
 		},
 		{
-			"two buildings",
+			"two buildings, unknown default language",
 			fields{
 				services.NewBuildings_mock(t),
+				services.NewUsers_mock(t),
 				NewInternalBot_mock(t),
 				map[string]CommandHandler{},
 				map[string]internalButtonHandler{},
@@ -409,6 +512,7 @@ func TestHandlerContainer_getBuilding(t *testing.T) {
 			args{
 				context.Background(),
 				&tgbotapi.Message{
+					From: &tgbotapi.User{LanguageCode: "unknown language"},
 					Text: "\\address test address",
 					Entities: []tgbotapi.MessageEntity{
 						{Type: "bot_command", Length: 8},
@@ -428,6 +532,8 @@ func TestHandlerContainer_getBuilding(t *testing.T) {
 					CompletionYear: utils.GetPointer(1973),
 				},
 			},
+			nil,
+			nil,
 			nil,
 			`<b>Name:</b> test building
 <b>Address:</b> test address
@@ -450,16 +556,107 @@ func TestHandlerContainer_getBuilding(t *testing.T) {
 <b>Notable features:</b> no data
 <b>Surroundings:</b> no data
 <b>Building history:</b> no data`,
-	tgbotapi.ModeHTML,
+			tgbotapi.ModeHTML,
+		},
+		{
+			"one building, preferred fi",
+			fields{
+				services.NewBuildings_mock(t),
+				services.NewUsers_mock(t),
+				NewInternalBot_mock(t),
+				map[string]CommandHandler{},
+				map[string]internalButtonHandler{},
+				"",
+				nil,
+			},
+			args{
+				context.Background(),
+				&tgbotapi.Message{
+					From: &tgbotapi.User{LanguageCode: "en"},
+					Text: "\\address test address",
+					Entities: []tgbotapi.MessageEntity{
+						{Type: "bot_command", Length: 8},
+					},
+					Chat: &tgbotapi.Chat{ID: 123},
+				},
+			},
+			"test address",
+			[]services.BuildingDTO{
+				{
+					NameFi:  utils.GetPointer("testi rakennus"),
+					NameEn:  utils.GetPointer("test building"),
+					Address: "test address",
+				},
+			},
+			nil,
+			&services.Finnish,
+			nil,
+			`<b>Nimi:</b> testi rakennus
+<b>Katuosoite:</b> test address
+<b>Kerrosluku:</b> no data
+<b>Käyttöönottovuosi:</b> no data
+<b>Suunnittelijat:</b> no data
+<b>Julkisivut:</b> no data
+<b>Erityispiirteet:</b> no data
+<b>Huomattavia ominaisuuksia:</b> no data
+<b>Ymparistonkuvaus:</b> no data
+<b>Rakennushistoria:</b> no data`,
+			tgbotapi.ModeHTML,
+		},
+		{
+			"one building, default ru, a language service",
+			fields{
+				services.NewBuildings_mock(t),
+				services.NewUsers_mock(t),
+				NewInternalBot_mock(t),
+				map[string]CommandHandler{},
+				map[string]internalButtonHandler{},
+				"",
+				nil,
+			},
+			args{
+				context.Background(),
+				&tgbotapi.Message{
+					From: &tgbotapi.User{LanguageCode: "ru"},
+					Text: "\\address test address",
+					Entities: []tgbotapi.MessageEntity{
+						{Type: "bot_command", Length: 8},
+					},
+					Chat: &tgbotapi.Chat{ID: 123},
+				},
+			},
+			"test address",
+			[]services.BuildingDTO{
+				{
+					NameEn:  utils.GetPointer("test building"),
+					NameRu:  utils.GetPointer("тестовое имя"),
+					Address: "test address",
+				},
+			},
+			nil,
+			nil,
+			errors.New("some language error"),
+			`<b>Имя:</b> тестовое имя
+<b>Адрес:</b> test address
+<b>Описание:</b> нет данных
+<b>Год постройки:</b> нет данных
+<b>Авторы:</b> нет данных
+<b>Фасады:</b> нет данных
+<b>Интересные детали:</b> нет данных
+<b>Примечательные особенности:</b> нет данных
+<b>Окрестности:</b> нет данных
+<b>История здания:</b> нет данных`,
+			tgbotapi.ModeHTML,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.address != "" {
-				tt.fields.buildingService.EXPECT().
-					GetBuildingsByAddress(tt.args.ctx, tt.address).
-					Return(tt.buildings, tt.buildingError)
-			}
+			tt.fields.buildingService.EXPECT().
+				GetBuildingsByAddress(tt.args.ctx, tt.address).
+				Return(tt.buildings, tt.buildingError)
+			tt.fields.userService.EXPECT().
+				GetPreferredLanguage(tt.args.ctx, tt.args.message.From.ID).
+				Return(tt.preferredLanguage, tt.languageError)
 			expectedMessage := tgbotapi.NewMessage(tt.args.message.Chat.ID, tt.expectedMsg)
 			expectedMessage.ParseMode = tt.expectedParseMode
 			tt.fields.bot.EXPECT().
@@ -467,6 +664,7 @@ func TestHandlerContainer_getBuilding(t *testing.T) {
 				Return(tgbotapi.Message{}, nil)
 			h := HandlerContainer{
 				buildingService:    tt.fields.buildingService,
+				userService:        tt.fields.userService,
 				bot:                tt.fields.bot,
 				HandlersPerCommand: tt.fields.HandlersPerCommand,
 				handlersPerButton:  tt.fields.handlersPerButton,
