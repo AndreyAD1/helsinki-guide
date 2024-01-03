@@ -99,19 +99,18 @@ func (h HandlerContainer) language(ctx c.Context, query *tgbotapi.CallbackQuery)
 		slog.WarnContext(ctx, err.Error())
 		return errors.Join(err, ErrUnexpectedCallback)
 	}
-	msgID := query.Message.MessageID
 	if query.From == nil {
 		err := fmt.Errorf("a callback has no sender %v", query.ID)
 		slog.WarnContext(ctx, err.Error())
 		return errors.Join(err, ErrUnexpectedCallback)
 	}
-
 	chat := query.Message.Chat
 	if chat == nil {
 		errMsg := fmt.Sprintf("a callback has no chat %v", query.ID)
 		slog.WarnContext(ctx, errMsg)
 		return fmt.Errorf("%v: %w", errMsg, ErrUnexpectedCallback)
 	}
+	msgID := query.Message.MessageID
 	var button LanguageButton
 	if err := json.Unmarshal([]byte(query.Data), &button); err != nil {
 		logMsg := fmt.Sprintf(
