@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/metrics"
@@ -85,6 +86,37 @@ func TestHandlerContainer_language_unexpectedButtonLanguage(t *testing.T) {
 	h := HandlerContainer{
 		services.NewBuildings_mock(t),
 		services.NewUsers_mock(t),
+		botMock,
+		map[string]CommandHandler{},
+		map[string]internalButtonHandler{},
+		"",
+		metrics.NewMetrics(prometheus.NewRegistry()),
+		map[string]CommandHandler{},
+	}
+	err := h.language(context.Background(), calbackQuery)
+	require.Error(t, err)
+}
+
+func TestHandlerContainer_language_setLanguage_internalError(t *testing.T) {
+	calbackQuery := &tgbotapi.CallbackQuery{
+		ID:      "123",
+		From:    &tgbotapi.User{},
+		Message: &tgbotapi.Message{Chat: &tgbotapi.Chat{ID: 99}},
+		Data:    `{"name":"language","value":"fi"}`,
+	}
+	botMock := NewInternalBot_mock(t)
+	userMock := services.NewUsers_mock(t)
+	botMock.EXPECT().
+		Send(tgbotapi.NewMessage(calbackQuery.Message.Chat.ID, "Internal error")).
+		Return(tgbotapi.Message{}, nil).
+		On("Request", tgbotapi.NewCallback(calbackQuery.ID, "")).
+		Return(nil, nil)
+	ctx := context.Background()
+	userMock.EXPECT().SetLanguage(ctx, calbackQuery.From.ID, services.Finnish).
+		Return(errors.New("test"))
+	h := HandlerContainer{
+		services.NewBuildings_mock(t),
+		userMock,
 		botMock,
 		map[string]CommandHandler{},
 		map[string]internalButtonHandler{},
