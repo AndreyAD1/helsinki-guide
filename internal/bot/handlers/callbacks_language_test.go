@@ -127,3 +127,43 @@ func TestHandlerContainer_language_setLanguage_internalError(t *testing.T) {
 	err := h.language(context.Background(), calbackQuery)
 	require.Error(t, err)
 }
+
+func TestHandlerContainer_language_setLanguage(t *testing.T) {
+	calbackQuery := &tgbotapi.CallbackQuery{
+		ID:      "123",
+		From:    &tgbotapi.User{},
+		Message: &tgbotapi.Message{Chat: &tgbotapi.Chat{ID: 99}},
+		Data:    `{"name":"language","value":"fi"}`,
+	}
+	botMock := NewInternalBot_mock(t)
+	userMock := services.NewUsers_mock(t)
+	ctx := context.Background()
+	userMock.EXPECT().SetLanguage(ctx, calbackQuery.From.ID, services.Finnish).
+		Return(nil)
+	expectedMessage := tgbotapi.NewEditMessageTextAndMarkup(
+		calbackQuery.Message.Chat.ID,
+		calbackQuery.Message.MessageID,
+		"I will return the building information in Finnish.",
+		tgbotapi.InlineKeyboardMarkup{
+			InlineKeyboard: [][]tgbotapi.InlineKeyboardButton{},
+		},
+	)
+	botMock.EXPECT().
+		Send(expectedMessage).
+		Return(tgbotapi.Message{}, nil).
+		On("Request", tgbotapi.NewCallback(calbackQuery.ID, "")).
+		Return(nil, nil)
+
+	h := HandlerContainer{
+		services.NewBuildings_mock(t),
+		userMock,
+		botMock,
+		map[string]CommandHandler{},
+		map[string]internalButtonHandler{},
+		"",
+		metrics.NewMetrics(prometheus.NewRegistry()),
+		map[string]CommandHandler{},
+	}
+	err := h.language(ctx, calbackQuery)
+	require.NoError(t, err)
+}
