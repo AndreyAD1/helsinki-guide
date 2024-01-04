@@ -29,12 +29,13 @@ import (
 )
 
 type Server struct {
-	bot             handlers.InternalBot
-	handlers        handlers.HandlerContainer
-	shutdownFuncs   []func()
-	tgUpdateTimeout int
-	httpServer      *http.Server
-	metrics         *metrics.Metrics
+	bot                 handlers.InternalBot
+	handlers            handlers.HandlerContainer
+	shutdownFuncs       []func()
+	tgUpdateTimeout     int
+	updateReadersNumber int
+	httpServer          *http.Server
+	metrics             *metrics.Metrics
 }
 
 func NewServer(ctx context.Context, config configuration.StartupConfig) (*Server, error) {
@@ -102,6 +103,7 @@ func NewServer(ctx context.Context, config configuration.StartupConfig) (*Server
 		handlerContainer,
 		[]func(){dbpool.Close},
 		config.TGUpdateTimeout,
+		config.UpdateReadersNumber,
 		&httpServer,
 		registeredMetrics,
 	}
@@ -162,9 +164,14 @@ func (s *Server) RunBot(ctx context.Context) error {
 	u.Timeout = s.tgUpdateTimeout
 	updates := s.bot.GetUpdatesChan(u)
 	var wg sync.WaitGroup
-	wg.Add(1)
-	go s.receiveUpdates(ctx, updates, &wg)
-	slog.InfoContext(ctx, "start to listen for updates")
+	for i := 0; i < s.updateReadersNumber; i++ {
+		wg.Add(1)
+		go s.receiveUpdates(ctx, updates, &wg)
+	}
+	slog.InfoContext(
+		ctx,
+		fmt.Sprintf("start to listen for updates in %v goroutines", s.updateReadersNumber),
+	)
 
 	<-idleConnectionsClosed
 	wg.Wait()
