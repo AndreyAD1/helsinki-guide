@@ -216,7 +216,7 @@ func (h HandlerContainer) building(ctx c.Context, query *tgbotapi.CallbackQuery)
 			userLanguage = *preferredLanguage
 		}
 	}
-	serializedItem, err := SerializeIntoMessage(building, userLanguage)
+	serializedItem, err := SerializeIntoMessage(*building, userLanguage)
 	if err != nil {
 		slog.ErrorContext(
 			ctx,

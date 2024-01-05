@@ -26,6 +26,22 @@ func (b *BuildingSpecificationAll) ToSQL() (string, map[string]any) {
 	return queryTemplate, queryArgs
 }
 
+type BuildingSpecificationByID struct {
+	id int64
+}
+
+func NewBuildingSpecificationByID(id int64) *BuildingSpecificationByID {
+	return &BuildingSpecificationByID{id}
+}
+
+func (b *BuildingSpecificationByID) ToSQL() (string, map[string]any) {
+	queryTemplate := selectAllBuildingFields + ` FROM 
+	(SELECT * FROM buildings WHERE deleted_at IS NULL) AS buildings
+	JOIN addresses ON buildings.address_id = addresses.id 
+	WHERE buildings.id = @id;`
+	return queryTemplate, map[string]any{"id": b.id}
+}
+
 type BuildingSpecificationByAlikeAddress struct {
 	addressPrefix string
 	limit         int

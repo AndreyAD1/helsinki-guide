@@ -112,6 +112,27 @@ func (bs BuildingService) GetBuildingsByAddress(
 	return buildingsDto, nil
 }
 
+func (bs BuildingService) GetBuildingByID(
+	ctx context.Context,
+	buildingID int64,
+) (*BuildingDTO, error) {
+	spec := r.NewBuildingSpecificationByID(buildingID)
+	buildings, err := bs.buildingCollection.Query(ctx, spec)
+	if err != nil {
+		return nil, err
+	}
+	if len(buildings) == 0 {
+		return nil, nil
+	}
+	authorSpec := r.NewAuthorSpecificationByBuilding(buildings[0].ID)
+	authors, err := bs.actorCollection.Query(ctx, authorSpec)
+	if err != nil {
+		return nil, err
+	}
+	buildingDTO := NewBuildingDTO(buildings[0], authors)
+	return &buildingDTO, nil
+}
+
 func (bs BuildingService) GetNearestBuildingPreviews(
 	ctx context.Context,
 	distanceMeters int,
