@@ -95,7 +95,7 @@ func (h HandlerContainer) language(ctx c.Context, query *tgbotapi.CallbackQuery)
 	defer h.getCallbackAnswerFunc(ctx, query.ID)()
 	message := query.Message
 	if message == nil {
-		err := fmt.Errorf("a callback has no message %v", query.ID)
+		err := fmt.Errorf("a callbacbuttonk has no message %v", query.ID)
 		slog.WarnContext(ctx, err.Error())
 		return errors.Join(err, ErrUnexpectedCallback)
 	}
@@ -161,4 +161,68 @@ func (h HandlerContainer) language(ctx c.Context, query *tgbotapi.CallbackQuery)
 		)
 	}
 	return err
+}
+
+func (h HandlerContainer) building(ctx c.Context, query *tgbotapi.CallbackQuery) error {
+	defer h.getCallbackAnswerFunc(ctx, query.ID)()
+	message := query.Message
+	if message == nil {
+		err := fmt.Errorf("a callback has no message %v", query.ID)
+		slog.WarnContext(ctx, err.Error())
+		return errors.Join(err, ErrUnexpectedCallback)
+	}
+	if query.From == nil {
+		err := fmt.Errorf("a callback has no sender %v", query.ID)
+		slog.WarnContext(ctx, err.Error())
+		return errors.Join(err, ErrUnexpectedCallback)
+	}
+	chat := query.Message.Chat
+	if chat == nil {
+		errMsg := fmt.Sprintf("a callback has no chat %v", query.ID)
+		slog.WarnContext(ctx, errMsg)
+		return fmt.Errorf("%v: %w", errMsg, ErrUnexpectedCallback)
+	}
+	msgID := query.Message.MessageID
+	_, err := h.userService.GetPreferredLanguage(ctx, query.From.ID)
+	if err != nil {
+		sendErr := h.SendMessage(ctx, chat.ID, "Internal error", "")
+		return errors.Join(sendErr, err)
+	}
+	var button BuildingButton
+	if err := json.Unmarshal([]byte(query.Data), &button); err != nil {
+		logMsg := fmt.Sprintf(
+			"unexpected callback data %v from a message %v and the chat %v",
+			query.Data,
+			msgID,
+			chat.ID,
+		)
+		slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
+		return fmt.Errorf("%v: %w", logMsg, ErrUnexpectedCallback)
+	}
+	building, err := h.buildingService.GetBuildingByID(ctx, button.ID)
+	userLanguage := services.English
+	if user := message.From; user != nil {
+		switch user.LanguageCode {
+		case "fi":
+			userLanguage = services.Finnish
+		case "ru":
+			userLanguage = services.Russian
+		}
+		preferredLanguage, err := h.userService.GetPreferredLanguage(
+			ctx,
+			user.ID,
+		)
+		if err == nil && preferredLanguage != nil {
+			userLanguage = *preferredLanguage
+		}
+	}
+	serializedItem, err := SerializeIntoMessage(building, userLanguage)
+	if err != nil {
+		slog.ErrorContext(
+			ctx,
+			fmt.Sprintf("can not serialize a building '%v'", button.ID),
+			slog.Any(logger.ErrorKey, err),
+		)
+	}
+	return h.SendMessage(ctx, message.Chat.ID, serializedItem, tgbotapi.ModeHTML)
 }

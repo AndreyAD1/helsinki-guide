@@ -30,8 +30,9 @@ func NewCommandContainer(
 	metricsContainer *metrics.Metrics,
 ) HandlerContainer {
 	handlersPerButton := map[string]internalButtonHandler{
-		"next":     HandlerContainer.next,
-		"language": HandlerContainer.language,
+		NEXT_BUTTON:     HandlerContainer.next,
+		LANGUAGE_BUTTON: HandlerContainer.language,
+		BUILDING_BUTTON: HandlerContainer.building,
 	}
 	availableCommands := []string{}
 	for command := range handlersPerCommand {
@@ -156,9 +157,9 @@ func (h HandlerContainer) settings(ctx c.Context, message *tgbotapi.Message) err
 	msg := tgbotapi.NewMessage(chatID, "Choose a preferable language:")
 	buttons := []tgbotapi.InlineKeyboardButton{}
 	languageButtons := []LanguageButton{
-		{Button{"Finnish", "language"}, "fi"},
-		{Button{"English", "language"}, "en"},
-		{Button{"Russian", "language"}, "ru"},
+		{Button{"Finnish", LANGUAGE_BUTTON}, "fi"},
+		{Button{"English", LANGUAGE_BUTTON}, "en"},
+		{Button{"Russian", LANGUAGE_BUTTON}, "ru"},
 	}
 	for _, button := range languageButtons {
 		buttonCallbackData, err := json.Marshal(button)
@@ -234,7 +235,7 @@ func (h HandlerContainer) returnAddresses(
 
 	msg := tgbotapi.NewMessage(chatID, response)
 	button := NextButton{
-		Button{fmt.Sprintf("Next %v buildings", limit), "next"},
+		Button{fmt.Sprintf("Next %v buildings", limit), NEXT_BUTTON},
 		limit,
 		offset + len(buildings),
 	}

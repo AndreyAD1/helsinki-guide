@@ -43,7 +43,7 @@ func (h HandlerContainer) getNearestAddresses(ctx c.Context, message *tgbotapi.M
 			building.Address,
 			building.Name,
 		)
-		button := BuildingButton{Button{label, "building"}, building.ID}
+		button := BuildingButton{Button{label, BUILDING_BUTTON}, building.ID}
 		buttonCallbackData, err := json.Marshal(button)
 		if err != nil {
 			slog.ErrorContext(
