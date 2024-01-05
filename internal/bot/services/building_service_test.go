@@ -77,7 +77,7 @@ func TestBuildingService_GetBuildingPreviews(t *testing.T) {
 				},
 			},
 			nil,
-			[]BuildingPreview{{"test address", "test name"}},
+			[]BuildingPreview{{0, "test address", "test name"}},
 		},
 		{
 			"two previews",
@@ -98,8 +98,8 @@ func TestBuildingService_GetBuildingPreviews(t *testing.T) {
 			},
 			nil,
 			[]BuildingPreview{
-				{"test address 1", "test name 1"},
-				{"test address 2", "test name 2"},
+				{0, "test address 1", "test name 1"},
+				{0, "test address 2", "test name 2"},
 			},
 		},
 	}

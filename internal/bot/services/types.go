@@ -20,6 +20,7 @@ func GetLanguagePerCode(code string) (Language, bool) {
 }
 
 type BuildingPreview struct {
+	ID      int64
 	Address string
 	Name    string
 }

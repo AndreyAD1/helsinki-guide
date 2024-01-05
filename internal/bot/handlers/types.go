@@ -38,6 +38,10 @@ type LanguageButton struct {
 	Button
 	Language string `json:"value"`
 }
+type BuildingButton struct {
+	Button
+	ID int64 `json:"id"`
+}
 type BotWithMetrics struct {
 	clientName string
 	*tgbotapi.BotAPI
