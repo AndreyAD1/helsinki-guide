@@ -337,3 +337,110 @@ func TestBuildingService_GetBuildingsByAddress_ManyBuildings(t *testing.T) {
 		})
 	}
 }
+
+func TestBuildingService_GetBuildingByID(t *testing.T) {
+	type fields struct {
+		buildingCollection *r.BuildingRepository_mock
+		actorCollection    *r.ActorRepository_mock
+	}
+	type args struct {
+		ctx        context.Context
+		buildingID int64
+	}
+	tests := []struct {
+		name                    string
+		fields                  fields
+		args                    args
+		foundBuildings          []r.Building
+		foundAuthors            []r.Actor
+		repositoryBuildingError error
+		repositoryActorError    error
+		want                    *BuildingDTO
+	}{
+		{
+			"no building",
+			fields{
+				r.NewBuildingRepository_mock(t),
+				r.NewActorRepository_mock(t),
+			},
+			args{context.Background(), 123},
+			[]r.Building{},
+			[]r.Actor{},
+			nil,
+			nil,
+			nil,
+		},
+		{
+			"building error",
+			fields{
+				r.NewBuildingRepository_mock(t),
+				r.NewActorRepository_mock(t),
+			},
+			args{},
+			[]r.Building{},
+			[]r.Actor{},
+			errors.New("building error"),
+			errors.New("actor error"),
+			nil,
+		},
+		{
+			"actor error",
+			fields{
+				r.NewBuildingRepository_mock(t),
+				r.NewActorRepository_mock(t),
+			},
+			args{context.Background(), 123},
+			[]r.Building{{ID: 123}},
+			[]r.Actor{},
+			nil,
+			errors.New("actor error"),
+			nil,
+		},
+		{
+			"one building - one author",
+			fields{
+				r.NewBuildingRepository_mock(t),
+				r.NewActorRepository_mock(t),
+			},
+			args{context.Background(), 123},
+			[]r.Building{{ID: 123, Address: r.Address{StreetAddress: "test address"}}},
+			[]r.Actor{{Name: "author 1"}},
+			nil,
+			nil,
+			&BuildingDTO{Address: "test address", Authors: &[]string{"author 1"}},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			buildingSpecFunc := r.BuildingByIDIsEqual(tt.args.buildingID)
+			tt.fields.buildingCollection.EXPECT().Query(
+				tt.args.ctx,
+				mock.MatchedBy(buildingSpecFunc),
+			).Return(tt.foundBuildings, tt.repositoryBuildingError)
+
+			if len(tt.foundBuildings) > 0 {
+				authorSpec := r.ActorByBuildingIsEqual(tt.foundBuildings[0].ID)
+				tt.fields.actorCollection.On(
+					"Query",
+					tt.args.ctx,
+					mock.MatchedBy(authorSpec),
+				).Return(tt.foundAuthors, tt.repositoryActorError)
+			}
+			bs := BuildingService{
+				buildingCollection: tt.fields.buildingCollection,
+				actorCollection:    tt.fields.actorCollection,
+			}
+			got, err := bs.GetBuildingByID(tt.args.ctx, tt.args.buildingID)
+			if tt.repositoryBuildingError != nil {
+				require.ErrorIs(t, err, tt.repositoryBuildingError)
+				return
+			}
+			if tt.repositoryActorError != nil {
+				require.ErrorIs(t, err, tt.repositoryActorError)
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, tt.want, got)
+		})
+	}
+}

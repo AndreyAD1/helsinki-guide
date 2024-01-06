@@ -42,6 +42,12 @@ func (b *BuildingSpecificationByID) ToSQL() (string, map[string]any) {
 	return queryTemplate, map[string]any{"id": b.id}
 }
 
+func BuildingByIDIsEqual(id int64) func(s *BuildingSpecificationByID) bool {
+	return func(s *BuildingSpecificationByID) bool {
+		return id == s.id
+	}
+}
+
 type BuildingSpecificationByAlikeAddress struct {
 	addressPrefix string
 	limit         int
