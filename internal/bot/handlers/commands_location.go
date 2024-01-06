@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strconv"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/logger"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -43,7 +44,10 @@ func (h HandlerContainer) getNearestAddresses(ctx c.Context, message *tgbotapi.M
 			building.Address,
 			building.Name,
 		)
-		button := BuildingButton{Button{label, BUILDING_BUTTON}, building.ID}
+		button := BuildingButton{
+			Button{label, BUILDING_BUTTON},
+			strconv.FormatInt(building.ID, 10),
+		}
 		buttonCallbackData, err := json.Marshal(button)
 		if err != nil {
 			slog.ErrorContext(

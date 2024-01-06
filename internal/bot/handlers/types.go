@@ -40,7 +40,7 @@ type LanguageButton struct {
 }
 type BuildingButton struct {
 	Button
-	ID int64 `json:"id"`
+	ID string `json:"id"`
 }
 type BotWithMetrics struct {
 	clientName string

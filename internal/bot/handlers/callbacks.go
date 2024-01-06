@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strconv"
 	"strings"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/logger"
@@ -190,16 +191,30 @@ func (h HandlerContainer) building(ctx c.Context, query *tgbotapi.CallbackQuery)
 	}
 	var button BuildingButton
 	if err := json.Unmarshal([]byte(query.Data), &button); err != nil {
-		logMsg := fmt.Sprintf(
-			"unexpected callback data %v from a message %v and the chat %v",
+		err2 := fmt.Errorf(
+			"unexpected callback data %v from a message %v and the chat %v: %w",
 			query.Data,
+			msgID,
+			chat.ID,
+			err,
+		)
+		slog.ErrorContext(ctx, err2.Error(), slog.Any(logger.ErrorKey, err))
+		sendErr := h.SendMessage(ctx, chat.ID, "Internal error", "")
+		return errors.Join(sendErr, err2)
+	}
+	buildingID, err := strconv.ParseInt(button.ID, 10, 64)
+	if err != nil {
+		logMsg := fmt.Sprintf(
+			"unexpected building ID %v from a message %v and the chat %v",
+			button.ID,
 			msgID,
 			chat.ID,
 		)
 		slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
-		return fmt.Errorf("%v: %w", logMsg, ErrUnexpectedCallback)
+		sendErr := h.SendMessage(ctx, chat.ID, "Internal error", "")
+		return errors.Join(sendErr, err)
 	}
-	building, err := h.buildingService.GetBuildingByID(ctx, button.ID)
+	building, err := h.buildingService.GetBuildingByID(ctx, buildingID)
 	userLanguage := services.English
 	if user := message.From; user != nil {
 		switch user.LanguageCode {
