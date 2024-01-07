@@ -96,7 +96,7 @@ func (h HandlerContainer) language(ctx c.Context, query *tgbotapi.CallbackQuery)
 	defer h.getCallbackAnswerFunc(ctx, query.ID)()
 	message := query.Message
 	if message == nil {
-		err := fmt.Errorf("a callbacbuttonk has no message %v", query.ID)
+		err := fmt.Errorf("a callback button has no message %v", query.ID)
 		slog.WarnContext(ctx, err.Error())
 		return errors.Join(err, ErrUnexpectedCallback)
 	}
@@ -190,7 +190,7 @@ func (h HandlerContainer) building(ctx c.Context, query *tgbotapi.CallbackQuery)
 		)
 		slog.ErrorContext(ctx, err2.Error(), slog.Any(logger.ErrorKey, err))
 		sendErr := h.SendMessage(ctx, chat.ID, "Internal error", "")
-		return errors.Join(sendErr, err2)
+		return errors.Join(sendErr, ErrUnexpectedCallback, err2)
 	}
 	buildingID, err := strconv.ParseInt(button.ID, 10, 64)
 	if err != nil {
