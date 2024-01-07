@@ -34,17 +34,16 @@ func (h HandlerContainer) getNearestAddresses(ctx c.Context, message *tgbotapi.M
 	}
 	title := fmt.Sprintf("Nearest buildings in %v meters:", DEFAULT_DISTANCE)
 	msg := tgbotapi.NewMessage(message.Chat.ID, title)
-	keyboardRows, err := getBuildingButtonRows(ctx, buildings)
+	keyboardRows, err := getBuildingButtonRows(ctx, buildings, 0)
 	if err != nil {
 		return err
 	}
-	moreAddressesMenuMarkup := tgbotapi.NewInlineKeyboardMarkup(keyboardRows...)
-	msg.ReplyMarkup = moreAddressesMenuMarkup
+	msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(keyboardRows...)
 	_, err = h.bot.Send(msg)
 	if err != nil {
 		slog.WarnContext(
 			ctx,
-			fmt.Sprintf("can not send an inline keyboard to: %v", message.Chat.ID),
+			fmt.Sprintf("can not send nearest addresses to: %v", message.Chat.ID),
 			slog.Any(logger.ErrorKey, err),
 		)
 	}
