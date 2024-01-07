@@ -30,8 +30,9 @@ func NewCommandContainer(
 	metricsContainer *metrics.Metrics,
 ) HandlerContainer {
 	handlersPerButton := map[string]internalButtonHandler{
-		"next":     HandlerContainer.next,
-		"language": HandlerContainer.language,
+		NEXT_BUTTON:     HandlerContainer.next,
+		LANGUAGE_BUTTON: HandlerContainer.language,
+		BUILDING_BUTTON: HandlerContainer.building,
 	}
 	availableCommands := []string{}
 	for command := range handlersPerCommand {
@@ -156,9 +157,9 @@ func (h HandlerContainer) settings(ctx c.Context, message *tgbotapi.Message) err
 	msg := tgbotapi.NewMessage(chatID, "Choose a preferable language:")
 	buttons := []tgbotapi.InlineKeyboardButton{}
 	languageButtons := []LanguageButton{
-		{Button{"Finnish", "language"}, "fi"},
-		{Button{"English", "language"}, "en"},
-		{Button{"Russian", "language"}, "ru"},
+		{Button{"Finnish", LANGUAGE_BUTTON}, "fi"},
+		{Button{"English", LANGUAGE_BUTTON}, "en"},
+		{Button{"Russian", LANGUAGE_BUTTON}, "ru"},
 	}
 	for _, button := range languageButtons {
 		buttonCallbackData, err := json.Marshal(button)
@@ -234,7 +235,7 @@ func (h HandlerContainer) returnAddresses(
 
 	msg := tgbotapi.NewMessage(chatID, response)
 	button := NextButton{
-		Button{fmt.Sprintf("Next %v buildings", limit), "next"},
+		Button{fmt.Sprintf("Next %v buildings", limit), NEXT_BUTTON},
 		limit,
 		offset + len(buildings),
 	}
@@ -290,22 +291,7 @@ func (h HandlerContainer) getBuilding(ctx c.Context, message *tgbotapi.Message) 
 		response := "Unfortunately, I don't know this address."
 		return h.SendMessage(ctx, message.Chat.ID, response, tgbotapi.ModeHTML)
 	}
-	userLanguage := services.English
-	if user := message.From; user != nil {
-		switch user.LanguageCode {
-		case "fi":
-			userLanguage = services.Finnish
-		case "ru":
-			userLanguage = services.Russian
-		}
-		preferredLanguage, err := h.userService.GetPreferredLanguage(
-			ctx,
-			user.ID,
-		)
-		if err == nil && preferredLanguage != nil {
-			userLanguage = *preferredLanguage
-		}
-	}
+	userLanguage := h.getPreferredLanguage(ctx, message.From)
 	items := make([]string, len(buildings))
 	for i, building := range buildings {
 		serializedItem, err := SerializeIntoMessage(building, userLanguage)

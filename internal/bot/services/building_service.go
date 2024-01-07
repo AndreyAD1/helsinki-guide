@@ -84,7 +84,7 @@ func (bs BuildingService) GetBuildingPreviews(
 		if building.NameFi != nil {
 			name = *building.NameFi
 		}
-		previews[i] = BuildingPreview{building.Address.StreetAddress, name}
+		previews[i] = BuildingPreview{building.ID, building.Address.StreetAddress, name}
 	}
 	return previews, nil
 }
@@ -110,6 +110,27 @@ func (bs BuildingService) GetBuildingsByAddress(
 	}
 
 	return buildingsDto, nil
+}
+
+func (bs BuildingService) GetBuildingByID(
+	ctx context.Context,
+	buildingID int64,
+) (*BuildingDTO, error) {
+	spec := r.NewBuildingSpecificationByID(buildingID)
+	buildings, err := bs.buildingCollection.Query(ctx, spec)
+	if err != nil {
+		return nil, err
+	}
+	if len(buildings) == 0 {
+		return nil, nil
+	}
+	authorSpec := r.NewAuthorSpecificationByBuilding(buildings[0].ID)
+	authors, err := bs.actorCollection.Query(ctx, authorSpec)
+	if err != nil {
+		return nil, err
+	}
+	buildingDTO := NewBuildingDTO(buildings[0], authors)
+	return &buildingDTO, nil
 }
 
 func (bs BuildingService) GetNearestBuildingPreviews(
@@ -147,7 +168,11 @@ func (bs BuildingService) GetNearestBuildingPreviews(
 		if building.NameFi != nil {
 			name = *building.NameFi
 		}
-		previews[i] = BuildingPreview{building.Address.StreetAddress, name}
+		previews[i] = BuildingPreview{
+			building.ID,
+			building.Address.StreetAddress,
+			name,
+		}
 	}
 	return previews, nil
 }

@@ -21,6 +21,65 @@ func (_m *Buildings_mock) EXPECT() *Buildings_mock_Expecter {
 	return &Buildings_mock_Expecter{mock: &_m.Mock}
 }
 
+// GetBuildingByID provides a mock function with given fields: c, ID
+func (_m *Buildings_mock) GetBuildingByID(c context.Context, ID int64) (*BuildingDTO, error) {
+	ret := _m.Called(c, ID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetBuildingByID")
+	}
+
+	var r0 *BuildingDTO
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, int64) (*BuildingDTO, error)); ok {
+		return rf(c, ID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, int64) *BuildingDTO); ok {
+		r0 = rf(c, ID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*BuildingDTO)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, int64) error); ok {
+		r1 = rf(c, ID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Buildings_mock_GetBuildingByID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetBuildingByID'
+type Buildings_mock_GetBuildingByID_Call struct {
+	*mock.Call
+}
+
+// GetBuildingByID is a helper method to define mock.On call
+//   - c context.Context
+//   - ID int64
+func (_e *Buildings_mock_Expecter) GetBuildingByID(c interface{}, ID interface{}) *Buildings_mock_GetBuildingByID_Call {
+	return &Buildings_mock_GetBuildingByID_Call{Call: _e.mock.On("GetBuildingByID", c, ID)}
+}
+
+func (_c *Buildings_mock_GetBuildingByID_Call) Run(run func(c context.Context, ID int64)) *Buildings_mock_GetBuildingByID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(int64))
+	})
+	return _c
+}
+
+func (_c *Buildings_mock_GetBuildingByID_Call) Return(_a0 *BuildingDTO, _a1 error) *Buildings_mock_GetBuildingByID_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Buildings_mock_GetBuildingByID_Call) RunAndReturn(run func(context.Context, int64) (*BuildingDTO, error)) *Buildings_mock_GetBuildingByID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetBuildingPreviews provides a mock function with given fields: ctx, addressPrefix, limit, offset
 func (_m *Buildings_mock) GetBuildingPreviews(ctx context.Context, addressPrefix string, limit int, offset int) ([]BuildingPreview, error) {
 	ret := _m.Called(ctx, addressPrefix, limit, offset)

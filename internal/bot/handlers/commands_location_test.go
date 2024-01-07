@@ -7,6 +7,7 @@ import (
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/metrics"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/services"
+	"github.com/AndreyAD1/helsinki-guide/internal/utils"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/stretchr/testify/require"
 )
@@ -63,11 +64,25 @@ func TestHandlerContainer_getNearestAddresses(t *testing.T) {
 			},
 			args{chatID: 123, latitude: 3, longitude: 3},
 			[]services.BuildingPreview{
-				{Address: "test 1", Name: "test name 1"},
+				{Address: "test 1", Name: "test name 1", ID: 999},
 			},
 			nil,
-			tgbotapi.NewMessage(123, `Nearest buildings in 200 meters:
-1. test 1 - test name 1`),
+			tgbotapi.MessageConfig{
+				BaseChat: tgbotapi.BaseChat{
+					ChatID:           123,
+					ReplyToMessageID: 0,
+					ReplyMarkup: tgbotapi.InlineKeyboardMarkup{
+						InlineKeyboard: [][]tgbotapi.InlineKeyboardButton{{
+							tgbotapi.InlineKeyboardButton{
+								Text:         "1. test 1 - test name 1",
+								CallbackData: utils.GetPointer(`{"name":"building","id":"999"}`),
+							},
+						}},
+					},
+				},
+				Text:                  "Nearest buildings in 200 meters:",
+				DisableWebPagePreview: false,
+			},
 			nil,
 		},
 		{
@@ -82,14 +97,30 @@ func TestHandlerContainer_getNearestAddresses(t *testing.T) {
 			},
 			args{chatID: 123, latitude: 3, longitude: 0},
 			[]services.BuildingPreview{
-				{Address: "test 1", Name: "test name 1"},
-				{Address: "test 2", Name: "test name 2"},
+				{Address: "test 1", Name: "test name 1", ID: 1000},
+				{Address: "test 2", Name: "test name 2", ID: 999},
 			},
 			nil,
-			tgbotapi.NewMessage(123, `Nearest buildings in 200 meters:
-1. test 1 - test name 1
-2. test 2 - test name 2`,
-			),
+			tgbotapi.MessageConfig{
+				BaseChat: tgbotapi.BaseChat{
+					ChatID:           123,
+					ReplyToMessageID: 0,
+					ReplyMarkup: tgbotapi.InlineKeyboardMarkup{
+						InlineKeyboard: [][]tgbotapi.InlineKeyboardButton{{
+							tgbotapi.InlineKeyboardButton{
+								Text:         "1. test 1 - test name 1",
+								CallbackData: utils.GetPointer(`{"name":"building","id":"1000"}`),
+							}},
+							{tgbotapi.InlineKeyboardButton{
+								Text:         "2. test 2 - test name 2",
+								CallbackData: utils.GetPointer(`{"name":"building","id":"999"}`),
+							}},
+						},
+					},
+				},
+				Text:                  "Nearest buildings in 200 meters:",
+				DisableWebPagePreview: false,
+			},
 			nil,
 		},
 	}

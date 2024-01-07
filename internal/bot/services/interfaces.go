@@ -18,6 +18,7 @@ type Buildings interface {
 		limit,
 		offset int,
 	) ([]BuildingPreview, error)
+	GetBuildingByID(c context.Context, ID int64) (*BuildingDTO, error)
 }
 type Users interface {
 	GetPreferredLanguage(ctx context.Context, userID int64) (*Language, error)

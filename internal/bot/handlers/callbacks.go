@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strconv"
 	"strings"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/logger"
@@ -95,7 +96,7 @@ func (h HandlerContainer) language(ctx c.Context, query *tgbotapi.CallbackQuery)
 	defer h.getCallbackAnswerFunc(ctx, query.ID)()
 	message := query.Message
 	if message == nil {
-		err := fmt.Errorf("a callback has no message %v", query.ID)
+		err := fmt.Errorf("a callback button has no message %v", query.ID)
 		slog.WarnContext(ctx, err.Error())
 		return errors.Join(err, ErrUnexpectedCallback)
 	}
@@ -161,4 +162,101 @@ func (h HandlerContainer) language(ctx c.Context, query *tgbotapi.CallbackQuery)
 		)
 	}
 	return err
+}
+
+func (h HandlerContainer) building(ctx c.Context, query *tgbotapi.CallbackQuery) error {
+	defer h.getCallbackAnswerFunc(ctx, query.ID)()
+	message := query.Message
+	if message == nil {
+		err := fmt.Errorf("a callback has no message %v", query.ID)
+		slog.WarnContext(ctx, err.Error())
+		return errors.Join(err, ErrUnexpectedCallback)
+	}
+	chat := query.Message.Chat
+	if chat == nil {
+		errMsg := fmt.Sprintf("a callback has no chat %v", query.ID)
+		slog.WarnContext(ctx, errMsg)
+		return fmt.Errorf("%v: %w", errMsg, ErrUnexpectedCallback)
+	}
+	msgID := query.Message.MessageID
+	var button BuildingButton
+	if err := json.Unmarshal([]byte(query.Data), &button); err != nil {
+		err2 := fmt.Errorf(
+			"unexpected callback data '%v' from a message %v and the chat %v: %w",
+			query.Data,
+			msgID,
+			chat.ID,
+			err,
+		)
+		slog.ErrorContext(ctx, err2.Error(), slog.Any(logger.ErrorKey, err))
+		sendErr := h.SendMessage(ctx, chat.ID, "Internal error", "")
+		return errors.Join(sendErr, ErrUnexpectedCallback, err2)
+	}
+	buildingID, err := strconv.ParseInt(button.ID, 10, 64)
+	if err != nil {
+		logMsg := fmt.Sprintf(
+			"unexpected building ID %v from a message %v and the chat %v",
+			button.ID,
+			msgID,
+			chat.ID,
+		)
+		slog.ErrorContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
+		sendErr := h.SendMessage(ctx, chat.ID, "Internal error", "")
+		return errors.Join(sendErr, err)
+	}
+	building, err := h.buildingService.GetBuildingByID(ctx, buildingID)
+	if err != nil {
+		slog.ErrorContext(
+			ctx,
+			fmt.Sprintf("can not get a building '%v'", button.ID),
+			slog.Any(logger.ErrorKey, err),
+		)
+		sendErr := h.SendMessage(ctx, chat.ID, "Internal error", "")
+		return errors.Join(sendErr, err)
+	}
+	if building == nil {
+		err := fmt.Errorf("a building does not exist '%v'", button.ID)
+		slog.ErrorContext(
+			ctx,
+			err.Error(),
+			slog.Any(logger.ErrorKey, err),
+		)
+		sendErr := h.SendMessage(ctx, chat.ID, "Can not find the building.", "")
+		return errors.Join(sendErr, ErrUnexpectedCallback, err)
+	}
+	userLanguage := h.getPreferredLanguage(ctx, query.From)
+	serializedItem, err := SerializeIntoMessage(*building, userLanguage)
+	if err != nil {
+		slog.ErrorContext(
+			ctx,
+			fmt.Sprintf("can not serialize a building '%v'", button.ID),
+			slog.Any(logger.ErrorKey, err),
+		)
+		sendErr := h.SendMessage(ctx, chat.ID, "Internal error.", "")
+		return errors.Join(sendErr, err)
+	}
+	return h.SendMessage(ctx, message.Chat.ID, serializedItem, tgbotapi.ModeHTML)
+}
+
+func (h HandlerContainer) getPreferredLanguage(
+	ctx c.Context,
+	user *tgbotapi.User,
+) services.Language {
+	userLanguage := services.English
+	if user != nil {
+		switch user.LanguageCode {
+		case "fi":
+			userLanguage = services.Finnish
+		case "ru":
+			userLanguage = services.Russian
+		}
+		preferredLanguage, err := h.userService.GetPreferredLanguage(
+			ctx,
+			user.ID,
+		)
+		if err == nil && preferredLanguage != nil {
+			userLanguage = *preferredLanguage
+		}
+	}
+	return userLanguage
 }

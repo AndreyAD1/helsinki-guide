@@ -76,6 +76,31 @@ func testAddNewBuilding(t *testing.T) {
 	)
 	require.Equal(t, *saved2, buildings[0])
 	require.Equal(t, *saved1, buildings[1])
+
+	// get by ID
+	specByID := r.NewBuildingSpecificationByID(saved1.ID)
+	queried, err := storage.Query(context.Background(), specByID)
+	require.NoError(t, err)
+	require.Equalf(
+		t,
+		1,
+		len(queried),
+		"unexpected building number: %v",
+		queried,
+	)
+	require.Equal(t, *saved1, queried[0])
+
+	// get absent building
+	specByID = r.NewBuildingSpecificationByID(9999)
+	queried, err = storage.Query(context.Background(), specByID)
+	require.NoError(t, err)
+	require.Equalf(
+		t,
+		0,
+		len(queried),
+		"unexpected building number: %v",
+		queried,
+	)
 }
 
 func testAddNewBuildingAddressError(t *testing.T) {
