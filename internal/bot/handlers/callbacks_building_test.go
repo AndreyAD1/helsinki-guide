@@ -186,3 +186,51 @@ func TestHandlerContainer_building_serializationError(t *testing.T) {
 	err := h.building(ctx, calbackQuery)
 	require.Error(t, err)
 }
+
+func TestHandlerContainer_building_ok(t *testing.T) {
+	calbackQuery := &tgbotapi.CallbackQuery{
+		ID:      "123",
+		From:    &tgbotapi.User{ID: 555},
+		Message: &tgbotapi.Message{Chat: &tgbotapi.Chat{ID: 99}},
+		Data:    `{"name": "building", "id": "123"}`,
+	}
+	botMock := NewInternalBot_mock(t)
+	buildingMock := services.NewBuildings_mock(t)
+	userMock := services.NewUsers_mock(t)
+	expectedMessage := tgbotapi.NewMessage(
+		calbackQuery.Message.Chat.ID,
+		`<b>Name:</b> no data
+<b>Address:</b> test address
+<b>Description:</b> no data
+<b>Completion year:</b> no data
+<b>Authors:</b> no data
+<b>Facades:</b> no data
+<b>Interesting details:</b> no data
+<b>Notable features:</b> no data
+<b>Surroundings:</b> no data
+<b>Building history:</b> no data`,
+	)
+	expectedMessage.ParseMode = tgbotapi.ModeHTML
+	botMock.EXPECT().
+		Send(expectedMessage).
+		Return(tgbotapi.Message{}, nil).
+		On("Request", tgbotapi.NewCallback(calbackQuery.ID, "")).
+		Return(nil, nil)
+	ctx := context.Background()
+	buildingMock.EXPECT().GetBuildingByID(ctx, int64(123)).
+		Return(&services.BuildingDTO{Address: "test address"}, nil)
+	userMock.EXPECT().GetPreferredLanguage(ctx, calbackQuery.From.ID).
+		Return(&services.English, nil)
+	h := HandlerContainer{
+		buildingMock,
+		userMock,
+		botMock,
+		map[string]CommandHandler{},
+		map[string]internalButtonHandler{},
+		"",
+		metrics.NewMetrics(prometheus.NewRegistry()),
+		map[string]CommandHandler{},
+	}
+	err := h.building(ctx, calbackQuery)
+	require.NoError(t, err)
+}
