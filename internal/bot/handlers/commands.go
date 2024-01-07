@@ -291,22 +291,7 @@ func (h HandlerContainer) getBuilding(ctx c.Context, message *tgbotapi.Message) 
 		response := "Unfortunately, I don't know this address."
 		return h.SendMessage(ctx, message.Chat.ID, response, tgbotapi.ModeHTML)
 	}
-	userLanguage := services.English
-	if user := message.From; user != nil {
-		switch user.LanguageCode {
-		case "fi":
-			userLanguage = services.Finnish
-		case "ru":
-			userLanguage = services.Russian
-		}
-		preferredLanguage, err := h.userService.GetPreferredLanguage(
-			ctx,
-			user.ID,
-		)
-		if err == nil && preferredLanguage != nil {
-			userLanguage = *preferredLanguage
-		}
-	}
+	userLanguage := h.getPreferredLanguage(ctx, message.From)
 	items := make([]string, len(buildings))
 	for i, building := range buildings {
 		serializedItem, err := SerializeIntoMessage(building, userLanguage)

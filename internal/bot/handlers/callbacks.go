@@ -172,11 +172,6 @@ func (h HandlerContainer) building(ctx c.Context, query *tgbotapi.CallbackQuery)
 		slog.WarnContext(ctx, err.Error())
 		return errors.Join(err, ErrUnexpectedCallback)
 	}
-	if query.From == nil {
-		err := fmt.Errorf("a callback has no sender %v", query.ID)
-		slog.WarnContext(ctx, err.Error())
-		return errors.Join(err, ErrUnexpectedCallback)
-	}
 	chat := query.Message.Chat
 	if chat == nil {
 		errMsg := fmt.Sprintf("a callback has no chat %v", query.ID)
@@ -184,11 +179,6 @@ func (h HandlerContainer) building(ctx c.Context, query *tgbotapi.CallbackQuery)
 		return fmt.Errorf("%v: %w", errMsg, ErrUnexpectedCallback)
 	}
 	msgID := query.Message.MessageID
-	_, err := h.userService.GetPreferredLanguage(ctx, query.From.ID)
-	if err != nil {
-		sendErr := h.SendMessage(ctx, chat.ID, "Internal error", "")
-		return errors.Join(sendErr, err)
-	}
 	var button BuildingButton
 	if err := json.Unmarshal([]byte(query.Data), &button); err != nil {
 		err2 := fmt.Errorf(
@@ -215,8 +205,24 @@ func (h HandlerContainer) building(ctx c.Context, query *tgbotapi.CallbackQuery)
 		return errors.Join(sendErr, err)
 	}
 	building, err := h.buildingService.GetBuildingByID(ctx, buildingID)
+	userLanguage := h.getPreferredLanguage(ctx, query.From)
+	serializedItem, err := SerializeIntoMessage(*building, userLanguage)
+	if err != nil {
+		slog.ErrorContext(
+			ctx,
+			fmt.Sprintf("can not serialize a building '%v'", button.ID),
+			slog.Any(logger.ErrorKey, err),
+		)
+	}
+	return h.SendMessage(ctx, message.Chat.ID, serializedItem, tgbotapi.ModeHTML)
+}
+
+func (h HandlerContainer) getPreferredLanguage(
+	ctx c.Context,
+	user *tgbotapi.User,
+) services.Language {
 	userLanguage := services.English
-	if user := message.From; user != nil {
+	if user != nil {
 		switch user.LanguageCode {
 		case "fi":
 			userLanguage = services.Finnish
@@ -231,13 +237,5 @@ func (h HandlerContainer) building(ctx c.Context, query *tgbotapi.CallbackQuery)
 			userLanguage = *preferredLanguage
 		}
 	}
-	serializedItem, err := SerializeIntoMessage(*building, userLanguage)
-	if err != nil {
-		slog.ErrorContext(
-			ctx,
-			fmt.Sprintf("can not serialize a building '%v'", button.ID),
-			slog.Any(logger.ErrorKey, err),
-		)
-	}
-	return h.SendMessage(ctx, message.Chat.ID, serializedItem, tgbotapi.ModeHTML)
+	return userLanguage
 }
