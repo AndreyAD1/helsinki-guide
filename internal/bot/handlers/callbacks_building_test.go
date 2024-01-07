@@ -65,7 +65,7 @@ func TestHandlerContainer_button_unexpectedButtonData(t *testing.T) {
 	}{
 		{"no data", ""},
 		{"unexpected data", `{"unknown json": 123}`},
-		{"unexpected value", `{"name": "building", "value": "123.3456"}`},
+		{"unexpected building ID", `{"name": "building", "value": "123.3456"}`},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

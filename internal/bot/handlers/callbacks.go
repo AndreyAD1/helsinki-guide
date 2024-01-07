@@ -205,6 +205,15 @@ func (h HandlerContainer) building(ctx c.Context, query *tgbotapi.CallbackQuery)
 		return errors.Join(sendErr, err)
 	}
 	building, err := h.buildingService.GetBuildingByID(ctx, buildingID)
+	if err != nil {
+		slog.ErrorContext(
+			ctx,
+			fmt.Sprintf("can not get a building '%v'", button.ID),
+			slog.Any(logger.ErrorKey, err),
+		)
+		sendErr := h.SendMessage(ctx, chat.ID, "Internal error", "")
+		return errors.Join(sendErr, err)
+	}
 	userLanguage := h.getPreferredLanguage(ctx, query.From)
 	serializedItem, err := SerializeIntoMessage(*building, userLanguage)
 	if err != nil {
@@ -213,6 +222,8 @@ func (h HandlerContainer) building(ctx c.Context, query *tgbotapi.CallbackQuery)
 			fmt.Sprintf("can not serialize a building '%v'", button.ID),
 			slog.Any(logger.ErrorKey, err),
 		)
+		sendErr := h.SendMessage(ctx, chat.ID, "Internal error", "")
+		return errors.Join(sendErr, err)
 	}
 	return h.SendMessage(ctx, message.Chat.ID, serializedItem, tgbotapi.ModeHTML)
 }
