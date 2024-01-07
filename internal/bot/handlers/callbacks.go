@@ -214,6 +214,16 @@ func (h HandlerContainer) building(ctx c.Context, query *tgbotapi.CallbackQuery)
 		sendErr := h.SendMessage(ctx, chat.ID, "Internal error", "")
 		return errors.Join(sendErr, err)
 	}
+	if building == nil {
+		err := fmt.Errorf("a building does not exist '%v'", button.ID)
+		slog.ErrorContext(
+			ctx,
+			err.Error(),
+			slog.Any(logger.ErrorKey, err),
+		)
+		sendErr := h.SendMessage(ctx, chat.ID, "Can not find the building.", "")
+		return errors.Join(sendErr, ErrUnexpectedCallback, err)
+	}
 	userLanguage := h.getPreferredLanguage(ctx, query.From)
 	serializedItem, err := SerializeIntoMessage(*building, userLanguage)
 	if err != nil {
@@ -222,7 +232,7 @@ func (h HandlerContainer) building(ctx c.Context, query *tgbotapi.CallbackQuery)
 			fmt.Sprintf("can not serialize a building '%v'", button.ID),
 			slog.Any(logger.ErrorKey, err),
 		)
-		sendErr := h.SendMessage(ctx, chat.ID, "Internal error", "")
+		sendErr := h.SendMessage(ctx, chat.ID, "Internal error.", "")
 		return errors.Join(sendErr, err)
 	}
 	return h.SendMessage(ctx, message.Chat.ID, serializedItem, tgbotapi.ModeHTML)

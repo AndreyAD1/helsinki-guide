@@ -121,3 +121,68 @@ func TestHandlerContainer_building_serviceError(t *testing.T) {
 	err := h.building(ctx, calbackQuery)
 	require.Error(t, err)
 }
+
+func TestHandlerContainer_building_noBuilding(t *testing.T) {
+	calbackQuery := &tgbotapi.CallbackQuery{
+		ID:      "123",
+		From:    &tgbotapi.User{},
+		Message: &tgbotapi.Message{Chat: &tgbotapi.Chat{ID: 99}},
+		Data:    `{"name": "building", "id": "123"}`,
+	}
+	botMock := NewInternalBot_mock(t)
+	buildingMock := services.NewBuildings_mock(t)
+	botMock.EXPECT().
+		Send(tgbotapi.NewMessage(calbackQuery.Message.Chat.ID, "Can not find the building.")).
+		Return(tgbotapi.Message{}, nil).
+		On("Request", tgbotapi.NewCallback(calbackQuery.ID, "")).
+		Return(nil, nil)
+	ctx := context.Background()
+	buildingMock.EXPECT().GetBuildingByID(ctx, int64(123)).Return(nil, nil)
+	h := HandlerContainer{
+		buildingMock,
+		services.NewUsers_mock(t),
+		botMock,
+		map[string]CommandHandler{},
+		map[string]internalButtonHandler{},
+		"",
+		metrics.NewMetrics(prometheus.NewRegistry()),
+		map[string]CommandHandler{},
+	}
+	err := h.building(ctx, calbackQuery)
+	require.ErrorIs(t, err, ErrUnexpectedCallback)
+}
+
+func TestHandlerContainer_building_serializationError(t *testing.T) {
+	calbackQuery := &tgbotapi.CallbackQuery{
+		ID:      "123",
+		From:    &tgbotapi.User{ID: 555},
+		Message: &tgbotapi.Message{Chat: &tgbotapi.Chat{ID: 99}},
+		Data:    `{"name": "building", "id": "123"}`,
+	}
+	botMock := NewInternalBot_mock(t)
+	buildingMock := services.NewBuildings_mock(t)
+	userMock := services.NewUsers_mock(t)
+	botMock.EXPECT().
+		Send(tgbotapi.NewMessage(calbackQuery.Message.Chat.ID, "Internal error.")).
+		Return(tgbotapi.Message{}, nil).
+		On("Request", tgbotapi.NewCallback(calbackQuery.ID, "")).
+		Return(nil, nil)
+	ctx := context.Background()
+	buildingMock.EXPECT().GetBuildingByID(ctx, int64(123)).
+		Return(&services.BuildingDTO{}, nil)
+	l := services.Language("unknown")
+	userMock.EXPECT().GetPreferredLanguage(ctx, calbackQuery.From.ID).
+		Return(&l, nil)
+	h := HandlerContainer{
+		buildingMock,
+		userMock,
+		botMock,
+		map[string]CommandHandler{},
+		map[string]internalButtonHandler{},
+		"",
+		metrics.NewMetrics(prometheus.NewRegistry()),
+		map[string]CommandHandler{},
+	}
+	err := h.building(ctx, calbackQuery)
+	require.Error(t, err)
+}
