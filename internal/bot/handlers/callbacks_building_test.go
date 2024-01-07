@@ -52,3 +52,41 @@ func TestHandlerContainer_button_errWithoutResponse(t *testing.T) {
 		})
 	}
 }
+
+func TestHandlerContainer_button_unexpectedButtonData(t *testing.T) {
+	calbackQuery := &tgbotapi.CallbackQuery{
+		ID:      "123",
+		From:    &tgbotapi.User{},
+		Message: &tgbotapi.Message{Chat: &tgbotapi.Chat{ID: 99}},
+	}
+	tests := []struct {
+		name       string
+		buttonData string
+	}{
+		{"no data", ""},
+		{"unexpected data", `{"unknown json": 123}`},
+		{"unexpected value", `{"name": "building", "value": "123.3456"}`},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			botMock := NewInternalBot_mock(t)
+			botMock.EXPECT().
+				Send(tgbotapi.NewMessage(calbackQuery.Message.Chat.ID, "Internal error")).
+				Return(tgbotapi.Message{}, nil).
+				On("Request", tgbotapi.NewCallback(calbackQuery.ID, "")).Return(nil, nil)
+			h := HandlerContainer{
+				services.NewBuildings_mock(t),
+				services.NewUsers_mock(t),
+				botMock,
+				map[string]CommandHandler{},
+				map[string]internalButtonHandler{},
+				"",
+				metrics.NewMetrics(prometheus.NewRegistry()),
+				map[string]CommandHandler{},
+			}
+			calbackQuery.Data = tt.buttonData
+			err := h.building(context.Background(), calbackQuery)
+			require.Error(t, err)
+		})
+	}
+}

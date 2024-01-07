@@ -182,7 +182,7 @@ func (h HandlerContainer) building(ctx c.Context, query *tgbotapi.CallbackQuery)
 	var button BuildingButton
 	if err := json.Unmarshal([]byte(query.Data), &button); err != nil {
 		err2 := fmt.Errorf(
-			"unexpected callback data %v from a message %v and the chat %v: %w",
+			"unexpected callback data '%v' from a message %v and the chat %v: %w",
 			query.Data,
 			msgID,
 			chat.ID,
