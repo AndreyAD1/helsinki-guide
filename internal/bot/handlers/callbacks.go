@@ -74,7 +74,13 @@ func (h HandlerContainer) next(ctx c.Context, query *tgbotapi.CallbackQuery) err
 	if err := h.returnAddresses(ctx, chat.ID, address, button.Limit, button.Offset); err != nil {
 		return err
 	}
+	if query.Message.ReplyMarkup == nil {
+		return nil
+	}
 	keyboard := query.Message.ReplyMarkup.InlineKeyboard
+	if len(keyboard) < 1 {
+		return nil
+	}
 	editedMessage := tgbotapi.NewEditMessageReplyMarkup(
 		chat.ID,
 		msgID,

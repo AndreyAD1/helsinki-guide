@@ -219,13 +219,26 @@ func (h HandlerContainer) returnAddresses(
 	}
 	title := fmt.Sprintf(headerTemplate, address)
 	msg := tgbotapi.NewMessage(chatID, title)
+	if len(buildings) == 0 {
+		msg.Text += "\nNo buildings are found."
+		_, err = h.bot.Send(msg)
+		return err
+	}
 	keyboardRows, err := getBuildingButtonRows(ctx, buildings)
 	if err != nil {
+		slog.ErrorContext(
+			ctx,
+			fmt.Sprintf("can not create building rows: '%v'", address),
+			slog.Any(logger.ErrorKey, err),
+		)
 		return err
 	}
 	if len(buildings) < limit {
 		msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(keyboardRows...)
 		_, err = h.bot.Send(msg)
+		if err != nil {
+			slog.WarnContext(ctx, err.Error())
+		}
 		return err
 	}
 	button := NextButton{

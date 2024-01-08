@@ -45,6 +45,11 @@ func TestHandlerContainer_next_positive(t *testing.T) {
 					Message: &tgbotapi.Message{
 						Chat: &tgbotapi.Chat{},
 						Text: "address: test address   \n",
+						ReplyMarkup: &tgbotapi.InlineKeyboardMarkup{
+							InlineKeyboard: [][]tgbotapi.InlineKeyboardButton{
+								{tgbotapi.InlineKeyboardButton{Text: "next"}},
+							},
+						},
 					},
 					Data: `{"name":"next","limit":2,"offset":3}`,
 				},
