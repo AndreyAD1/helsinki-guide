@@ -34,7 +34,7 @@ func (h HandlerContainer) getNearestAddresses(ctx c.Context, message *tgbotapi.M
 	}
 	title := fmt.Sprintf("Nearest buildings in %v meters:", DEFAULT_DISTANCE)
 	msg := tgbotapi.NewMessage(message.Chat.ID, title)
-	keyboardRows, err := getBuildingButtonRows(ctx, buildings, 0)
+	keyboardRows, err := getBuildingButtonRows(ctx, buildings)
 	if err != nil {
 		return err
 	}

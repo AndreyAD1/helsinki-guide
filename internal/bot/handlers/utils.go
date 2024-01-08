@@ -113,16 +113,10 @@ func SerializeIntoMessage(object any, outputLanguage s.Language) (string, error)
 func getBuildingButtonRows(
 	ctx context.Context,
 	buildings []services.BuildingPreview,
-	offset int,
 ) ([][]tgbotapi.InlineKeyboardButton, error) {
 	keyboardRows := [][]tgbotapi.InlineKeyboardButton{}
-	for i, building := range buildings {
-		label := fmt.Sprintf(
-			lineTemplate,
-			offset+i+1,
-			building.Address,
-			building.Name,
-		)
+	for _, building := range buildings {
+		label := fmt.Sprintf(buttonTemplate, building.Address, building.Name)
 		button := BuildingButton{
 			Button{label, BUILDING_BUTTON},
 			strconv.FormatInt(building.ID, 10),

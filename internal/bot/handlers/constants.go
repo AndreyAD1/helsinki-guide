@@ -2,7 +2,7 @@ package handlers
 
 const (
 	headerTemplate = "Search address: %s\nAvailable building addresses and names:"
-	lineTemplate   = "%v. %s - %s"
+	buttonTemplate = "%s - %s"
 	helpMessage    = `Available commands: 
 /start - I will send a greeting message.
 /addresses - I will return all addresses I know.

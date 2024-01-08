@@ -217,24 +217,17 @@ func (h HandlerContainer) returnAddresses(
 		sendErr := h.SendMessage(ctx, chatID, "Internal error", "")
 		return errors.Join(sendErr, err)
 	}
-
 	title := fmt.Sprintf(headerTemplate, address)
-	if len(buildings) < limit {
-		title += "\nNo more buildings are available."
-	}
-
 	msg := tgbotapi.NewMessage(chatID, title)
-	keyboardRows, err := getBuildingButtonRows(ctx, buildings, offset)
+	keyboardRows, err := getBuildingButtonRows(ctx, buildings)
 	if err != nil {
 		return err
 	}
-
 	if len(buildings) < limit {
 		msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(keyboardRows...)
 		_, err = h.bot.Send(msg)
 		return err
 	}
-
 	button := NextButton{
 		Button{fmt.Sprintf("Next %v buildings", limit), NEXT_BUTTON},
 		limit,
