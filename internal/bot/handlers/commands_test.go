@@ -66,7 +66,7 @@ func TestHandlerContainer_returnAddresses(t *testing.T) {
 			nil,
 			tgbotapi.NewMessage(123, `Search address: 
 Available building addresses and names:
-End`),
+No buildings are found.`),
 		},
 		{
 			"several buildings and address, no offset",
@@ -80,15 +80,31 @@ End`),
 			},
 			args{chatID: 123, limit: 3, offset: 0, address: "test"},
 			[]services.BuildingPreview{
-				{Address: "test 1", Name: "test name 1"},
-				{Address: "test 2", Name: "test name 2"},
+				{ID: 1, Address: "test 1", Name: "test name 1"},
+				{ID: 2, Address: "test 2", Name: "test name 2"},
 			},
 			nil,
-			tgbotapi.NewMessage(123, `Search address: test
-Available building addresses and names:
-1. test 1 - test name 1
-2. test 2 - test name 2
-End`),
+			tgbotapi.MessageConfig{
+				BaseChat: tgbotapi.BaseChat{
+					ChatID: 123,
+					ReplyMarkup: tgbotapi.NewInlineKeyboardMarkup(
+						tgbotapi.NewInlineKeyboardRow(
+							tgbotapi.NewInlineKeyboardButtonData(
+								"test 1 - test name 1",
+								`{"name":"building","id":"1"}`,
+							),
+						),
+						tgbotapi.NewInlineKeyboardRow(
+							tgbotapi.NewInlineKeyboardButtonData(
+								"test 2 - test name 2",
+								`{"name":"building","id":"2"}`,
+							),
+						),
+					),
+				},
+				Text: `Search address: test
+Available building addresses and names:`,
+			},
 		},
 		{
 			"several buildings and address, offset",
@@ -102,15 +118,31 @@ End`),
 			},
 			args{chatID: 123, limit: 3, offset: 1, address: "test"},
 			[]services.BuildingPreview{
-				{Address: "test 1", Name: "test name 1"},
-				{Address: "test 2", Name: "test name 2"},
+				{ID: 2, Address: "test 1", Name: "test name 1"},
+				{ID: 3, Address: "test 2", Name: "test name 2"},
 			},
 			nil,
-			tgbotapi.NewMessage(123, `Search address: test
-Available building addresses and names:
-2. test 1 - test name 1
-3. test 2 - test name 2
-End`),
+			tgbotapi.MessageConfig{
+				BaseChat: tgbotapi.BaseChat{
+					ChatID: 123,
+					ReplyMarkup: tgbotapi.NewInlineKeyboardMarkup(
+						tgbotapi.NewInlineKeyboardRow(
+							tgbotapi.NewInlineKeyboardButtonData(
+								"test 1 - test name 1",
+								`{"name":"building","id":"2"}`,
+							),
+						),
+						tgbotapi.NewInlineKeyboardRow(
+							tgbotapi.NewInlineKeyboardButtonData(
+								"test 2 - test name 2",
+								`{"name":"building","id":"3"}`,
+							),
+						),
+					),
+				},
+				Text: `Search address: test
+Available building addresses and names:`,
+			},
 		},
 		{
 			"several buildings and address, offset, button",
@@ -124,14 +156,26 @@ End`),
 			},
 			args{chatID: 123, limit: 2, offset: 1, address: "test"},
 			[]services.BuildingPreview{
-				{Address: "test 1", Name: "test name 1"},
-				{Address: "test 2", Name: "test name 2"},
+				{ID: 1, Address: "test 1", Name: "test name 1"},
+				{ID: 2, Address: "test 2", Name: "test name 2"},
 			},
 			nil,
 			tgbotapi.MessageConfig{
 				BaseChat: tgbotapi.BaseChat{
 					ChatID: 123,
 					ReplyMarkup: tgbotapi.NewInlineKeyboardMarkup(
+						tgbotapi.NewInlineKeyboardRow(
+							tgbotapi.NewInlineKeyboardButtonData(
+								"test 1 - test name 1",
+								`{"name":"building","id":"1"}`,
+							),
+						),
+						tgbotapi.NewInlineKeyboardRow(
+							tgbotapi.NewInlineKeyboardButtonData(
+								"test 2 - test name 2",
+								`{"name":"building","id":"2"}`,
+							),
+						),
 						tgbotapi.NewInlineKeyboardRow(
 							tgbotapi.NewInlineKeyboardButtonData(
 								"Next 2 buildings",
@@ -141,9 +185,7 @@ End`),
 					),
 				},
 				Text: `Search address: test
-Available building addresses and names:
-2. test 1 - test name 1
-3. test 2 - test name 2`,
+Available building addresses and names:`,
 			},
 		},
 	}

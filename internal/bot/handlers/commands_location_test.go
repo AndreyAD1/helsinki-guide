@@ -74,7 +74,7 @@ func TestHandlerContainer_getNearestAddresses(t *testing.T) {
 					ReplyMarkup: tgbotapi.InlineKeyboardMarkup{
 						InlineKeyboard: [][]tgbotapi.InlineKeyboardButton{{
 							tgbotapi.InlineKeyboardButton{
-								Text:         "1. test 1 - test name 1",
+								Text:         "test 1 - test name 1",
 								CallbackData: utils.GetPointer(`{"name":"building","id":"999"}`),
 							},
 						}},
@@ -108,11 +108,11 @@ func TestHandlerContainer_getNearestAddresses(t *testing.T) {
 					ReplyMarkup: tgbotapi.InlineKeyboardMarkup{
 						InlineKeyboard: [][]tgbotapi.InlineKeyboardButton{{
 							tgbotapi.InlineKeyboardButton{
-								Text:         "1. test 1 - test name 1",
+								Text:         "test 1 - test name 1",
 								CallbackData: utils.GetPointer(`{"name":"building","id":"1000"}`),
 							}},
 							{tgbotapi.InlineKeyboardButton{
-								Text:         "2. test 2 - test name 2",
+								Text:         "test 2 - test name 2",
 								CallbackData: utils.GetPointer(`{"name":"building","id":"999"}`),
 							}},
 						},

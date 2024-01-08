@@ -217,23 +217,30 @@ func (h HandlerContainer) returnAddresses(
 		sendErr := h.SendMessage(ctx, chatID, "Internal error", "")
 		return errors.Join(sendErr, err)
 	}
-	items := make([]string, len(buildings)+1)
-	items[0] = fmt.Sprintf(headerTemplate, address)
-	for i, building := range buildings {
-		items[i+1] = fmt.Sprintf(
-			lineTemplate,
-			offset+i+1,
-			building.Address,
-			building.Name,
+	title := fmt.Sprintf(headerTemplate, address)
+	msg := tgbotapi.NewMessage(chatID, title)
+	if len(buildings) == 0 {
+		msg.Text += "\nNo buildings are found."
+		_, err = h.bot.Send(msg)
+		return err
+	}
+	keyboardRows, err := getBuildingButtonRows(ctx, buildings)
+	if err != nil {
+		slog.ErrorContext(
+			ctx,
+			fmt.Sprintf("can not create building rows: '%v'", address),
+			slog.Any(logger.ErrorKey, err),
 		)
+		return err
 	}
-	response := strings.Join(items, "\n")
 	if len(buildings) < limit {
-		response += "\nEnd"
-		return h.SendMessage(ctx, chatID, response, "")
+		msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(keyboardRows...)
+		_, err = h.bot.Send(msg)
+		if err != nil {
+			slog.WarnContext(ctx, err.Error())
+		}
+		return err
 	}
-
-	msg := tgbotapi.NewMessage(chatID, response)
 	button := NextButton{
 		Button{fmt.Sprintf("Next %v buildings", limit), NEXT_BUTTON},
 		limit,
@@ -252,10 +259,8 @@ func (h HandlerContainer) returnAddresses(
 		button.label,
 		string(buttonCallbackData),
 	)
-	moreAddressesMenuMarkup := tgbotapi.NewInlineKeyboardMarkup(
-		tgbotapi.NewInlineKeyboardRow(buttonData),
-	)
-	msg.ReplyMarkup = moreAddressesMenuMarkup
+	keyboardRows = append(keyboardRows, tgbotapi.NewInlineKeyboardRow(buttonData))
+	msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(keyboardRows...)
 	_, err = h.bot.Send(msg)
 	if err != nil {
 		slog.WarnContext(

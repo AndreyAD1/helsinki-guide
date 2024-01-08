@@ -45,6 +45,11 @@ func TestHandlerContainer_next_positive(t *testing.T) {
 					Message: &tgbotapi.Message{
 						Chat: &tgbotapi.Chat{},
 						Text: "address: test address   \n",
+						ReplyMarkup: &tgbotapi.InlineKeyboardMarkup{
+							InlineKeyboard: [][]tgbotapi.InlineKeyboardButton{
+								{tgbotapi.InlineKeyboardButton{Text: "next"}},
+							},
+						},
 					},
 					Data: `{"name":"next","limit":2,"offset":3}`,
 				},
@@ -150,7 +155,7 @@ func TestHandlerContainer_next_negative(t *testing.T) {
 			"123",
 		},
 		{
-			"valid text",
+			"text without a colon",
 			fields{
 				services.NewBuildings_mock(t),
 				services.NewUsers_mock(t),
@@ -162,7 +167,7 @@ func TestHandlerContainer_next_negative(t *testing.T) {
 					ID: "123",
 					Message: &tgbotapi.Message{
 						Chat: &tgbotapi.Chat{},
-						Text: "address: test address   ",
+						Text: "address test address   \nadditional text",
 					},
 					Data: `{"name":"next","limit":2,"offset":3}`,
 				},

@@ -2,11 +2,9 @@ package handlers
 
 import (
 	c "context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
-	"strconv"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/logger"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -36,41 +34,16 @@ func (h HandlerContainer) getNearestAddresses(ctx c.Context, message *tgbotapi.M
 	}
 	title := fmt.Sprintf("Nearest buildings in %v meters:", DEFAULT_DISTANCE)
 	msg := tgbotapi.NewMessage(message.Chat.ID, title)
-	keyboardRows := [][]tgbotapi.InlineKeyboardButton{}
-	for i, building := range buildings {
-		label := fmt.Sprintf(
-			lineTemplate,
-			i+1,
-			building.Address,
-			building.Name,
-		)
-		button := BuildingButton{
-			Button{label, BUILDING_BUTTON},
-			strconv.FormatInt(building.ID, 10),
-		}
-		buttonCallbackData, err := json.Marshal(button)
-		if err != nil {
-			slog.ErrorContext(
-				ctx,
-				fmt.Sprintf("can not create a button %v", button),
-				slog.Any(logger.ErrorKey, err),
-			)
-			return err
-		}
-		buttonData := tgbotapi.NewInlineKeyboardButtonData(
-			button.label,
-			string(buttonCallbackData),
-		)
-		buttonRow := tgbotapi.NewInlineKeyboardRow(buttonData)
-		keyboardRows = append(keyboardRows, buttonRow)
+	keyboardRows, err := getBuildingButtonRows(ctx, buildings)
+	if err != nil {
+		return err
 	}
-	moreAddressesMenuMarkup := tgbotapi.NewInlineKeyboardMarkup(keyboardRows...)
-	msg.ReplyMarkup = moreAddressesMenuMarkup
+	msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(keyboardRows...)
 	_, err = h.bot.Send(msg)
 	if err != nil {
 		slog.WarnContext(
 			ctx,
-			fmt.Sprintf("can not send an inline keyboard to: %v", message.Chat.ID),
+			fmt.Sprintf("can not send nearest addresses to: %v", message.Chat.ID),
 			slog.Any(logger.ErrorKey, err),
 		)
 	}
