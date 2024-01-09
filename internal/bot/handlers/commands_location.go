@@ -10,7 +10,11 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-const DEFAULT_DISTANCE = 200
+const (
+	DEFAULT_DISTANCE           = 100
+	noNearestBuildingsTemplate = "Unfortunately, I'm not aware of any buildings located within %v metres of your location."
+	nearestBuildingsTemplate   = "Here are the closest buildings I'm aware of, situated within %v meters of your location:"
+)
 
 func (h HandlerContainer) getNearestAddresses(ctx c.Context, message *tgbotapi.Message) error {
 	if message.Chat == nil {
@@ -32,7 +36,11 @@ func (h HandlerContainer) getNearestAddresses(ctx c.Context, message *tgbotapi.M
 		sendErr := h.SendMessage(ctx, message.Chat.ID, "Internal error", "")
 		return errors.Join(sendErr, err)
 	}
-	title := fmt.Sprintf("Nearest buildings in %v meters:", DEFAULT_DISTANCE)
+	if len(buildings) == 0 {
+		msg := fmt.Sprintf(noNearestBuildingsTemplate, DEFAULT_DISTANCE)
+		return h.SendMessage(ctx, message.Chat.ID, msg, "")
+	}
+	title := fmt.Sprintf(nearestBuildingsTemplate, DEFAULT_DISTANCE)
 	msg := tgbotapi.NewMessage(message.Chat.ID, title)
 	keyboardRows, err := getBuildingButtonRows(ctx, buildings)
 	if err != nil {

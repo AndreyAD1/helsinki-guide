@@ -11,7 +11,7 @@ const (
 /settings - I will return a menu so that you can manage your preferences.
 /help - I will show this message.
 
-If you click the button "Share my location and get the nearest buildings", I will return all known addresses that are close to your location.`
+If you click the button "Share my location and get the nearest buildings", I will provide all known addresses that are close to your location.`
 	BUILDING_BUTTON = "building"
 	NEXT_BUTTON     = "next"
 	LANGUAGE_BUTTON = "language"
