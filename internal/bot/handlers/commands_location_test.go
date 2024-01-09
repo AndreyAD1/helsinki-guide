@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/metrics"
@@ -53,6 +54,25 @@ func TestHandlerContainer_getNearestAddresses(t *testing.T) {
 			serviceError,
 		},
 		{
+			"no buildings",
+			fields{
+				services.NewBuildings_mock(t),
+				NewInternalBot_mock(t),
+				map[string]CommandHandler{},
+				map[string]internalButtonHandler{},
+				"",
+				nil,
+			},
+			args{chatID: 123, latitude: 3, longitude: 3},
+			[]services.BuildingPreview{},
+			nil,
+			tgbotapi.MessageConfig{
+				BaseChat: tgbotapi.BaseChat{ChatID: 123},
+				Text:     fmt.Sprintf(noNearestBuildingsTemplate, DEFAULT_DISTANCE),
+			},
+			nil,
+		},
+		{
 			"one building",
 			fields{
 				services.NewBuildings_mock(t),
@@ -80,7 +100,7 @@ func TestHandlerContainer_getNearestAddresses(t *testing.T) {
 						}},
 					},
 				},
-				Text:                  "Nearest buildings in 200 meters:",
+				Text:                  fmt.Sprintf(nearestBuildingsTemplate, DEFAULT_DISTANCE),
 				DisableWebPagePreview: false,
 			},
 			nil,
@@ -118,7 +138,7 @@ func TestHandlerContainer_getNearestAddresses(t *testing.T) {
 						},
 					},
 				},
-				Text:                  "Nearest buildings in 200 meters:",
+				Text:                  fmt.Sprintf(nearestBuildingsTemplate, DEFAULT_DISTANCE),
 				DisableWebPagePreview: false,
 			},
 			nil,

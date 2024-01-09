@@ -46,7 +46,7 @@ func NewCommandContainer(
 	}
 	allHandlers["nearestAddresses"] = CommandHandler{
 		HandlerContainer.getNearestAddresses,
-		"get nearest addresses",
+		"get the nearest addresses",
 	}
 	return HandlerContainer{
 		service,
