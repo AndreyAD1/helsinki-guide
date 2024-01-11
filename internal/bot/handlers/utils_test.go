@@ -50,16 +50,16 @@ func TestSerializeIntoMessage_positive(t *testing.T) {
 		{
 			"dummy fi",
 			args{dummyBuilding, s.Finnish},
-			`<b>Nimi:</b> no data
+			`<b>Nimi:</b> ei tietoja
 <b>Katuosoite:</b> osoite
-<b>Kerrosluku:</b> no data
-<b>Käyttöönottovuosi:</b> no data
-<b>Suunnittelijat:</b> no data
-<b>Julkisivut:</b> no data
-<b>Erityispiirteet:</b> no data
-<b>Huomattavia ominaisuuksia:</b> no data
-<b>Ymparistonkuvaus:</b> no data
-<b>Rakennushistoria:</b> no data`,
+<b>Kerrosluku:</b> ei tietoja
+<b>Käyttöönottovuosi:</b> ei tietoja
+<b>Suunnittelijat:</b> ei tietoja
+<b>Julkisivut:</b> ei tietoja
+<b>Erityispiirteet:</b> ei tietoja
+<b>Huomattavia ominaisuuksia:</b> ei tietoja
+<b>Ympäristönkuvaus:</b> ei tietoja
+<b>Rakennushistoria:</b> ei tietoja`,
 		},
 		{
 			"dummy en",
@@ -100,7 +100,7 @@ func TestSerializeIntoMessage_positive(t *testing.T) {
 <b>Julkisivut:</b> facades fi
 <b>Erityispiirteet:</b> details fi
 <b>Huomattavia ominaisuuksia:</b> features fi
-<b>Ymparistonkuvaus:</b> surroundings fi
+<b>Ympäristönkuvaus:</b> surroundings fi
 <b>Rakennushistoria:</b> history fi`,
 		},
 		{

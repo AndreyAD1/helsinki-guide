@@ -60,6 +60,7 @@ func (p *Populator) Run(
 	fiFilename,
 	enFilename,
 	ruFilename string,
+	firstRowNumber int,
 ) error {
 	var rowSet []*excelize.Rows
 	for _, filename := range []string{fiFilename, enFilename, ruFilename} {
@@ -86,12 +87,13 @@ func (p *Populator) Run(
 		rowSet = append(rowSet, rows)
 	}
 	fiRows, enRows, ruRows := rowSet[0], rowSet[1], rowSet[2]
-	// skip the first line
-	fiRows.Next()
-	enRows.Next()
-	ruRows.Next()
+	for i := 1; i < firstRowNumber; i++ {
+		fiRows.Next()
+		enRows.Next()
+		ruRows.Next()
+	}
 
-	for i := 2; fiRows.Next(); i++ {
+	for i := firstRowNumber; fiRows.Next(); i++ {
 		enRows.Next()
 		ruRows.Next()
 
