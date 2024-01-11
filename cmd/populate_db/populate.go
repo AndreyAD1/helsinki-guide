@@ -15,6 +15,7 @@ import (
 var (
 	dbURL       string
 	sheetName   string
+	firstRow    int
 	PopulateCmd = &cobra.Command{
 		Use:   "populate <finnish-file> <english-file> <russian-file>",
 		Short: "Populate a database",
@@ -41,6 +42,13 @@ func init() {
 		"",
 		"An xlsx sheet name to translate (required)",
 	)
+	PopulateCmd.Flags().IntVarP(
+		&firstRow,
+		"row",
+		"r",
+		2,
+		"first row to get information from",
+	)
 	PopulateCmd.MarkFlagRequired("sheet")
 }
 
@@ -58,7 +66,7 @@ func run(finFile, enFilename, ruFilename string) error {
 	if err != nil {
 		return err
 	}
-	err = populator.Run(ctx, sheetName, finFile, enFilename, ruFilename)
+	err = populator.Run(ctx, sheetName, finFile, enFilename, ruFilename, firstRow)
 	if err != nil {
 		log.Printf("unexpected error: %v", err)
 		os.Exit(1)

@@ -244,6 +244,7 @@ func testRunPopulator(t *testing.T) {
 		fiFilename,
 		enFilename,
 		ruFilename,
+		2,
 	)
 	require.NoError(t, err)
 

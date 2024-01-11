@@ -38,7 +38,7 @@ func (a *actorStorage) Add(ctx context.Context, actor Actor) (*Actor, error) {
 		var pgxError *pgconn.PgError
 		if errors.As(err, &pgxError) {
 			if pgxError.Code == pgerrcode.UniqueViolation {
-				logMsg := fmt.Sprintf("actor duplication: %v", actor)
+				logMsg := fmt.Sprintf("actor duplication: %v", actor.Name)
 				slog.WarnContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
 				var existingActor Actor
 				err := a.dbPool.QueryRow(
