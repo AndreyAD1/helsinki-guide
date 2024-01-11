@@ -44,9 +44,9 @@ type BuildingDTO struct {
 	NotableFeaturesFi *string   `valueLanguage:"fi" nameFi:"Huomattavia_ominaisuuksia" nameEn:"Notable_features" nameRu:"Примечательные_особенности"`
 	NotableFeaturesEn *string   `valueLanguage:"en" nameFi:"Huomattavia_ominaisuuksia" nameEn:"Notable_features" nameRu:"Примечательные_особенности"`
 	NotableFeaturesRu *string   `valueLanguage:"ru" nameFi:"Huomattavia_ominaisuuksia" nameEn:"Notable_features" nameRu:"Примечательные_особенности"`
-	SurroundingsFi    *string   `valueLanguage:"fi" nameFi:"Ymparistonkuvaus" nameEn:"Surroundings" nameRu:"Окрестности"`
-	SurroundingsEn    *string   `valueLanguage:"en" nameFi:"Ymparistonkuvaus" nameEn:"Surroundings" nameRu:"Окрестности"`
-	SurroundingsRu    *string   `valueLanguage:"ru" nameFi:"Ymparistonkuvaus" nameEn:"Surroundings" nameRu:"Окрестности"`
+	SurroundingsFi    *string   `valueLanguage:"fi" nameFi:"Ympäristönkuvaus" nameEn:"Surroundings" nameRu:"Окрестности"`
+	SurroundingsEn    *string   `valueLanguage:"en" nameFi:"Ympäristönkuvaus" nameEn:"Surroundings" nameRu:"Окрестности"`
+	SurroundingsRu    *string   `valueLanguage:"ru" nameFi:"Ympäristönkuvaus" nameEn:"Surroundings" nameRu:"Окрестности"`
 	HistoryFi         *string   `valueLanguage:"fi" nameFi:"Rakennushistoria" nameEn:"Building_history" nameRu:"История_здания"`
 	HistoryEn         *string   `valueLanguage:"en" nameFi:"Rakennushistoria" nameEn:"Building_history" nameRu:"История_здания"`
 	HistoryRu         *string   `valueLanguage:"ru" nameFi:"Rakennushistoria" nameEn:"Building_history" nameRu:"История_здания"`

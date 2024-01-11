@@ -530,14 +530,14 @@ func TestHandlerContainer_getBuilding_withLanguageCheck(t *testing.T) {
 			nil,
 			`<b>Nimi:</b> testi rakennus
 <b>Katuosoite:</b> test address
-<b>Kerrosluku:</b> no data
-<b>Käyttöönottovuosi:</b> no data
-<b>Suunnittelijat:</b> no data
-<b>Julkisivut:</b> no data
-<b>Erityispiirteet:</b> no data
-<b>Huomattavia ominaisuuksia:</b> no data
-<b>Ymparistonkuvaus:</b> no data
-<b>Rakennushistoria:</b> no data`,
+<b>Kerrosluku:</b> ei tietoja
+<b>Käyttöönottovuosi:</b> ei tietoja
+<b>Suunnittelijat:</b> ei tietoja
+<b>Julkisivut:</b> ei tietoja
+<b>Erityispiirteet:</b> ei tietoja
+<b>Huomattavia ominaisuuksia:</b> ei tietoja
+<b>Ympäristönkuvaus:</b> ei tietoja
+<b>Rakennushistoria:</b> ei tietoja`,
 			tgbotapi.ModeHTML,
 		},
 		{
@@ -635,14 +635,14 @@ func TestHandlerContainer_getBuilding_withLanguageCheck(t *testing.T) {
 			nil,
 			`<b>Nimi:</b> testi rakennus
 <b>Katuosoite:</b> test address
-<b>Kerrosluku:</b> no data
-<b>Käyttöönottovuosi:</b> no data
-<b>Suunnittelijat:</b> no data
-<b>Julkisivut:</b> no data
-<b>Erityispiirteet:</b> no data
-<b>Huomattavia ominaisuuksia:</b> no data
-<b>Ymparistonkuvaus:</b> no data
-<b>Rakennushistoria:</b> no data`,
+<b>Kerrosluku:</b> ei tietoja
+<b>Käyttöönottovuosi:</b> ei tietoja
+<b>Suunnittelijat:</b> ei tietoja
+<b>Julkisivut:</b> ei tietoja
+<b>Erityispiirteet:</b> ei tietoja
+<b>Huomattavia ominaisuuksia:</b> ei tietoja
+<b>Ympäristönkuvaus:</b> ei tietoja
+<b>Rakennushistoria:</b> ei tietoja`,
 			tgbotapi.ModeHTML,
 		},
 		{

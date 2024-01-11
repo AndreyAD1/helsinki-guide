@@ -33,14 +33,14 @@ func init() {
 		"dburl",
 		"u",
 		"",
-		"A database URL. You can also use an environment variable 'DATABASE_URL'.",
+		"a database URL. You can also use an environment variable 'DATABASE_URL'",
 	)
 	PopulateCmd.Flags().StringVarP(
 		&sheetName,
 		"sheet",
 		"s",
 		"",
-		"An xlsx sheet name to translate (required)",
+		"an xlsx sheet name to translate (required)",
 	)
 	PopulateCmd.Flags().IntVarP(
 		&firstRow,

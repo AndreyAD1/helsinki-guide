@@ -22,7 +22,7 @@ var tagPerLanguage = map[s.Language]string{
 	s.Russian: "nameRu",
 }
 var noDataPerLanguages = map[s.Language]string{
-	s.Finnish: "no data",
+	s.Finnish: "ei tietoja",
 	s.English: "no data",
 	s.Russian: "нет данных",
 }
