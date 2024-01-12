@@ -3,15 +3,14 @@ package handlers
 const (
 	headerTemplate = "Search address: %s\nAvailable building addresses and names:"
 	buttonTemplate = "%s - %s"
-	helpMessage    = `Available commands: 
+	helpMessage    = `If you send me a message, I will return all addresses I know that are similar to your message.
+If you click the button "Share my location and get the nearest buildings", I will provide all known addresses that are close to your location.
+
+Available commands: 
 /start - I will send a greeting message.
 /addresses - I will return all addresses I know.
-/addresses osoi - I will return all addresses that have the prefix "osoi" or "Osoi". You can try any prefix.
-/building osoite 1 - I will return information about all buildings with an address of "Osoite 1". You can try any address.
 /settings - I will return a menu so that you can manage your preferences.
-/help - I will show this message.
-
-If you click the button "Share my location and get the nearest buildings", I will provide all known addresses that are close to your location.`
+/help - I will show this message.`
 	BUILDING_BUTTON = "building"
 	NEXT_BUTTON     = "next"
 	LANGUAGE_BUTTON = "language"

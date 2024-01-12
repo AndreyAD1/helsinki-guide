@@ -196,8 +196,7 @@ func (h HandlerContainer) settings(ctx c.Context, message *tgbotapi.Message) err
 }
 
 func (h HandlerContainer) getAllAdresses(ctx c.Context, message *tgbotapi.Message) error {
-	address := message.CommandArguments()
-	return h.returnAddresses(ctx, message.Chat.ID, address, defaultLimit, 0)
+	return h.returnAddresses(ctx, message.Chat.ID, "", defaultLimit, 0)
 }
 
 func (h HandlerContainer) returnAddresses(
