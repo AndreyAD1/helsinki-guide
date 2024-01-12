@@ -646,7 +646,7 @@ func TestHandlerContainer_getBuilding_withLanguageCheck(t *testing.T) {
 			tgbotapi.ModeHTML,
 		},
 		{
-			"one building, default ru, a language service",
+			"one building, default ru, a language service error",
 			fields{
 				services.NewBuildings_mock(t),
 				services.NewUsers_mock(t),

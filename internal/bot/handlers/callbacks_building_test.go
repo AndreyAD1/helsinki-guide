@@ -3,10 +3,12 @@ package handlers
 import (
 	"context"
 	"errors"
+	"strconv"
 	"testing"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/metrics"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/services"
+	"github.com/AndreyAD1/helsinki-guide/internal/utils"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
@@ -233,19 +235,20 @@ func TestHandlerContainer_building_ok_noLanguageCheck(t *testing.T) {
 }
 
 func TestHandlerContainer_building_ok(t *testing.T) {
-	botMock := NewInternalBot_mock(t)
-	buildingMock := services.NewBuildings_mock(t)
-	userMock := services.NewUsers_mock(t)
 	tests := []struct {
-		name            string
-		callbackQuery   *tgbotapi.CallbackQuery
-		expectedMessage tgbotapi.MessageConfig
+		name              string
+		callbackQuery     *tgbotapi.CallbackQuery
+		expectedMessage   tgbotapi.MessageConfig
+		building          *services.BuildingDTO
+		buildingError     error
+		preferredLanguage *services.Language
+		languageError     error
 	}{
 		{
 			"one building, default en",
 			&tgbotapi.CallbackQuery{
 				ID:      "123",
-				From:    &tgbotapi.User{ID: 555},
+				From:    &tgbotapi.User{ID: 555, LanguageCode: "en"},
 				Message: &tgbotapi.Message{Chat: &tgbotapi.Chat{ID: 99}},
 				Data:    `{"name": "building", "id": "123"}`,
 			},
@@ -262,10 +265,46 @@ func TestHandlerContainer_building_ok(t *testing.T) {
 <b>Surroundings:</b> no data
 <b>Building history:</b> no data`,
 			),
+			&services.BuildingDTO{Address: "test address"},
+			nil,
+			nil,
+			nil,
+		},
+		{
+			"one building, default ru",
+			&tgbotapi.CallbackQuery{
+				ID:      "123",
+				From:    &tgbotapi.User{ID: 555, LanguageCode: "ru"},
+				Message: &tgbotapi.Message{Chat: &tgbotapi.Chat{ID: 99}},
+				Data:    `{"name": "building", "id": "123"}`,
+			},
+			tgbotapi.NewMessage(
+				99,
+				`<b>Имя:</b> тестовое имя
+<b>Адрес:</b> test address
+<b>Описание:</b> нет данных
+<b>Год постройки:</b> нет данных
+<b>Авторы:</b> нет данных
+<b>Фасады:</b> нет данных
+<b>Интересные детали:</b> нет данных
+<b>Примечательные особенности:</b> нет данных
+<b>Окрестности:</b> нет данных
+<b>История здания:</b> нет данных`,
+			),
+			&services.BuildingDTO{
+				Address: "test address",
+				NameRu:  utils.GetPointer("тестовое имя"),
+			},
+			nil,
+			nil,
+			nil,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			botMock := NewInternalBot_mock(t)
+			buildingMock := services.NewBuildings_mock(t)
+			userMock := services.NewUsers_mock(t)
 			tt.expectedMessage.ParseMode = tgbotapi.ModeHTML
 			botMock.EXPECT().
 				Send(tt.expectedMessage).
@@ -273,10 +312,12 @@ func TestHandlerContainer_building_ok(t *testing.T) {
 				On("Request", tgbotapi.NewCallback(tt.callbackQuery.ID, "")).
 				Return(nil, nil)
 			ctx := context.Background()
-			buildingMock.EXPECT().GetBuildingByID(ctx, int64(123)).
-				Return(&services.BuildingDTO{Address: "test address"}, nil)
+			id, err := strconv.ParseInt(tt.callbackQuery.ID, 0, 64)
+			require.NoError(t, err)
+			buildingMock.EXPECT().GetBuildingByID(ctx, id).
+				Return(tt.building, tt.buildingError)
 			userMock.EXPECT().GetPreferredLanguage(ctx, tt.callbackQuery.From.ID).
-				Return(&services.English, nil)
+				Return(tt.preferredLanguage, tt.languageError)
 			h := HandlerContainer{
 				buildingMock,
 				userMock,
@@ -287,7 +328,7 @@ func TestHandlerContainer_building_ok(t *testing.T) {
 				metrics.NewMetrics(prometheus.NewRegistry()),
 				map[string]CommandHandler{},
 			}
-			err := h.building(ctx, tt.callbackQuery)
+			err = h.building(ctx, tt.callbackQuery)
 			require.NoError(t, err)
 		})
 	}
