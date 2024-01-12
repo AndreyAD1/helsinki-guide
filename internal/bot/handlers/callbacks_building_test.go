@@ -245,7 +245,7 @@ func TestHandlerContainer_building_ok(t *testing.T) {
 		languageError     error
 	}{
 		{
-			"one building, default en",
+			"default en",
 			&tgbotapi.CallbackQuery{
 				ID:      "123",
 				From:    &tgbotapi.User{ID: 555, LanguageCode: "en"},
@@ -271,7 +271,7 @@ func TestHandlerContainer_building_ok(t *testing.T) {
 			nil,
 		},
 		{
-			"one building, default ru",
+			"default ru",
 			&tgbotapi.CallbackQuery{
 				ID:      "123",
 				From:    &tgbotapi.User{ID: 555, LanguageCode: "ru"},
@@ -298,6 +298,130 @@ func TestHandlerContainer_building_ok(t *testing.T) {
 			nil,
 			nil,
 			nil,
+		},
+		{
+			"default fi",
+			&tgbotapi.CallbackQuery{
+				ID:      "123",
+				From:    &tgbotapi.User{ID: 555, LanguageCode: "fi"},
+				Message: &tgbotapi.Message{Chat: &tgbotapi.Chat{ID: 99}},
+				Data:    `{"name": "building", "id": "123"}`,
+			},
+			tgbotapi.NewMessage(
+				99,
+				`<b>Nimi:</b> testi rakennus
+<b>Katuosoite:</b> test address
+<b>Kerrosluku:</b> ei tietoja
+<b>Käyttöönottovuosi:</b> ei tietoja
+<b>Suunnittelijat:</b> ei tietoja
+<b>Julkisivut:</b> ei tietoja
+<b>Erityispiirteet:</b> ei tietoja
+<b>Huomattavia ominaisuuksia:</b> ei tietoja
+<b>Ympäristönkuvaus:</b> ei tietoja
+<b>Rakennushistoria:</b> ei tietoja`,
+			),
+			&services.BuildingDTO{
+				Address: "test address",
+				NameFi:  utils.GetPointer("testi rakennus"),
+				NameEn:  utils.GetPointer("test building"),
+				NameRu:  utils.GetPointer("тестовое имя"),
+			},
+			nil,
+			nil,
+			nil,
+		},
+		{
+			"unknown default language",
+			&tgbotapi.CallbackQuery{
+				ID:      "123",
+				From:    &tgbotapi.User{ID: 555, LanguageCode: "unknown"},
+				Message: &tgbotapi.Message{Chat: &tgbotapi.Chat{ID: 99}},
+				Data:    `{"name": "building", "id": "123"}`,
+			},
+			tgbotapi.NewMessage(
+				99,
+				`<b>Name:</b> test building
+<b>Address:</b> test address
+<b>Description:</b> no data
+<b>Completion year:</b> no data
+<b>Authors:</b> no data
+<b>Facades:</b> no data
+<b>Interesting details:</b> no data
+<b>Notable features:</b> no data
+<b>Surroundings:</b> no data
+<b>Building history:</b> no data`,
+			),
+			&services.BuildingDTO{
+				Address: "test address",
+				NameFi:  utils.GetPointer("testi rakennus"),
+				NameEn:  utils.GetPointer("test building"),
+				NameRu:  utils.GetPointer("тестовое имя"),
+			},
+			nil,
+			nil,
+			nil,
+		},
+		{
+			"preferred Finnish",
+			&tgbotapi.CallbackQuery{
+				ID:      "123",
+				From:    &tgbotapi.User{ID: 555, LanguageCode: "en"},
+				Message: &tgbotapi.Message{Chat: &tgbotapi.Chat{ID: 99}},
+				Data:    `{"name": "building", "id": "123"}`,
+			},
+			tgbotapi.NewMessage(
+				99,
+				`<b>Nimi:</b> testi rakennus
+<b>Katuosoite:</b> test address
+<b>Kerrosluku:</b> ei tietoja
+<b>Käyttöönottovuosi:</b> ei tietoja
+<b>Suunnittelijat:</b> ei tietoja
+<b>Julkisivut:</b> ei tietoja
+<b>Erityispiirteet:</b> ei tietoja
+<b>Huomattavia ominaisuuksia:</b> ei tietoja
+<b>Ympäristönkuvaus:</b> ei tietoja
+<b>Rakennushistoria:</b> ei tietoja`,
+			),
+			&services.BuildingDTO{
+				Address: "test address",
+				NameFi:  utils.GetPointer("testi rakennus"),
+				NameEn:  utils.GetPointer("test building"),
+				NameRu:  utils.GetPointer("тестовое имя"),
+			},
+			nil,
+			&services.Finnish,
+			nil,
+		},
+		{
+			"language service error",
+			&tgbotapi.CallbackQuery{
+				ID:      "123",
+				From:    &tgbotapi.User{ID: 555, LanguageCode: "ru"},
+				Message: &tgbotapi.Message{Chat: &tgbotapi.Chat{ID: 99}},
+				Data:    `{"name": "building", "id": "123"}`,
+			},
+			tgbotapi.NewMessage(
+				99,
+				`<b>Имя:</b> тестовое имя
+<b>Адрес:</b> test address
+<b>Описание:</b> нет данных
+<b>Год постройки:</b> нет данных
+<b>Авторы:</b> нет данных
+<b>Фасады:</b> нет данных
+<b>Интересные детали:</b> нет данных
+<b>Примечательные особенности:</b> нет данных
+<b>Окрестности:</b> нет данных
+<b>История здания:</b> нет данных`,
+			),
+			&services.BuildingDTO{
+				Address: "test address",
+				NameFi:  utils.GetPointer("testi rakennus"),
+				NameEn:  utils.GetPointer("test building"),
+				NameRu:  utils.GetPointer("тестовое имя"),
+			},
+			nil,
+			nil,
+			errors.New("some language error"),
 		},
 	}
 	for _, tt := range tests {
