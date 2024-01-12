@@ -118,7 +118,7 @@ func (h HandlerContainer) ProcessCommonMessage(ctx c.Context, message *tgbotapi.
 			ctx,
 			message.Chat.ID,
 			fmt.Sprintf(
-				"Please enter an address shorter than %v.",
+				"Please enter an address with less than %v characters.",
 				MAX_MESSAGE_LENGTH,
 			),
 			tgbotapi.ModeHTML,
