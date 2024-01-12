@@ -11,9 +11,10 @@ Available commands:
 /addresses - I will return all addresses I know.
 /settings - I will return a menu so that you can manage your preferences.
 /help - I will show this message.`
-	BUILDING_BUTTON = "building"
-	NEXT_BUTTON     = "next"
-	LANGUAGE_BUTTON = "language"
+	BUILDING_BUTTON    = "building"
+	NEXT_BUTTON        = "next"
+	LANGUAGE_BUTTON    = "language"
+	MAX_MESSAGE_LENGTH = 50
 )
 
 var handlersPerCommand = map[string]CommandHandler{

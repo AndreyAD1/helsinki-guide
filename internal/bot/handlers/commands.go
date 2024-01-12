@@ -9,6 +9,7 @@ import (
 	"slices"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/logger"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/metrics"
@@ -100,6 +101,30 @@ func (h HandlerContainer) GetButtonHandler(buttonName string) (ButtonHandler, bo
 		return err
 	}
 	return metricWrapper, ok
+}
+
+func (h HandlerContainer) ProcessCommonMessage(ctx c.Context, message *tgbotapi.Message) error {
+	filteredText := strings.Trim(message.Text, " ")
+	if filteredText == "" {
+		return h.SendMessage(
+			ctx,
+			message.Chat.ID,
+			"Please enter any address.",
+			tgbotapi.ModeHTML,
+		)
+	}
+	if utf8.RuneCountInString(filteredText) > MAX_MESSAGE_LENGTH {
+		return h.SendMessage(
+			ctx,
+			message.Chat.ID,
+			fmt.Sprintf(
+				"Please enter an address shorter than %v.",
+				MAX_MESSAGE_LENGTH,
+			),
+			tgbotapi.ModeHTML,
+		)
+	}
+	return h.returnAddresses(ctx, message.Chat.ID, filteredText, defaultLimit, 0)
 }
 
 func (h HandlerContainer) SendMessage(ctx c.Context, chatId int64, msgText string, parseMode string) error {
