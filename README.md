@@ -19,7 +19,7 @@ The project relies on [a dataset provided by the Helsinki City Museum](https://h
 
 ## Getting Started
 - Get your bot API key from [@BotFather](https://t.me/BotFather) - `BOT_TOKEN`.
-- Create a new PostgreSQL database, get a `DATABASE_URL`.
+- Create a new PostgreSQL database, install an [`earthdistance` extension](https://www.postgresql.org/docs/15/earthdistance.html), get a `DATABASE_URL`.
 - Populate the database with data (see ["Prepare data"](#prepare-data) for details).
 - Install [Docker](https://docs.docker.com/engine/).
 - Build a bot container: 
