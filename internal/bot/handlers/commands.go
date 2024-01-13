@@ -9,6 +9,7 @@ import (
 	"slices"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/logger"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/metrics"
@@ -100,6 +101,40 @@ func (h HandlerContainer) GetButtonHandler(buttonName string) (ButtonHandler, bo
 		return err
 	}
 	return metricWrapper, ok
+}
+
+func (h HandlerContainer) ProcessCommonMessage(ctx c.Context, message *tgbotapi.Message) error {
+	now := time.Now()
+	filteredText := strings.Trim(message.Text, " ")
+	if filteredText == "" {
+		return h.SendMessage(
+			ctx,
+			message.Chat.ID,
+			"Please enter any address.",
+			tgbotapi.ModeHTML,
+		)
+	}
+	if utf8.RuneCountInString(filteredText) > MAX_MESSAGE_LENGTH {
+		return h.SendMessage(
+			ctx,
+			message.Chat.ID,
+			fmt.Sprintf(
+				"Please enter an address with less than %v characters.",
+				MAX_MESSAGE_LENGTH,
+			),
+			tgbotapi.ModeHTML,
+		)
+	}
+	err := h.returnAddresses(ctx, message.Chat.ID, filteredText, defaultLimit, 0)
+	h.metrics.CommandDuration.With(
+		prometheus.Labels{"command_name": "common_message"},
+	).Observe(time.Since(now).Seconds())
+	if err != nil {
+		h.metrics.HandlerErrors.With(
+			prometheus.Labels{"handler_name": "common_message"},
+		).Inc()
+	}
+	return err
 }
 
 func (h HandlerContainer) SendMessage(ctx c.Context, chatId int64, msgText string, parseMode string) error {
@@ -196,8 +231,7 @@ func (h HandlerContainer) settings(ctx c.Context, message *tgbotapi.Message) err
 }
 
 func (h HandlerContainer) getAllAdresses(ctx c.Context, message *tgbotapi.Message) error {
-	address := message.CommandArguments()
-	return h.returnAddresses(ctx, message.Chat.ID, address, defaultLimit, 0)
+	return h.returnAddresses(ctx, message.Chat.ID, "", defaultLimit, 0)
 }
 
 func (h HandlerContainer) returnAddresses(
@@ -270,47 +304,4 @@ func (h HandlerContainer) returnAddresses(
 		)
 	}
 	return err
-}
-
-func (h HandlerContainer) getBuilding(ctx c.Context, message *tgbotapi.Message) error {
-	address := message.CommandArguments()
-	if address == "" {
-		return h.SendMessage(
-			ctx,
-			message.Chat.ID,
-			"Please add an address to this command.",
-			"",
-		)
-	}
-	buildings, err := h.buildingService.GetBuildingsByAddress(ctx, address)
-	if err != nil {
-		slog.WarnContext(
-			ctx,
-			fmt.Sprintf("can not get building by address '%s'", address),
-			slog.Any(logger.ErrorKey, err),
-		)
-		sendErr := h.SendMessage(ctx, message.Chat.ID, "Internal error.", "")
-		return errors.Join(sendErr, err)
-	}
-	if len(buildings) == 0 {
-		response := "Unfortunately, I don't know this address."
-		return h.SendMessage(ctx, message.Chat.ID, response, tgbotapi.ModeHTML)
-	}
-	userLanguage := h.getPreferredLanguage(ctx, message.From)
-	items := make([]string, len(buildings))
-	for i, building := range buildings {
-		serializedItem, err := SerializeIntoMessage(building, userLanguage)
-		if err != nil {
-			slog.ErrorContext(
-				ctx,
-				fmt.Sprintf("can not serialize a building '%s'", address),
-				slog.Any(logger.ErrorKey, err),
-			)
-			items[i] = "A building error."
-			continue
-		}
-		items[i] = serializedItem
-	}
-	response := strings.Join(items, "\n\n")
-	return h.SendMessage(ctx, message.Chat.ID, response, tgbotapi.ModeHTML)
 }

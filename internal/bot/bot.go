@@ -257,25 +257,12 @@ func (s *Server) handleMessage(ctx context.Context, message *tgbotapi.Message) {
 		handlerName = "nearestAddresses"
 	}
 	handler, ok := s.handlers.GetCommandHandler(handlerName)
-	slog.DebugContext(ctx, "handle a command", slog.String("command", message.Command()))
 	if ok {
+		slog.DebugContext(ctx, "handle a command", slog.String("command", message.Command()))
 		handler(ctx, message)
 		return
 	}
-	answer := fmt.Sprintf(
-		"Unfortunately, I don't understand this message: %s",
-		message.Text,
-	)
-	responseMsg := tgbotapi.NewMessage(message.Chat.ID, answer)
-	if _, err := s.bot.Send(responseMsg); err != nil {
-		logMsg := fmt.Sprintf(
-			"can not send a message to %v: %v",
-			message.Chat.ID,
-			answer,
-		)
-		slog.WarnContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
-	}
-	s.metrics.UnexpectedUpdates.With(prom.Labels{"error": "unexpected command"}).Inc()
+	s.handlers.ProcessCommonMessage(ctx, message)
 }
 
 func (s *Server) handleButton(ctx context.Context, query *tgbotapi.CallbackQuery) {
