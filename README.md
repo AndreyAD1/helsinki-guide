@@ -2,8 +2,6 @@
 This repository contains the code for a Telegram bot designed to provide information about notable buildings in Helsinki. 
 The bot is working at [https://t.me/HelsinkiGuide_bot](https://t.me/HelsinkiGuide_bot).
 
-Please note that this project is still a work in progress.
-
 ## Motivation
 Helsinki boasts many fascinating buildings, but finding information about them 
 can be challenging. 
