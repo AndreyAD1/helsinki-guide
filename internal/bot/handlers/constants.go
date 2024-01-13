@@ -3,7 +3,7 @@ package handlers
 const (
 	headerTemplate = "Search address: %s\nAvailable building addresses and names:"
 	buttonTemplate = "%s - %s"
-	helpMessage    = `If you send me a message, I will return all addresses I know that are similar to your message.
+	helpMessage    = `If you send me a message, I will provide all addresses I know that are similar to your message.
 If you click the button "Share my location and get the nearest buildings", I will provide all known addresses that are close to your location.
 
 Available commands: 
