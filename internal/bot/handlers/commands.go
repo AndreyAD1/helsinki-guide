@@ -104,6 +104,7 @@ func (h HandlerContainer) GetButtonHandler(buttonName string) (ButtonHandler, bo
 }
 
 func (h HandlerContainer) ProcessCommonMessage(ctx c.Context, message *tgbotapi.Message) error {
+	now := time.Now()
 	filteredText := strings.Trim(message.Text, " ")
 	if filteredText == "" {
 		return h.SendMessage(
@@ -124,7 +125,16 @@ func (h HandlerContainer) ProcessCommonMessage(ctx c.Context, message *tgbotapi.
 			tgbotapi.ModeHTML,
 		)
 	}
-	return h.returnAddresses(ctx, message.Chat.ID, filteredText, defaultLimit, 0)
+	err := h.returnAddresses(ctx, message.Chat.ID, filteredText, defaultLimit, 0)
+	h.metrics.CommandDuration.With(
+		prometheus.Labels{"command_name": "common_message"},
+	).Observe(time.Since(now).Seconds())
+	if err != nil {
+		h.metrics.HandlerErrors.With(
+			prometheus.Labels{"handler_name": "common_message"},
+		).Inc()
+	}
+	return err
 }
 
 func (h HandlerContainer) SendMessage(ctx c.Context, chatId int64, msgText string, parseMode string) error {
