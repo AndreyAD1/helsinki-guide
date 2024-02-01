@@ -6,7 +6,7 @@ const (
 	helpMessage    = `If you send me a message, I will provide all addresses I know that are similar to your message.
 If you click the button "Share my location and get the nearest buildings", I will provide all known addresses that are close to your location.
 
-Available commands: 
+Available commands:
 /start - I will send a greeting message.
 /addresses - I will return all addresses I know.
 /settings - I will return a menu so that you can manage your preferences.
