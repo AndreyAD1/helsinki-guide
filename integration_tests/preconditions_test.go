@@ -54,13 +54,13 @@ func TestMain(m *testing.M) {
 		log.Fatalf("Could not construct a pool: %s", err)
 	}
 
-	log.Println("ping a docker service")
+	log.Println("ping a Docker service")
 	err = dockerPool.Client.Ping()
 	if err != nil {
 		log.Fatalf("Could not connect to Docker: %s", err)
 	}
 
-	log.Println("run a postgres container")
+	log.Println("run a PostgreSQL container")
 	resource, err := dockerPool.BuildAndRunWithBuildOptions(
 		&dockertest.BuildOptions{
 			Dockerfile: "./Dockerfile",
@@ -112,14 +112,15 @@ func TestMain(m *testing.M) {
 	}); err != nil {
 		log.Fatalf("Could not connect to a DB container: %s", err)
 	}
-	code := m.Run()
-
-	log.Printf("a test exit code: %v; cleaning up", code)
-	if err := dockerPool.Purge(resource); err != nil {
-		log.Fatalf("Could not purge a docker resource: %s", err)
-	}
-
-	os.Exit(code)
+	var code int
+	defer func() {
+		log.Printf("a test exit code: %v; cleaning up", code)
+		if err := dockerPool.Purge(resource); err != nil {
+			log.Fatalf("Could not purge a docker resource: %s", err)
+		}
+		os.Exit(code)
+	}()
+	code = m.Run()
 }
 
 func TestDBInteractions(t *testing.T) {

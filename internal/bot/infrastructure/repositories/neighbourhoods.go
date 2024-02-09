@@ -28,11 +28,47 @@ func (n *neighbourhoodStorage) Add(
 ) (*Neighbourhood, error) {
 	selectQuery := `SELECT id, name, municipality, created_at, updated_at,
 	deleted_at FROM neighbourhoods WHERE name = $1 AND `
+	var row pgx.Row
+	if neighbourhood.Municipality == nil {
+		row = n.dbPool.QueryRow(
+			ctx,
+			selectQuery+"municipality is NULL;",
+			neighbourhood.Name,
+		)
+	} else {
+		row = n.dbPool.QueryRow(
+			ctx,
+			selectQuery+"municipality = $2;",
+			neighbourhood.Name,
+			neighbourhood.Municipality,
+		)
+	}
+	var saved Neighbourhood
+	err := row.Scan(
+		&saved.ID,
+		&saved.Name,
+		&saved.Municipality,
+		&saved.CreatedAt,
+		&saved.UpdatedAt,
+		&saved.deletedAt,
+	)
+	if err == nil {
+		return &saved, ErrDuplicate
+	}
+	unexpectedMsg := fmt.Sprintf(
+		"unexpected DB error for a neighbourhood '%v-%v'",
+		neighbourhood.Name,
+		neighbourhood.Municipality,
+	)
+	if err != pgx.ErrNoRows {
+		slog.WarnContext(ctx, unexpectedMsg, slog.Any(logger.ErrorKey, err))
+		return nil, err
+	}
+
 	insertQuery := `INSERT INTO neighbourhoods (name, municipality)
 	VALUES ($1, $2) RETURNING id, name, municipality, created_at, updated_at,
 	deleted_at;`
-	var saved Neighbourhood
-	err := n.dbPool.QueryRow(
+	err = n.dbPool.QueryRow(
 		ctx,
 		insertQuery,
 		neighbourhood.Name,
@@ -53,11 +89,7 @@ func (n *neighbourhoodStorage) Add(
 		slog.WarnContext(ctx, "unexpected DB error", slog.Any(l.ErrorKey, err))
 		return nil, err
 	}
-	unexpectedMsg := fmt.Sprintf(
-		"unexpected DB error for a neighbourhood '%v-%v'",
-		neighbourhood.Name,
-		neighbourhood.Municipality,
-	)
+
 	if pgxError.Code != pgerrcode.UniqueViolation {
 		slog.WarnContext(ctx, unexpectedMsg, slog.Any(logger.ErrorKey, err))
 		return nil, err
@@ -73,34 +105,6 @@ func (n *neighbourhoodStorage) Add(
 		municipality,
 	)
 	slog.DebugContext(ctx, logMsg, slog.Any(logger.ErrorKey, err))
-	var row pgx.Row
-	if neighbourhood.Municipality == nil {
-		row = n.dbPool.QueryRow(
-			ctx,
-			selectQuery+"municipality is NULL;",
-			neighbourhood.Name,
-		)
-	} else {
-		row = n.dbPool.QueryRow(
-			ctx,
-			selectQuery+"municipality = $2;",
-			neighbourhood.Name,
-			neighbourhood.Municipality,
-		)
-	}
-
-	err = row.Scan(
-		&saved.ID,
-		&saved.Name,
-		&saved.Municipality,
-		&saved.CreatedAt,
-		&saved.UpdatedAt,
-		&saved.deletedAt,
-	)
-	if err != nil {
-		slog.WarnContext(ctx, unexpectedMsg, slog.Any(logger.ErrorKey, err))
-		return nil, err
-	}
 	return &saved, ErrDuplicate
 }
 
