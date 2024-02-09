@@ -114,7 +114,7 @@ func (h HandlerContainer) ProcessCommonMessage(ctx c.Context, message *tgbotapi.
 			tgbotapi.ModeHTML,
 		)
 	}
-	if utf8.RuneCountInString(filteredText) > MAX_MESSAGE_LENGTH {
+	if utf8.RuneCountInString(filteredText) >= MAX_MESSAGE_LENGTH {
 		return h.SendMessage(
 			ctx,
 			message.Chat.ID,
