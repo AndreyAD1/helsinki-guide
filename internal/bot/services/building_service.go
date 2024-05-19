@@ -33,6 +33,7 @@ func NewBuildingDTO(b r.Building, authors []r.Actor) BuildingDTO {
 		authorPtr = &authorNames
 	}
 	return BuildingDTO{
+		ID:                b.ID,
 		NameFi:            b.NameFi,
 		NameEn:            b.NameEn,
 		NameRu:            b.NameRu,
@@ -60,12 +61,12 @@ func NewBuildingDTO(b r.Building, authors []r.Actor) BuildingDTO {
 	}
 }
 
-func (bs BuildingService) GetBuildingPreviews(
+func (bs BuildingService) GetBuildings(
 	ctx context.Context,
 	addressPrefix string,
 	limit,
 	offset int,
-) ([]BuildingPreview, error) {
+) ([]BuildingDTO, error) {
 	addressPrefix = strings.TrimLeft(addressPrefix, " ")
 	spec := r.NewBuildingSpecificationByAlikeAddress(addressPrefix, limit, offset)
 	buildings, err := bs.buildingCollection.Query(ctx, spec)
@@ -78,13 +79,9 @@ func (bs BuildingService) GetBuildingPreviews(
 		return nil, err
 	}
 
-	previews := make([]BuildingPreview, len(buildings))
+	previews := make([]BuildingDTO, len(buildings))
 	for i, building := range buildings {
-		name := ""
-		if building.NameFi != nil {
-			name = *building.NameFi
-		}
-		previews[i] = BuildingPreview{building.ID, building.Address.StreetAddress, name}
+		previews[i] = NewBuildingDTO(building, nil)
 	}
 	return previews, nil
 }
@@ -133,14 +130,14 @@ func (bs BuildingService) GetBuildingByID(
 	return &buildingDTO, nil
 }
 
-func (bs BuildingService) GetNearestBuildingPreviews(
+func (bs BuildingService) GetNearestBuildings(
 	ctx context.Context,
 	distanceMeters int,
 	latitude,
 	longitude float64,
 	limit,
 	offset int,
-) ([]BuildingPreview, error) {
+) ([]BuildingDTO, error) {
 	spec := r.NewBuildingSpecificationNearest(
 		distanceMeters,
 		latitude,
@@ -162,17 +159,9 @@ func (bs BuildingService) GetNearestBuildingPreviews(
 		return nil, err
 	}
 
-	previews := make([]BuildingPreview, len(buildings))
+	previews := make([]BuildingDTO, len(buildings))
 	for i, building := range buildings {
-		name := ""
-		if building.NameFi != nil {
-			name = *building.NameFi
-		}
-		previews[i] = BuildingPreview{
-			building.ID,
-			building.Address.StreetAddress,
-			name,
-		}
+		previews[i] = NewBuildingDTO(building, nil)
 	}
 	return previews, nil
 }

@@ -42,11 +42,7 @@ func SerializeIntoMessage(object any, outputLanguage s.Language) (string, error)
 	for _, field := range reflect.VisibleFields(t) {
 		valueLanguage, ok := field.Tag.Lookup("valueLanguage")
 		if !ok {
-			return "", fmt.Errorf(
-				"no language tag for the field '%s': %w",
-				field.Name,
-				ErrNoFieldTag,
-			)
+			continue
 		}
 		if valueLanguage != string(outputLanguage) && valueLanguage != "all" {
 			continue
@@ -112,11 +108,19 @@ func SerializeIntoMessage(object any, outputLanguage s.Language) (string, error)
 
 func getBuildingButtonRows(
 	ctx context.Context,
-	buildings []services.BuildingPreview,
+	language services.Language,
+	buildings []services.BuildingDTO,
 ) ([][]tgbotapi.InlineKeyboardButton, error) {
 	keyboardRows := [][]tgbotapi.InlineKeyboardButton{}
 	for _, building := range buildings {
-		label := fmt.Sprintf(buttonTemplate, building.Address, building.Name)
+		buildingName := building.NameEn
+		switch language {
+		case s.Finnish:
+			buildingName = building.NameFi
+		case s.Russian:
+			buildingName = building.NameRu
+		}
+		label := fmt.Sprintf(buttonTemplate, building.Address, buildingName)
 		button := BuildingButton{
 			Button{label, BUILDING_BUTTON},
 			strconv.FormatInt(building.ID, 10),

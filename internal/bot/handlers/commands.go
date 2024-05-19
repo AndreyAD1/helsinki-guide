@@ -125,7 +125,7 @@ func (h HandlerContainer) ProcessCommonMessage(ctx c.Context, message *tgbotapi.
 			tgbotapi.ModeHTML,
 		)
 	}
-	err := h.returnAddresses(ctx, message.Chat.ID, filteredText, defaultLimit, 0)
+	err := h.returnAddresses(ctx, message.Chat.ID, message.From, filteredText, defaultLimit, 0)
 	h.metrics.CommandDuration.With(
 		prometheus.Labels{"command_name": "common_message"},
 	).Observe(time.Since(now).Seconds())
@@ -231,17 +231,18 @@ func (h HandlerContainer) settings(ctx c.Context, message *tgbotapi.Message) err
 }
 
 func (h HandlerContainer) getAllAdresses(ctx c.Context, message *tgbotapi.Message) error {
-	return h.returnAddresses(ctx, message.Chat.ID, "", defaultLimit, 0)
+	return h.returnAddresses(ctx, message.Chat.ID, message.From, "", defaultLimit, 0)
 }
 
 func (h HandlerContainer) returnAddresses(
 	ctx c.Context,
 	chatID int64,
+	user *tgbotapi.User,
 	address string,
 	limit,
 	offset int,
 ) error {
-	buildings, err := h.buildingService.GetBuildingPreviews(
+	buildings, err := h.buildingService.GetBuildings(
 		ctx,
 		address,
 		limit,
@@ -251,14 +252,22 @@ func (h HandlerContainer) returnAddresses(
 		sendErr := h.SendMessage(ctx, chatID, "Internal error", "")
 		return errors.Join(sendErr, err)
 	}
+	language := h.getPreferredLanguage(ctx, user)
 	title := fmt.Sprintf(headerTemplate, address)
 	msg := tgbotapi.NewMessage(chatID, title)
 	if len(buildings) == 0 {
-		msg.Text += "\nNo buildings are found."
+		noBuildingsText := "No buildings were found."
+		switch language {
+		case services.Finnish:
+			noBuildingsText = "Rakennuksia ei löytynyt."
+		case services.Russian:
+			noBuildingsText = "Здания не найдены."
+		}
+		msg.Text += "\n" + noBuildingsText
 		_, err = h.bot.Send(msg)
 		return err
 	}
-	keyboardRows, err := getBuildingButtonRows(ctx, buildings)
+	keyboardRows, err := getBuildingButtonRows(ctx, language, buildings)
 	if err != nil {
 		slog.ErrorContext(
 			ctx,

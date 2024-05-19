@@ -3,21 +3,21 @@ package services
 import "context"
 
 type Buildings interface {
-	GetBuildingPreviews(
+	GetBuildings(
 		ctx context.Context,
 		addressPrefix string,
 		limit,
 		offset int,
-	) ([]BuildingPreview, error)
+	) ([]BuildingDTO, error)
 	GetBuildingsByAddress(c context.Context, address string) ([]BuildingDTO, error)
-	GetNearestBuildingPreviews(
+	GetNearestBuildings(
 		ctx context.Context,
 		distance int,
 		latitude,
 		longitude float64,
 		limit,
 		offset int,
-	) ([]BuildingPreview, error)
+	) ([]BuildingDTO, error)
 	GetBuildingByID(c context.Context, ID int64) (*BuildingDTO, error)
 }
 type Users interface {

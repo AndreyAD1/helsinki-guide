@@ -71,7 +71,14 @@ func (h HandlerContainer) next(ctx c.Context, query *tgbotapi.CallbackQuery) err
 		return fmt.Errorf("%v: %w", logMsg, ErrUnexpectedCallback)
 	}
 	address = strings.TrimSpace(address)
-	if err := h.returnAddresses(ctx, chat.ID, address, button.Limit, button.Offset); err != nil {
+	if err := h.returnAddresses(
+		ctx,
+		chat.ID,
+		query.From,
+		address,
+		button.Limit,
+		button.Offset,
+	); err != nil {
 		return err
 	}
 	if query.Message.ReplyMarkup == nil {

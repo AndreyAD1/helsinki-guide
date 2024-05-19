@@ -26,6 +26,7 @@ type BuildingPreview struct {
 }
 
 type BuildingDTO struct {
+	ID                int64
 	NameFi            *string   `valueLanguage:"fi" nameFi:"Nimi" nameEn:"Name" nameRu:"Имя"`
 	NameEn            *string   `valueLanguage:"en" nameFi:"Nimi" nameEn:"Name" nameRu:"Имя"`
 	NameRu            *string   `valueLanguage:"ru" nameFi:"Nimi" nameEn:"Name" nameRu:"Имя"`
