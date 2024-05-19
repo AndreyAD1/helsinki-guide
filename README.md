@@ -11,7 +11,7 @@ This project's primary goal is to make such information more easily accessible.
 The project relies on [a dataset provided by the Helsinki City Museum](https://hri.fi/data/en_GB/dataset/helsinkilaisten-rakennusten-historiatietoja).
 
 ## Project Goals
-1. Translate the dataset into English and Russian. *(pending)* ⏳
+1. Translate the dataset into English and Russian. ✅
 2. Create a Telegram bot to deliver this dataset to bot users. ✅
 3. Allow a user to configurate his preferences. *(pending)* ⏳
 4. Allow a user to search buildings per location. ✅
