@@ -122,7 +122,7 @@ func TestBuildingService_GetNearestPreviews(t *testing.T) {
 				buildingCollection: tt.fields.buildingCollection,
 				actorCollection:    tt.fields.actorCollection,
 			}
-			got, err := bs.GetNearestBuildingPreviews(
+			got, err := bs.GetNearestBuildings(
 				tt.args.ctx,
 				tt.args.distance,
 				tt.args.latitude,

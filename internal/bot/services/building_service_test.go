@@ -118,7 +118,7 @@ func TestBuildingService_GetBuildingPreviews(t *testing.T) {
 				buildingCollection: tt.fields.buildingCollection,
 				actorCollection:    tt.fields.actorCollection,
 			}
-			got, err := bs.GetBuildingPreviews(
+			got, err := bs.GetBuildings(
 				tt.args.ctx,
 				tt.args.addressPrefix,
 				tt.args.limit,

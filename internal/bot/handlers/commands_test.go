@@ -7,6 +7,7 @@ import (
 
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/metrics"
 	"github.com/AndreyAD1/helsinki-guide/internal/bot/services"
+	"github.com/AndreyAD1/helsinki-guide/internal/utils"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
@@ -27,12 +28,12 @@ func TestHandlerContainer_returnAddresses(t *testing.T) {
 		offset  int
 	}
 	tests := []struct {
-		name             string
-		fields           fields
-		args             args
-		buildingPreviews []services.BuildingPreview
-		buildingError    error
-		expectedMsg      tgbotapi.MessageConfig
+		name          string
+		fields        fields
+		args          args
+		buildings     []services.BuildingDTO
+		buildingError error
+		expectedMsg   tgbotapi.MessageConfig
 	}{
 		{
 			"a building error",
@@ -45,7 +46,7 @@ func TestHandlerContainer_returnAddresses(t *testing.T) {
 				nil,
 			},
 			args{chatID: 123},
-			[]services.BuildingPreview{},
+			[]services.BuildingDTO{},
 			errors.New("some error"),
 			tgbotapi.NewMessage(123, "Internal error"),
 		},
@@ -60,7 +61,7 @@ func TestHandlerContainer_returnAddresses(t *testing.T) {
 				nil,
 			},
 			args{chatID: 123, limit: 1},
-			[]services.BuildingPreview{},
+			[]services.BuildingDTO{},
 			nil,
 			tgbotapi.NewMessage(123, `Search address: 
 Available building addresses and names:
@@ -77,9 +78,9 @@ No buildings are found.`),
 				nil,
 			},
 			args{chatID: 123, limit: 3, offset: 0, address: "test"},
-			[]services.BuildingPreview{
-				{ID: 1, Address: "test 1", Name: "test name 1"},
-				{ID: 2, Address: "test 2", Name: "test name 2"},
+			[]services.BuildingDTO{
+				{ID: 1, Address: "test 1", NameEn: utils.GetPointer("test name 1")},
+				{ID: 2, Address: "test 2", NameEn: utils.GetPointer("test name 2")},
 			},
 			nil,
 			tgbotapi.MessageConfig{
@@ -115,9 +116,9 @@ Available building addresses and names:`,
 				nil,
 			},
 			args{chatID: 123, limit: 3, offset: 1, address: "test"},
-			[]services.BuildingPreview{
-				{ID: 2, Address: "test 1", Name: "test name 1"},
-				{ID: 3, Address: "test 2", Name: "test name 2"},
+			[]services.BuildingDTO{
+				{ID: 2, Address: "test 1", NameEn: utils.GetPointer("test name 1")},
+				{ID: 3, Address: "test 2", NameEn: utils.GetPointer("test name 2")},
 			},
 			nil,
 			tgbotapi.MessageConfig{
@@ -153,9 +154,9 @@ Available building addresses and names:`,
 				nil,
 			},
 			args{chatID: 123, limit: 2, offset: 1, address: "test"},
-			[]services.BuildingPreview{
-				{ID: 1, Address: "test 1", Name: "test name 1"},
-				{ID: 2, Address: "test 2", Name: "test name 2"},
+			[]services.BuildingDTO{
+				{ID: 1, Address: "test 1", NameEn: utils.GetPointer("test name 1")},
+				{ID: 2, Address: "test 2", NameEn: utils.GetPointer("test name 2")},
 			},
 			nil,
 			tgbotapi.MessageConfig{
@@ -189,12 +190,12 @@ Available building addresses and names:`,
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.fields.buildingService.EXPECT().GetBuildingPreviews(
+			tt.fields.buildingService.EXPECT().GetBuildings(
 				tt.args.ctx,
 				tt.args.address,
 				tt.args.limit,
 				tt.args.offset,
-			).Return(tt.buildingPreviews, tt.buildingError)
+			).Return(tt.buildings, tt.buildingError)
 			tt.fields.bot.EXPECT().
 				Send(tt.expectedMsg).Return(tgbotapi.Message{}, nil)
 			h := HandlerContainer{
@@ -205,7 +206,14 @@ Available building addresses and names:`,
 				commandsForHelp:    tt.fields.commandsForHelp,
 				metrics:            tt.fields.metrics,
 			}
-			h.returnAddresses(tt.args.ctx, tt.args.chatID, tt.args.address, tt.args.limit, tt.args.offset)
+			h.returnAddresses(
+				tt.args.ctx,
+				tt.args.chatID,
+				nil,
+				tt.args.address,
+				tt.args.limit,
+				tt.args.offset,
+			)
 		})
 	}
 }

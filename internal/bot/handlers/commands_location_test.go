@@ -32,7 +32,7 @@ func TestHandlerContainer_getNearestAddresses(t *testing.T) {
 		name             string
 		fields           fields
 		args             args
-		buildingPreviews []services.BuildingPreview
+		buildingPreviews []services.BuildingDTO
 		buildingError    error
 		expectedMsg      tgbotapi.MessageConfig
 		expectedError    error
@@ -48,7 +48,7 @@ func TestHandlerContainer_getNearestAddresses(t *testing.T) {
 				nil,
 			},
 			args{chatID: 123, latitude: 3, longitude: 3},
-			[]services.BuildingPreview{},
+			[]services.BuildingDTO{},
 			serviceError,
 			tgbotapi.NewMessage(123, "Internal error"),
 			serviceError,
@@ -64,11 +64,11 @@ func TestHandlerContainer_getNearestAddresses(t *testing.T) {
 				nil,
 			},
 			args{chatID: 123, latitude: 3, longitude: 3},
-			[]services.BuildingPreview{},
+			[]services.BuildingDTO{},
 			nil,
 			tgbotapi.MessageConfig{
 				BaseChat: tgbotapi.BaseChat{ChatID: 123},
-				Text:     fmt.Sprintf(noNearestBuildingsTemplate, DEFAULT_DISTANCE),
+				Text:     fmt.Sprintf(noNearestBuildingsEnglishTemplate, DEFAULT_DISTANCE),
 			},
 			nil,
 		},
@@ -83,8 +83,12 @@ func TestHandlerContainer_getNearestAddresses(t *testing.T) {
 				nil,
 			},
 			args{chatID: 123, latitude: 3, longitude: 3},
-			[]services.BuildingPreview{
-				{Address: "test 1", Name: "test name 1", ID: 999},
+			[]services.BuildingDTO{
+				{
+					Address: "test 1",
+					NameEn:  utils.GetPointer("test name 1"),
+					ID:      999,
+				},
 			},
 			nil,
 			tgbotapi.MessageConfig{
@@ -100,7 +104,7 @@ func TestHandlerContainer_getNearestAddresses(t *testing.T) {
 						}},
 					},
 				},
-				Text:                  fmt.Sprintf(nearestBuildingsTemplate, DEFAULT_DISTANCE),
+				Text:                  fmt.Sprintf(nearestBuildingsEnglishTemplate, DEFAULT_DISTANCE),
 				DisableWebPagePreview: false,
 			},
 			nil,
@@ -116,9 +120,9 @@ func TestHandlerContainer_getNearestAddresses(t *testing.T) {
 				nil,
 			},
 			args{chatID: 123, latitude: 3, longitude: 0},
-			[]services.BuildingPreview{
-				{Address: "test 1", Name: "test name 1", ID: 1000},
-				{Address: "test 2", Name: "test name 2", ID: 999},
+			[]services.BuildingDTO{
+				{Address: "test 1", NameEn: utils.GetPointer("test name 1"), ID: 1000},
+				{Address: "test 2", NameEn: utils.GetPointer("test name 2"), ID: 999},
 			},
 			nil,
 			tgbotapi.MessageConfig{
@@ -138,7 +142,7 @@ func TestHandlerContainer_getNearestAddresses(t *testing.T) {
 						},
 					},
 				},
-				Text:                  fmt.Sprintf(nearestBuildingsTemplate, DEFAULT_DISTANCE),
+				Text:                  fmt.Sprintf(nearestBuildingsEnglishTemplate, DEFAULT_DISTANCE),
 				DisableWebPagePreview: false,
 			},
 			nil,
@@ -147,7 +151,7 @@ func TestHandlerContainer_getNearestAddresses(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
-			tt.fields.buildingService.EXPECT().GetNearestBuildingPreviews(
+			tt.fields.buildingService.EXPECT().GetNearestBuildings(
 				ctx,
 				DEFAULT_DISTANCE,
 				tt.args.latitude,

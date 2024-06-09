@@ -120,7 +120,11 @@ func getBuildingButtonRows(
 		case s.Russian:
 			buildingName = building.NameRu
 		}
-		label := fmt.Sprintf(buttonTemplate, building.Address, buildingName)
+		name := noDataPerLanguages[language]
+		if buildingName != nil {
+			name = *buildingName
+		}
+		label := fmt.Sprintf(buttonTemplate, building.Address, name)
 		button := BuildingButton{
 			Button{label, BUILDING_BUTTON},
 			strconv.FormatInt(building.ID, 10),
