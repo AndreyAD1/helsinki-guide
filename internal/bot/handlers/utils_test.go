@@ -131,6 +131,11 @@ func TestSerializeIntoMessage_positive(t *testing.T) {
 <b>Окрестности:</b> surroundings ru
 <b>История здания:</b> history ru`,
 		},
+		{
+			"a structure with no field tags",
+			args{args{}, s.English},
+			"",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -164,11 +169,6 @@ func TestSerializeIntoMessage_negative(t *testing.T) {
 			"not a structure",
 			args{123, s.English},
 			ErrUnexpectedType,
-		},
-		{
-			"a structure with no field tags",
-			args{args{}, s.English},
-			ErrNoFieldTag,
 		},
 		{
 			"a structure with no name tag",

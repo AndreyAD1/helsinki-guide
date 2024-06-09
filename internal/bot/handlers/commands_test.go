@@ -65,7 +65,7 @@ func TestHandlerContainer_returnAddresses(t *testing.T) {
 			nil,
 			tgbotapi.NewMessage(123, `Search address: 
 Available building addresses and names:
-No buildings are found.`),
+No buildings were found.`),
 		},
 		{
 			"several buildings and address, no offset",
