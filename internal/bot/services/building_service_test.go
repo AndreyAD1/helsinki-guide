@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestBuildingService_GetBuildingPreviews(t *testing.T) {
+func TestBuildingService_GetBuildings(t *testing.T) {
 	type fields struct {
 		buildingCollection *r.BuildingRepository_mock
 		actorCollection    *r.ActorRepository_mock
@@ -28,7 +28,7 @@ func TestBuildingService_GetBuildingPreviews(t *testing.T) {
 		args            args
 		foundBuildings  []r.Building
 		repositoryError error
-		want            []BuildingPreview
+		want            []BuildingDTO
 	}{
 		{
 			"no previews - no arguments",
@@ -39,7 +39,7 @@ func TestBuildingService_GetBuildingPreviews(t *testing.T) {
 			args{},
 			[]r.Building{},
 			nil,
-			[]BuildingPreview{},
+			[]BuildingDTO{},
 		},
 		{
 			"no previews",
@@ -50,7 +50,7 @@ func TestBuildingService_GetBuildingPreviews(t *testing.T) {
 			args{context.Background(), "test", 5, 10},
 			[]r.Building{},
 			nil,
-			[]BuildingPreview{},
+			[]BuildingDTO{},
 		},
 		{
 			"repository error",
@@ -61,7 +61,7 @@ func TestBuildingService_GetBuildingPreviews(t *testing.T) {
 			args{},
 			[]r.Building{},
 			errors.New("test error"),
-			[]BuildingPreview{},
+			[]BuildingDTO{},
 		},
 		{
 			"one preview",
@@ -77,7 +77,9 @@ func TestBuildingService_GetBuildingPreviews(t *testing.T) {
 				},
 			},
 			nil,
-			[]BuildingPreview{{0, "test address", "test name"}},
+			[]BuildingDTO{
+				{ID: 0, Address: "test address", NameFi: utils.GetPointer("test name")},
+			},
 		},
 		{
 			"two previews",
@@ -97,9 +99,9 @@ func TestBuildingService_GetBuildingPreviews(t *testing.T) {
 				},
 			},
 			nil,
-			[]BuildingPreview{
-				{0, "test address 1", "test name 1"},
-				{0, "test address 2", "test name 2"},
+			[]BuildingDTO{
+				{Address: "test address 1", NameFi: utils.GetPointer("test name 1")},
+				{Address: "test address 2", NameFi: utils.GetPointer("test name 2")},
 			},
 		},
 	}
@@ -204,7 +206,7 @@ func TestBuildingService_GetBuildingsByAddress(t *testing.T) {
 			[]r.Actor{},
 			nil,
 			nil,
-			[]BuildingDTO{{Address: "test address"}},
+			[]BuildingDTO{{ID: 1, Address: "test address"}},
 		},
 		{
 			"one building - one author",
@@ -217,7 +219,7 @@ func TestBuildingService_GetBuildingsByAddress(t *testing.T) {
 			[]r.Actor{{Name: "author 1"}},
 			nil,
 			nil,
-			[]BuildingDTO{{Address: "test address", Authors: &[]string{"author 1"}}},
+			[]BuildingDTO{{ID: 1, Address: "test address", Authors: &[]string{"author 1"}}},
 		},
 		{
 			"one building - two authors",
@@ -230,7 +232,9 @@ func TestBuildingService_GetBuildingsByAddress(t *testing.T) {
 			[]r.Actor{{Name: "author 1"}, {Name: "author 2"}},
 			nil,
 			nil,
-			[]BuildingDTO{{Address: "test address", Authors: &[]string{"author 1", "author 2"}}},
+			[]BuildingDTO{
+				{ID: 1, Address: "test address", Authors: &[]string{"author 1", "author 2"}},
+			},
 		},
 	}
 	for _, tt := range tests {
@@ -299,13 +303,13 @@ func TestBuildingService_GetBuildingsByAddress_ManyBuildings(t *testing.T) {
 			[]r.Actor{{Name: "author 1"}, {Name: "author 2"}},
 			[]BuildingDTO{
 				{
+					ID:      1,
 					NameFi:  utils.GetPointer("test 1"),
-					Address: "",
 					Authors: &[]string{"author 1", "author 2"},
 				},
 				{
+					ID:      2,
 					NameFi:  utils.GetPointer("test 2"),
-					Address: "",
 					Authors: &[]string{"author 1", "author 2"},
 				},
 			},
@@ -407,7 +411,7 @@ func TestBuildingService_GetBuildingByID(t *testing.T) {
 			[]r.Actor{{Name: "author 1"}},
 			nil,
 			nil,
-			&BuildingDTO{Address: "test address", Authors: &[]string{"author 1"}},
+			&BuildingDTO{ID: 123, Address: "test address", Authors: &[]string{"author 1"}},
 		},
 	}
 	for _, tt := range tests {

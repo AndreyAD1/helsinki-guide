@@ -30,7 +30,7 @@ func TestBuildingService_GetNearestPreviews(t *testing.T) {
 		args            args
 		foundBuildings  []repositories.Building
 		repositoryError error
-		want            []BuildingPreview
+		want            []BuildingDTO
 	}{
 		{
 			"no previews - no arguments",
@@ -41,7 +41,7 @@ func TestBuildingService_GetNearestPreviews(t *testing.T) {
 			args{},
 			[]repositories.Building{},
 			nil,
-			[]BuildingPreview{},
+			[]BuildingDTO{},
 		},
 		{
 			"no previews",
@@ -52,7 +52,7 @@ func TestBuildingService_GetNearestPreviews(t *testing.T) {
 			args{context.Background(), 100, 0.0, 0.0, 5, 10},
 			[]repositories.Building{},
 			nil,
-			[]BuildingPreview{},
+			[]BuildingDTO{},
 		},
 		{
 			"repository error",
@@ -63,7 +63,7 @@ func TestBuildingService_GetNearestPreviews(t *testing.T) {
 			args{},
 			[]repositories.Building{},
 			errors.New("test error"),
-			[]BuildingPreview{},
+			[]BuildingDTO{},
 		},
 		{
 			"one preview",
@@ -79,7 +79,7 @@ func TestBuildingService_GetNearestPreviews(t *testing.T) {
 				},
 			},
 			nil,
-			[]BuildingPreview{{0, "test address", "test name"}},
+			[]BuildingDTO{{Address: "test address", NameFi: utils.GetPointer("test name")}},
 		},
 		{
 			"two previews",
@@ -99,9 +99,9 @@ func TestBuildingService_GetNearestPreviews(t *testing.T) {
 				},
 			},
 			nil,
-			[]BuildingPreview{
-				{0, "test address 1", "test name 1"},
-				{0, "test address 2", "test name 2"},
+			[]BuildingDTO{
+				{Address: "test address 1", NameFi: utils.GetPointer("test name 1")},
+				{Address: "test address 2", NameFi: utils.GetPointer("test name 2")},
 			},
 		},
 	}
