@@ -57,7 +57,7 @@ func NewBuildingDTO(b r.Building, authors []r.Actor) BuildingDTO {
 		DetailsRu:         b.SpecialFeaturesRu,
 		SurroundingsFi:    b.SurroundingsFi,
 		SurroundingsEn:    b.SurroundingsEn,
-		SurroundingsRu:    b.SpecialFeaturesRu,
+		SurroundingsRu:    b.SurroundingsRu,
 	}
 }
 
