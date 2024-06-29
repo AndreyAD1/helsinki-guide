@@ -201,10 +201,82 @@ func TestHandlerContainer_getNearestAddresses_languages(t *testing.T) {
 		expectedError  error
 	}{
 		{
-			"no buildings - english - default",
+			"no buildings - English - no configured language",
 			args{userID: int64(123), userLanguage: "en"},
 			[]services.BuildingDTO{},
 			nil,
+			nil,
+			tgbotapi.MessageConfig{
+				BaseChat: tgbotapi.BaseChat{ChatID: 123},
+				Text:     fmt.Sprintf(noNearestBuildingsEnglishTemplate, DEFAULT_DISTANCE),
+			},
+			nil,
+		},
+		{
+			"no buildings - French - no configured language",
+			args{userID: int64(123), userLanguage: "fr"},
+			[]services.BuildingDTO{},
+			nil,
+			nil,
+			tgbotapi.MessageConfig{
+				BaseChat: tgbotapi.BaseChat{ChatID: 123},
+				Text:     fmt.Sprintf(noNearestBuildingsEnglishTemplate, DEFAULT_DISTANCE),
+			},
+			nil,
+		},
+		{
+			"no buildings - Russian - no configured language",
+			args{userID: int64(123), userLanguage: "ru"},
+			[]services.BuildingDTO{},
+			nil,
+			nil,
+			tgbotapi.MessageConfig{
+				BaseChat: tgbotapi.BaseChat{ChatID: 123},
+				Text:     fmt.Sprintf(noNearestBuildingsRussianTemplate, DEFAULT_DISTANCE),
+			},
+			nil,
+		},
+		{
+			"no buildings - English - configured English",
+			args{userID: int64(123), userLanguage: "en"},
+			[]services.BuildingDTO{},
+			&services.English,
+			nil,
+			tgbotapi.MessageConfig{
+				BaseChat: tgbotapi.BaseChat{ChatID: 123},
+				Text:     fmt.Sprintf(noNearestBuildingsEnglishTemplate, DEFAULT_DISTANCE),
+			},
+			nil,
+		},
+		{
+			"no buildings - English - configured Finnish",
+			args{userID: int64(123), userLanguage: "en"},
+			[]services.BuildingDTO{},
+			&services.Finnish,
+			nil,
+			tgbotapi.MessageConfig{
+				BaseChat: tgbotapi.BaseChat{ChatID: 123},
+				Text:     fmt.Sprintf(noNearestBuildingsFinnishTemplate, DEFAULT_DISTANCE),
+			},
+			nil,
+		},
+		{
+			"no buildings - Finnish - configured Russian",
+			args{userID: int64(123), userLanguage: "fi"},
+			[]services.BuildingDTO{},
+			&services.Russian,
+			nil,
+			tgbotapi.MessageConfig{
+				BaseChat: tgbotapi.BaseChat{ChatID: 123},
+				Text:     fmt.Sprintf(noNearestBuildingsRussianTemplate, DEFAULT_DISTANCE),
+			},
+			nil,
+		},
+		{
+			"no buildings - French - configured English",
+			args{userID: int64(123), userLanguage: "fr"},
+			[]services.BuildingDTO{},
+			&services.English,
 			nil,
 			tgbotapi.MessageConfig{
 				BaseChat: tgbotapi.BaseChat{ChatID: 123},
