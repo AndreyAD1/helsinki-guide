@@ -84,6 +84,14 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatalf("Could not start a resource: %s", err)
 	}
+	var code int
+	defer func() {
+		log.Printf("a test exit code: %v; cleaning up", code)
+		if err := dockerPool.Purge(resource); err != nil {
+			log.Fatalf("Could not purge a docker resource: %s", err)
+		}
+		os.Exit(code)
+	}()
 
 	hostAndPort := resource.GetHostPort("5432/tcp")
 	databaseUrl = fmt.Sprintf(
@@ -95,7 +103,7 @@ func TestMain(m *testing.M) {
 
 	resource.Expire(120)
 
-	dockerPool.MaxWait = 120 * time.Second
+	dockerPool.MaxWait = 60 * time.Second
 	ctx := context.Background()
 	if err = dockerPool.Retry(func() error {
 		dbpool, err = pgxpool.New(context.Background(), databaseUrl)
@@ -105,21 +113,17 @@ func TestMain(m *testing.M) {
 				databaseUrl,
 				err,
 			)
-			os.Exit(1)
+			code = 1
+			return err
 		}
 		log.Println("ping a DB")
 		return dbpool.Ping(ctx)
 	}); err != nil {
-		log.Fatalf("Could not connect to a DB container: %s", err)
+		log.Printf("Could not connect to a DB container: %s", err)
+		code = 1
+		return
 	}
-	var code int
-	defer func() {
-		log.Printf("a test exit code: %v; cleaning up", code)
-		if err := dockerPool.Purge(resource); err != nil {
-			log.Fatalf("Could not purge a docker resource: %s", err)
-		}
-		os.Exit(code)
-	}()
+
 	code = m.Run()
 }
 

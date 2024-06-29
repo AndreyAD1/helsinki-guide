@@ -5,6 +5,7 @@ const (
 	buttonTemplate = "%s - %s"
 	helpMessage    = `If you send me a message, I will provide all addresses I know that are similar to your message.
 If you click the button "Share my location and get the nearest buildings", I will provide all known addresses that are close to your location.
+I am aware of buildings located in these Helsinki neighbourhoods: Munkkiniemi, Munkkivuori, Laajasalo, Lauttasaari, and Pohjois-Haaga.
 
 Available commands:
 /start - I will send a greeting message.
