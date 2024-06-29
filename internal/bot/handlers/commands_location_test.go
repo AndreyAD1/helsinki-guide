@@ -198,7 +198,6 @@ func TestHandlerContainer_getNearestAddresses_languages(t *testing.T) {
 		storedLanguage *services.Language
 		userError      error
 		expectedMsg    tgbotapi.MessageConfig
-		expectedError  error
 	}{
 		{
 			"no buildings - English - no configured language",
@@ -210,7 +209,6 @@ func TestHandlerContainer_getNearestAddresses_languages(t *testing.T) {
 				BaseChat: tgbotapi.BaseChat{ChatID: 123},
 				Text:     fmt.Sprintf(noNearestBuildingsEnglishTemplate, DEFAULT_DISTANCE),
 			},
-			nil,
 		},
 		{
 			"no buildings - French - no configured language",
@@ -222,7 +220,6 @@ func TestHandlerContainer_getNearestAddresses_languages(t *testing.T) {
 				BaseChat: tgbotapi.BaseChat{ChatID: 123},
 				Text:     fmt.Sprintf(noNearestBuildingsEnglishTemplate, DEFAULT_DISTANCE),
 			},
-			nil,
 		},
 		{
 			"no buildings - Russian - no configured language",
@@ -234,7 +231,6 @@ func TestHandlerContainer_getNearestAddresses_languages(t *testing.T) {
 				BaseChat: tgbotapi.BaseChat{ChatID: 123},
 				Text:     fmt.Sprintf(noNearestBuildingsRussianTemplate, DEFAULT_DISTANCE),
 			},
-			nil,
 		},
 		{
 			"no buildings - English - configured English",
@@ -246,7 +242,6 @@ func TestHandlerContainer_getNearestAddresses_languages(t *testing.T) {
 				BaseChat: tgbotapi.BaseChat{ChatID: 123},
 				Text:     fmt.Sprintf(noNearestBuildingsEnglishTemplate, DEFAULT_DISTANCE),
 			},
-			nil,
 		},
 		{
 			"no buildings - English - configured Finnish",
@@ -258,7 +253,6 @@ func TestHandlerContainer_getNearestAddresses_languages(t *testing.T) {
 				BaseChat: tgbotapi.BaseChat{ChatID: 123},
 				Text:     fmt.Sprintf(noNearestBuildingsFinnishTemplate, DEFAULT_DISTANCE),
 			},
-			nil,
 		},
 		{
 			"no buildings - Finnish - configured Russian",
@@ -270,7 +264,6 @@ func TestHandlerContainer_getNearestAddresses_languages(t *testing.T) {
 				BaseChat: tgbotapi.BaseChat{ChatID: 123},
 				Text:     fmt.Sprintf(noNearestBuildingsRussianTemplate, DEFAULT_DISTANCE),
 			},
-			nil,
 		},
 		{
 			"no buildings - French - configured English",
@@ -282,65 +275,78 @@ func TestHandlerContainer_getNearestAddresses_languages(t *testing.T) {
 				BaseChat: tgbotapi.BaseChat{ChatID: 123},
 				Text:     fmt.Sprintf(noNearestBuildingsEnglishTemplate, DEFAULT_DISTANCE),
 			},
-			nil,
 		},
-		// {
-		// 	"one building",
-		// 	args{chatID: 123, latitude: 3, longitude: 3},
-		// 	[]services.BuildingDTO{
-		// 		{
-		// 			Address: "test 1",
-		// 			NameEn:  utils.GetPointer("test name 1"),
-		// 			ID:      999,
-		// 		},
-		// 	},
-		// 	tgbotapi.MessageConfig{
-		// 		BaseChat: tgbotapi.BaseChat{
-		// 			ChatID:           123,
-		// 			ReplyToMessageID: 0,
-		// 			ReplyMarkup: tgbotapi.InlineKeyboardMarkup{
-		// 				InlineKeyboard: [][]tgbotapi.InlineKeyboardButton{{
-		// 					tgbotapi.InlineKeyboardButton{
-		// 						Text:         "test 1 - test name 1",
-		// 						CallbackData: utils.GetPointer(`{"name":"building","id":"999"}`),
-		// 					},
-		// 				}},
-		// 			},
-		// 		},
-		// 		Text:                  fmt.Sprintf(nearestBuildingsEnglishTemplate, DEFAULT_DISTANCE),
-		// 		DisableWebPagePreview: false,
-		// 	},
-		// 	nil,
-		// },
-		// {
-		// 	"two buildings",
-		// 	args{chatID: 123, latitude: 3, longitude: 0},
-		// 	[]services.BuildingDTO{
-		// 		{Address: "test 1", NameEn: utils.GetPointer("test name 1"), ID: 1000},
-		// 		{Address: "test 2", NameEn: utils.GetPointer("test name 2"), ID: 999},
-		// 	},
-		// 	tgbotapi.MessageConfig{
-		// 		BaseChat: tgbotapi.BaseChat{
-		// 			ChatID:           123,
-		// 			ReplyToMessageID: 0,
-		// 			ReplyMarkup: tgbotapi.InlineKeyboardMarkup{
-		// 				InlineKeyboard: [][]tgbotapi.InlineKeyboardButton{{
-		// 					tgbotapi.InlineKeyboardButton{
-		// 						Text:         "test 1 - test name 1",
-		// 						CallbackData: utils.GetPointer(`{"name":"building","id":"1000"}`),
-		// 					}},
-		// 					{tgbotapi.InlineKeyboardButton{
-		// 						Text:         "test 2 - test name 2",
-		// 						CallbackData: utils.GetPointer(`{"name":"building","id":"999"}`),
-		// 					}},
-		// 				},
-		// 			},
-		// 		},
-		// 		Text:                  fmt.Sprintf(nearestBuildingsEnglishTemplate, DEFAULT_DISTANCE),
-		// 		DisableWebPagePreview: false,
-		// 	},
-		// 	nil,
-		// },
+		{
+			"no buildings - Finnish - repository error",
+			args{userID: int64(123), userLanguage: "fi"},
+			[]services.BuildingDTO{},
+			&services.English,
+			fmt.Errorf("test error"),
+			tgbotapi.MessageConfig{
+				BaseChat: tgbotapi.BaseChat{ChatID: 123},
+				Text:     fmt.Sprintf(noNearestBuildingsFinnishTemplate, DEFAULT_DISTANCE),
+			},
+		},
+		{
+			"two buildings - Finnish - configured Finnish",
+			args{userID: int64(123), userLanguage: "fi"},
+			[]services.BuildingDTO{
+				{Address: "test 1", NameFi: utils.GetPointer("nimi 1"), NameEn: utils.GetPointer("name 1"), ID: 1000},
+				{Address: "test 2", NameFi: utils.GetPointer("nimi 2"), NameEn: utils.GetPointer("name 2"), ID: 999},
+			},
+			&services.Finnish,
+			nil,
+			tgbotapi.MessageConfig{
+				BaseChat: tgbotapi.BaseChat{
+					ChatID:           123,
+					ReplyToMessageID: 0,
+					ReplyMarkup: tgbotapi.InlineKeyboardMarkup{
+						InlineKeyboard: [][]tgbotapi.InlineKeyboardButton{{
+							tgbotapi.InlineKeyboardButton{
+								Text:         "test 1 - nimi 1",
+								CallbackData: utils.GetPointer(`{"name":"building","id":"1000"}`),
+							}},
+							{tgbotapi.InlineKeyboardButton{
+								Text:         "test 2 - nimi 2",
+								CallbackData: utils.GetPointer(`{"name":"building","id":"999"}`),
+							}},
+						},
+					},
+				},
+				Text:                  fmt.Sprintf(nearestBuildingsFinnishTemplate, DEFAULT_DISTANCE),
+				DisableWebPagePreview: false,
+			},
+		},
+		{
+			"two buildings - English - configured Russian",
+			args{userID: int64(123), userLanguage: "en"},
+			[]services.BuildingDTO{
+				{Address: "test 1", NameRu: utils.GetPointer("имя 1"), NameFi: utils.GetPointer("nimi 1"), NameEn: utils.GetPointer("name 1"), ID: 1000},
+				{Address: "test 2", NameRu: utils.GetPointer("имя 2"), NameFi: utils.GetPointer("nimi 2"), NameEn: utils.GetPointer("name 2"), ID: 999},
+			},
+			&services.Russian,
+			nil,
+			tgbotapi.MessageConfig{
+				BaseChat: tgbotapi.BaseChat{
+					ChatID:           123,
+					ReplyToMessageID: 0,
+					ReplyMarkup: tgbotapi.InlineKeyboardMarkup{
+						InlineKeyboard: [][]tgbotapi.InlineKeyboardButton{{
+							tgbotapi.InlineKeyboardButton{
+								Text:         "test 1 - имя 1",
+								CallbackData: utils.GetPointer(`{"name":"building","id":"1000"}`),
+							}},
+							{tgbotapi.InlineKeyboardButton{
+								Text:         "test 2 - имя 2",
+								CallbackData: utils.GetPointer(`{"name":"building","id":"999"}`),
+							}},
+						},
+					},
+				},
+				Text:                  fmt.Sprintf(nearestBuildingsRussianTemplate, DEFAULT_DISTANCE),
+				DisableWebPagePreview: false,
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -380,7 +386,7 @@ func TestHandlerContainer_getNearestAddresses_languages(t *testing.T) {
 				},
 			}
 			err := h.getNearestAddresses(ctx, &message)
-			require.ErrorIs(t, err, tt.expectedError)
+			require.NoError(t, err)
 		})
 	}
 }
