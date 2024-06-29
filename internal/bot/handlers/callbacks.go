@@ -257,20 +257,23 @@ func (h HandlerContainer) getPreferredLanguage(
 	user *tgbotapi.User,
 ) services.Language {
 	userLanguage := services.English
-	if user != nil {
-		switch user.LanguageCode {
-		case "fi":
-			userLanguage = services.Finnish
-		case "ru":
-			userLanguage = services.Russian
-		}
-		preferredLanguage, err := h.userService.GetPreferredLanguage(
-			ctx,
-			user.ID,
-		)
-		if err == nil && preferredLanguage != nil {
-			userLanguage = *preferredLanguage
-		}
+	if user == nil {
+		return userLanguage
+	}
+
+	switch user.LanguageCode {
+	case "fi":
+		userLanguage = services.Finnish
+	case "ru":
+		userLanguage = services.Russian
+	}
+	preferredLanguage, err := h.userService.GetPreferredLanguage(
+		ctx,
+		user.ID,
+	)
+
+	if err == nil && preferredLanguage != nil {
+		userLanguage = *preferredLanguage
 	}
 	return userLanguage
 }
