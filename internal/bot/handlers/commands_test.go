@@ -58,7 +58,7 @@ func TestHandlerContainer_returnAddresses(t *testing.T) {
 			tgbotapi.NewMessage(123, "Internal error"),
 		},
 		{
-			"no buildings - no address",
+			"no buildings - no address - no language",
 			fields{
 				services.NewBuildings_mock(t),
 				services.NewUsers_mock(t),
@@ -76,6 +76,46 @@ func TestHandlerContainer_returnAddresses(t *testing.T) {
 			tgbotapi.NewMessage(123, `Search address: 
 Available building addresses and names:
 No buildings were found.`),
+		},
+		{
+			"no buildings - no address - default Finnish",
+			fields{
+				services.NewBuildings_mock(t),
+				services.NewUsers_mock(t),
+				NewInternalBot_mock(t),
+				map[string]CommandHandler{},
+				map[string]internalButtonHandler{},
+				"",
+				nil,
+			},
+			args{chatID: 123, limit: 1, user: &tgbotapi.User{ID: int64(3), LanguageCode: "fi"}},
+			[]services.BuildingDTO{},
+			nil,
+			nil,
+			nil,
+			tgbotapi.NewMessage(123, `Osoite: 
+Tuntemani rakennukset:
+Rakennuksia ei löytynyt.`),
+		},
+		{
+			"no buildings - no address - configured Russian",
+			fields{
+				services.NewBuildings_mock(t),
+				services.NewUsers_mock(t),
+				NewInternalBot_mock(t),
+				map[string]CommandHandler{},
+				map[string]internalButtonHandler{},
+				"",
+				nil,
+			},
+			args{chatID: 123, limit: 1, user: &tgbotapi.User{ID: int64(3), LanguageCode: "fr"}},
+			[]services.BuildingDTO{},
+			nil,
+			&services.Russian,
+			nil,
+			tgbotapi.NewMessage(123, `Адрес: 
+Известные мне здания:
+Здания не найдены.`),
 		},
 		{
 			"several buildings and address, no offset",
@@ -204,6 +244,110 @@ Available building addresses and names:`,
 				},
 				Text: `Search address: test
 Available building addresses and names:`,
+			},
+		},
+		{
+			"several buildings and address, offset, button - Finnish",
+			fields{
+				services.NewBuildings_mock(t),
+				services.NewUsers_mock(t),
+				NewInternalBot_mock(t),
+				map[string]CommandHandler{},
+				map[string]internalButtonHandler{},
+				"",
+				nil,
+			},
+			args{
+				chatID:  123,
+				limit:   2,
+				offset:  1,
+				address: "test",
+				user:    &tgbotapi.User{ID: int64(4), LanguageCode: "ch"}},
+			[]services.BuildingDTO{
+				{ID: 1, Address: "test 1", NameFi: utils.GetPointer("nimi 1"), NameEn: utils.GetPointer("test name 1")},
+				{ID: 2, Address: "test 2", NameFi: utils.GetPointer("nimi 2"), NameEn: utils.GetPointer("test name 2")},
+			},
+			nil,
+			&services.Finnish,
+			nil,
+			tgbotapi.MessageConfig{
+				BaseChat: tgbotapi.BaseChat{
+					ChatID: 123,
+					ReplyMarkup: tgbotapi.NewInlineKeyboardMarkup(
+						tgbotapi.NewInlineKeyboardRow(
+							tgbotapi.NewInlineKeyboardButtonData(
+								"test 1 - nimi 1",
+								`{"name":"building","id":"1"}`,
+							),
+						),
+						tgbotapi.NewInlineKeyboardRow(
+							tgbotapi.NewInlineKeyboardButtonData(
+								"test 2 - nimi 2",
+								`{"name":"building","id":"2"}`,
+							),
+						),
+						tgbotapi.NewInlineKeyboardRow(
+							tgbotapi.NewInlineKeyboardButtonData(
+								"Seuraavat 2 rakennusta",
+								`{"name":"next","limit":2,"offset":3}`,
+							),
+						),
+					),
+				},
+				Text: `Osoite: test
+Tuntemani rakennukset:`,
+			},
+		},
+		{
+			"several buildings and address, offset, button - Russian",
+			fields{
+				services.NewBuildings_mock(t),
+				services.NewUsers_mock(t),
+				NewInternalBot_mock(t),
+				map[string]CommandHandler{},
+				map[string]internalButtonHandler{},
+				"",
+				nil,
+			},
+			args{
+				chatID:  123,
+				limit:   2,
+				offset:  1,
+				address: "test",
+				user:    &tgbotapi.User{ID: int64(4), LanguageCode: "en"}},
+			[]services.BuildingDTO{
+				{ID: 1, Address: "test 1", NameRu: utils.GetPointer("имя 1"), NameEn: utils.GetPointer("test name 1")},
+				{ID: 2, Address: "test 2", NameRu: utils.GetPointer("имя 2"), NameEn: utils.GetPointer("test name 2")},
+			},
+			nil,
+			&services.Russian,
+			nil,
+			tgbotapi.MessageConfig{
+				BaseChat: tgbotapi.BaseChat{
+					ChatID: 123,
+					ReplyMarkup: tgbotapi.NewInlineKeyboardMarkup(
+						tgbotapi.NewInlineKeyboardRow(
+							tgbotapi.NewInlineKeyboardButtonData(
+								"test 1 - имя 1",
+								`{"name":"building","id":"1"}`,
+							),
+						),
+						tgbotapi.NewInlineKeyboardRow(
+							tgbotapi.NewInlineKeyboardButtonData(
+								"test 2 - имя 2",
+								`{"name":"building","id":"2"}`,
+							),
+						),
+						tgbotapi.NewInlineKeyboardRow(
+							tgbotapi.NewInlineKeyboardButtonData(
+								"Следующие 2 зданий",
+								`{"name":"next","limit":2,"offset":3}`,
+							),
+						),
+					),
+				},
+				Text: `Адрес: test
+Известные мне здания:`,
 			},
 		},
 	}
