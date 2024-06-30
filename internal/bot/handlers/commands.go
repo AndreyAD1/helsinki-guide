@@ -253,7 +253,15 @@ func (h HandlerContainer) returnAddresses(
 		return errors.Join(sendErr, err)
 	}
 	language := h.getPreferredLanguage(ctx, user)
+	headerTemplate := headerTemplateEnglish
+	switch language {
+	case services.Finnish:
+		headerTemplate = headerTemplateFinnish
+	case services.Russian:
+		headerTemplate = headerTemplateRussian
+	}
 	title := fmt.Sprintf(headerTemplate, address)
+
 	msg := tgbotapi.NewMessage(chatID, title)
 	if len(buildings) == 0 {
 		noBuildingsText := "No buildings were found."
@@ -284,8 +292,16 @@ func (h HandlerContainer) returnAddresses(
 		}
 		return err
 	}
+
+	nextButtonTemplate := "Next %v buildings"
+	switch language {
+	case services.Finnish:
+		nextButtonTemplate = "Seuraavat %v rakennusta"
+	case services.Russian:
+		nextButtonTemplate = "Следующие %v зданий"
+	}
 	button := NextButton{
-		Button{fmt.Sprintf("Next %v buildings", limit), NEXT_BUTTON},
+		Button{fmt.Sprintf(nextButtonTemplate, limit), NEXT_BUTTON},
 		limit,
 		offset + len(buildings),
 	}
