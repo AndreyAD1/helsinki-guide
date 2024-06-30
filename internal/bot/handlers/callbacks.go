@@ -71,7 +71,14 @@ func (h HandlerContainer) next(ctx c.Context, query *tgbotapi.CallbackQuery) err
 		return fmt.Errorf("%v: %w", logMsg, ErrUnexpectedCallback)
 	}
 	address = strings.TrimSpace(address)
-	if err := h.returnAddresses(ctx, chat.ID, address, button.Limit, button.Offset); err != nil {
+	if err := h.returnAddresses(
+		ctx,
+		chat.ID,
+		query.From,
+		address,
+		button.Limit,
+		button.Offset,
+	); err != nil {
 		return err
 	}
 	if query.Message.ReplyMarkup == nil {
@@ -250,20 +257,23 @@ func (h HandlerContainer) getPreferredLanguage(
 	user *tgbotapi.User,
 ) services.Language {
 	userLanguage := services.English
-	if user != nil {
-		switch user.LanguageCode {
-		case "fi":
-			userLanguage = services.Finnish
-		case "ru":
-			userLanguage = services.Russian
-		}
-		preferredLanguage, err := h.userService.GetPreferredLanguage(
-			ctx,
-			user.ID,
-		)
-		if err == nil && preferredLanguage != nil {
-			userLanguage = *preferredLanguage
-		}
+	if user == nil {
+		return userLanguage
+	}
+
+	switch user.LanguageCode {
+	case "fi":
+		userLanguage = services.Finnish
+	case "ru":
+		userLanguage = services.Russian
+	}
+	preferredLanguage, err := h.userService.GetPreferredLanguage(
+		ctx,
+		user.ID,
+	)
+
+	if err == nil && preferredLanguage != nil {
+		userLanguage = *preferredLanguage
 	}
 	return userLanguage
 }

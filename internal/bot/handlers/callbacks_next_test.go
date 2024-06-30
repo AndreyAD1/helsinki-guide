@@ -63,8 +63,8 @@ func TestHandlerContainer_next_positive(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.fields.buildingService.EXPECT().
-				GetBuildingPreviews(tt.args.ctx, tt.address, tt.limit, tt.offset).
-				Return([]services.BuildingPreview{}, nil)
+				GetBuildings(tt.args.ctx, tt.address, tt.limit, tt.offset).
+				Return([]services.BuildingDTO{}, nil)
 
 			tt.fields.bot.EXPECT().
 				Request(tgbotapi.NewCallback(tt.queryID, "")).Return(nil, nil).

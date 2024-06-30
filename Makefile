@@ -1,10 +1,10 @@
 all: test build migrate run
 
 test_unit:
-	go test ./... -v
+	go test ./... -v -count=1
 
 test_integration:
-	INTEGRATION=1 go test -v ./integration_tests/...
+	INTEGRATION=1 go test -v ./integration_tests/... -count=1
 
 test: test_unit test_integration
 

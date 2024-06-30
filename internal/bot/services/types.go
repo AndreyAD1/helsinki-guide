@@ -19,13 +19,8 @@ func GetLanguagePerCode(code string) (Language, bool) {
 	return language, ok
 }
 
-type BuildingPreview struct {
-	ID      int64
-	Address string
-	Name    string
-}
-
 type BuildingDTO struct {
+	ID                int64
 	NameFi            *string   `valueLanguage:"fi" nameFi:"Nimi" nameEn:"Name" nameRu:"Имя"`
 	NameEn            *string   `valueLanguage:"en" nameFi:"Nimi" nameEn:"Name" nameRu:"Имя"`
 	NameRu            *string   `valueLanguage:"ru" nameFi:"Nimi" nameEn:"Name" nameRu:"Имя"`
