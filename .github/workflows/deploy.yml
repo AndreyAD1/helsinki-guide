@@ -3,6 +3,7 @@ name: Build and deploy
 on:
   push:
     branches: [ "main" ]
+  workflow dispatch:
 
 jobs:
   build:
@@ -17,7 +18,7 @@ jobs:
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      
+
       - name: Build an image
         run: make USER=${{ vars.DOCKERHUB_USERNAME }} TAG=${{ github.sha }} build .
 
@@ -26,22 +27,22 @@ jobs:
 
       - name: Add an SSH key
         run: touch ~/env_key && echo '${{ secrets.KEY}}' > ~/env_key && chmod 600 ~/env_key
-      
+
       - name: Copy a startup script
         run: scp -o StrictHostKeyChecking=no -i ~/env_key ./deployments${{ vars.SCRIPT_PATH}} ${{ secrets.USER}}@${{ secrets.HOST}}:${{ secrets.ROOT_PATH}}
-      
+
       - name: Install a migration tool
         run: curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-amd64.tar.gz | tar xvz
-      
+
       - name: Add a server CA certificate
-        run: | 
+        run: |
           echo '${{ secrets.CA}}' > ~/guide_ca.crt;
             sudo cp ~/guide_ca.crt /usr/local/share/ca-certificates/; \
             sudo update-ca-certificates
 
       - name: Add a client certificate
         run: mkdir ~/.postgresql; echo '${{ secrets.CLIENT_CERT}}' > ~/.postgresql/postgresql.crt
-      
+
       - name: Add a client private key
         run: echo '${{ secrets.CLIENT_TLS_KEY}}' > ~/.postgresql/postgresql.key; chmod 600 ~/.postgresql/postgresql.key
 
@@ -50,8 +51,8 @@ jobs:
 
       - name: Run the service
         env:
-          RUN_COMMAND: "${{ secrets.ROOT_PATH}}${{ vars.SCRIPT_PATH}} \ 
-          '${{ secrets.DATABASE_URL}}' '${{ secrets.BOT_TOKEN}}' \ 
-          '${{ github.sha}}' '${{ secrets.METRICS_USER}}' \ 
+          RUN_COMMAND: "${{ secrets.ROOT_PATH}}${{ vars.SCRIPT_PATH}} \
+          '${{ secrets.DATABASE_URL}}' '${{ secrets.BOT_TOKEN}}' \
+          '${{ github.sha}}' '${{ secrets.METRICS_USER}}' \
           '${{ secrets.METRICS_PASSWORD}}' '${{ secrets.METRICS_PORT}}'"
         run: ssh -o StrictHostKeyChecking=no -i ~/env_key ${{ secrets.USER}}@${{ secrets.HOST}} "source $RUN_COMMAND"
